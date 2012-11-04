@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package name="invar.data">
+
+	No effect !!
+
+	<Enum name="Career">
+	</Enum>
+
+	<struct name="Struct" doc="Test a full struct." xdasd="dd">
+		<Struct name="aStruct" value="000" />
+		<Int8 name="aInt8" value="1" />
+		<Int16 name="aInt16" value="2" />
+		<Int32 name="aInt32" value="3" />
+		<Int64 name="aInt64" value="0xFFFFFFFFFFFFFFFF" />
+		<Uint8 name="aUint8" value="5" />
+		<Uint16 name="aUint16" value="6" />
+		<Uint32 name="aUint32" value="7" />
+		<Uint64 name="aUint64" value="8" />
+		<Float name="aFloat" value="88888888.999999999" />
+		<Double name="aDouble" value="9999999999.9999999999" />
+		<Bool name="aBool" value="true" />
+		<String name="aString" value="invar" />
+		<Vec-Struct name="aVecStruct" value="222" />
+		<Vec-Int8 name="aVecInt8" value="222" />
+		<Vec-Int16 name="aVecInt16" value="" />
+		<Vec-Int32 name="aVecInt32" value="" />
+		<Vec-Int64 name="aVecInt64" value="" />
+		<Vec-Uint8 name="aVecUint8" value="" />
+		<Vec-Uint16 name="aVecUint16" value="" />
+		<Vec-Uint32 name="aVecUint32" value="" />
+		<Vec-Uint64 name="aVecUint64" value="" />
+		<Vec-Float name="aVecFloat" value="" />
+		<Vec-Double name="aVecDouble" value="" />
+		<Vec-Bool name="aVecBool" value="" />
+		<Vec-String name="aVecString" value="" />
+		<Map-Struct name="aMapStruct" value="222" />
+		<Map-Int8 name="aMapInt8" value="" />
+		<Map-Int16 name="aMapInt16" value="" />
+		<Map-Int32 name="aMapInt32" value="" />
+		<Map-Int64 name="aMapInt64" value="" />
+		<Map-Uint8 name="aMapUint8" value="" />
+		<Map-Uint16 name="aMapUint16" value="" />
+		<Map-Uint32 name="aMapUint32" value="" />
+		<Map-Uint64 name="aMapUint64" value="" />
+		<Map-Float name="aMapFloat" value="" />
+		<Map-Double name="aMapDouble" value="" />
+		<Map-Bool name="aMapBool" value="" />
+		<Map-String name="aMapString" value="" />
+	</struct>
+
+</package>

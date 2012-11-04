@@ -1,4 +1,11 @@
 *.class
+bin/
+tmp/
+temp/
+.*
+
+
+
 
 # Package Files #
 *.jar
