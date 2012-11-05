@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map.Entry;
 
 public abstract class WriteOutputCode
 {
@@ -105,11 +104,10 @@ public abstract class WriteOutputCode
     private HashMap<File,String> makeFiles(String suffix)
     {
         HashMap<File,String> files = new HashMap<File,String>();
-        Iterator<Entry<String,InvarPackage>> i = getContext().getPacks()
-                .entrySet().iterator();
+        Iterator<String> i = getContext().getPackNames();
         while (i.hasNext())
         {
-            InvarPackage pack = i.next().getValue();
+            InvarPackage pack = getContext().getPack(i.next());
             Iterator<String> iTypeName = pack.getTypeNames().iterator();
             while (iTypeName.hasNext())
             {
@@ -167,19 +165,15 @@ public abstract class WriteOutputCode
 
     private void makePackageDirs() throws Exception
     {
-        HashMap<String,InvarPackage> packs = getContext().getPacks();
-        Iterator<String> i = packs.keySet().iterator();
+        Iterator<String> i = getContext().getPackNames();
         while (i.hasNext())
         {
-            InvarPackage pack = packs.get(i.next());
-
+            InvarPackage pack = getContext().getPack(i.next());
             if (!pack.getNeedWrite())
                 continue;
-
             String path = pack.getName().replace('.', '/') + '/';
             File dirs = new File(dirRoot, path);
             dirs.mkdirs();
-
             File packDir = new File(dirRoot, path);
             if (!packDir.exists())
             {

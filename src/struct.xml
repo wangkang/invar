@@ -1,25 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <package name="invar.data">
 
-	No effect !!
+	This text has no side effect !!
 
 	<Enum name="Career">
 	</Enum>
+	<Struct name="BagItem" doc="Items that can appear in user's bag.">
+		<String name="name" />
+		<String name="key" />
+		<ItemType name="type" />
+		<Int32 name="count" />
+	</Struct>
 
-	<struct name="Struct" doc="Test a full struct." xdasd="dd">
-		<Struct name="aStruct" value="000" />
+	<struct name="Struct" doc="Test a full struct." charset="UTF-8">
+		The following nodes are fields declaration.
+		<Struct name="aStruct" doc="Can refer to self." />
 		<Int8 name="aInt8" value="1" />
 		<Int16 name="aInt16" value="2" />
 		<Int32 name="aInt32" value="3" />
-		<Int64 name="aInt64" value="0xFFFFFFFFFFFFFFFF" />
 		<Uint8 name="aUint8" value="5" />
 		<Uint16 name="aUint16" value="6" />
-		<Uint32 name="aUint32" value="7" />
+		<UInt32 name="aUint32" value="7" />
+		<Int64 name="aInt64" value="0xFFFFFFFFFFFFFFFF" />
 		<Uint64 name="aUint64" value="8" />
 		<Float name="aFloat" value="88888888.999999999" />
 		<Double name="aDouble" value="9999999999.9999999999" />
 		<Bool name="aBool" value="true" />
 		<String name="aString" value="invar" />
+
 		<Vec-Struct name="aVecStruct" value="222" />
 		<Vec-Int8 name="aVecInt8" value="222" />
 		<Vec-Int16 name="aVecInt16" value="" />
@@ -46,6 +54,21 @@
 		<Map-Double name="aMapDouble" value="" />
 		<Map-Bool name="aMapBool" value="" />
 		<Map-String name="aMapString" value="" />
+
+		<Vec name="complex01" doc="Missing type will be Int32." />
+		<Vec-Uint32-Map name="complex02" doc="The last '_Map' will be ignored." />
+		<Vec-Map name="complex05" />
+		<Vec-Map-Struct name="complex06" />
+		<Vec-Map-Int16-Struct name="complex07" />
+		<Map name="complex03" />
+		<Map-Double-Bool name="complex04" doc="Standard expression" />
+		<Map-Vec-Int32-Vec-Int16 name="complex08" />
+		<Map-Int32-Vec-Vec-Vec-Struct name="complex09" />
+		<Vec-Vec-Vec-Map-Struct name="complex10" />
+
+		BagItem is defined in an other file.
+		<Vec-invar.protoc::BagItem name="bag" />
+
 	</struct>
 
 </package>

@@ -3,8 +3,10 @@ package invar;
 import invar.model.InvarPackage;
 import invar.model.InvarType;
 import invar.model.InvarType.TypeID;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
@@ -20,7 +22,7 @@ final public class InvarContext
 
     public InvarContext() throws Exception
     {
-        packBuildIn = new InvarPackage("#INVAR#", false, 16);
+        packBuildIn = new InvarPackage("#INVAR#", false);
         packAll = new HashMap<String,InvarPackage>();
         packAll.put(packBuildIn.getName(), packBuildIn);
 
@@ -53,7 +55,7 @@ final public class InvarContext
         InvarPackage pack = packAll.get(namePack);
         if (pack == null)
         {
-            pack = new InvarPackage(namePack, false, 24);
+            pack = new InvarPackage(namePack, false);
             packAll.put(namePack, pack);
         }
         InvarType t = new InvarType(id, nameType, pack, "").setGeneric(generic);
@@ -65,7 +67,7 @@ final public class InvarContext
     public InvarType typeRedirect(InvarType type)
     {
         InvarType tR = type;
-        if (isBuildInPack(type.getPack()))
+        if (type.getPack() == packBuildIn)
         {
             tR = findBuildInType(type.getId());
         }
@@ -77,20 +79,35 @@ final public class InvarContext
         InvarPackage info = packAll.get(name);
         if (info == null)
         {
-            info = new InvarPackage(name, true, 32);
+            info = new InvarPackage(name, true);
             packAll.put(name, info);
         }
         return info;
     }
 
-    public HashMap<String,InvarPackage> getPacks()
+    public InvarPackage getPack(String name)
     {
-        return packAll;
+        return packAll.get(name);
     }
 
-    public boolean isBuildInPack(InvarPackage pack)
+    public Iterator<String> getPackNames()
     {
-        return pack == packBuildIn;
+        return packAll.keySet().iterator();
+    }
+
+    public List<InvarType> findTypes(String typeName)
+    {
+        Iterator<String> i = packAll.keySet().iterator();
+        InvarType type = null;
+        List<InvarType> types = new ArrayList<InvarType>();
+        while (i.hasNext())
+        {
+            InvarPackage pack = packAll.get(i.next());
+            type = pack.getType(typeName);
+            if (type != null)
+                types.add(type);
+        }
+        return types;
     }
 
     public InvarType findBuildInType(TypeID id)
@@ -103,6 +120,16 @@ final public class InvarContext
         return t;
     }
 
+    public InvarType findBuildInType(String typeName)
+    {
+        return packBuildIn.getType(typeName.toLowerCase());
+    }
+
+    public boolean isBuildInPack(InvarPackage pack)
+    {
+        return pack == packBuildIn;
+    }
+
     @SuppressWarnings ("unchecked")
     public <T extends InvarType> T findType(String name, InvarPackage pack) throws Throwable
     {
@@ -110,33 +137,6 @@ final public class InvarContext
         if (t == null)
         {
             t = packBuildIn.getType(name);
-            if (t != null)
-            {
-                t = findBuildInType(t.getId());
-            }
-            else
-            {
-                //t = findType(name);
-            }
-        }
-        return (T)t;
-    }
-
-    @SuppressWarnings ("unchecked")
-    public <T extends InvarType> T findType(String typeName) throws Throwable
-    {
-        Set<Entry<String,InvarPackage>> infos = getPacks().entrySet();
-        Iterator<Entry<String,InvarPackage>> iter = infos.iterator();
-
-        InvarType t = null;
-        while (iter.hasNext())
-        {
-            Entry<String,InvarPackage> en = iter.next();
-            t = findType(typeName, en.getValue());
-            if (t != null)
-            {
-                break;
-            }
         }
         return (T)t;
     }
@@ -163,7 +163,10 @@ final public class InvarContext
                 {
                     type = findBuildInType(type.getId());
                     s.append("--->  ");
-                    s.append(type.getPack().getName() + "." + type.getName());
+                    String namePack = type.getPack().getName();
+                    if (!namePack.equals(""))
+                        s.append(namePack + ".");
+                    s.append(type.getName());
                     s.append(type.getGeneric());
                 }
                 s.append("\n");

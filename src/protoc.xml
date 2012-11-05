@@ -11,7 +11,7 @@
 		<Int8 name="age" value="30" />
 		<Gender name="gender" />
 		<Career name="career" />
-		<Vec-BagItem name="items" doc="All items in bag." />
+		<Vec-invar.config::BagItem name="items" doc="All items in bag." />
 		<Map-Gender-String name="genderStr" />
 	</Struct>
 	<Struct name="BagItem" doc="Items that can appear in user's bag.">

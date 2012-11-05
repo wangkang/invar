@@ -50,7 +50,7 @@ final public class Invar
             if (outPath.size() > 0)
                 outPathFlash = outPath.get(0);
             new InvarWriteAS3().setDirRoot(outPathFlash).setContext(ctx)
-                    .write(".as3");
+                    .write(".as");
         }
 
         System.out.println("End: " + new Date().toString());
@@ -79,7 +79,7 @@ final public class Invar
             }
             for (ReadInputXml x : xmls)
             {
-                x.parseTypes();
+                x.build();
             }
             // System.out.println(ctx.dumpTypeAll());
             for (ReadInputXml x : xmls)

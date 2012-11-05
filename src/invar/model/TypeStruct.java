@@ -9,11 +9,13 @@ import java.util.Set;
 public class TypeStruct extends InvarType
 {
     private LinkedHashMap<String,InvarField<InvarType>> fields;
+    private String                                      charset;
 
     public TypeStruct(String name, InvarPackage pack, String comment)
     {
         super(TypeID.STRUCT, name, pack, comment);
         fields = new LinkedHashMap<String,InvarField<InvarType>>();
+        setCharset("UTF-8");
     }
 
     public List<InvarField<InvarType>> listFields()
@@ -80,6 +82,17 @@ public class TypeStruct extends InvarType
             throw new Exception("Repeated key '" + key + "' in struct '"
                     + getName() + "'.");
         }
+    }
+
+    public String getCharset()
+    {
+        return charset;
+    }
+
+    public TypeStruct setCharset(String charset)
+    {
+        this.charset = charset;
+        return this;
     }
 
 }

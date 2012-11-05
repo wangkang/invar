@@ -13,6 +13,7 @@ public class InvarField<T extends InvarType>
     private String                defaultVal;
     private Boolean               encode;
     private Boolean               decode;
+    private int                   widthTypeMax = 30;
     private int                   widthType    = 1;
     private int                   widthKey     = 1;
     private int                   widthDefault = 1;
@@ -49,11 +50,10 @@ public class InvarField<T extends InvarType>
         for (InvarType t : getGenerics())
         {
             t = ctx.typeRedirect(t);
-            s = s.replaceFirst("\\?", t.getName());
+            s = s.replaceFirst("\\?", t.getName() + t.getGeneric());
         }
         return s;
     }
-
     public T getType()
     {
         return (T)type;
@@ -104,9 +104,19 @@ public class InvarField<T extends InvarType>
         return comment;
     }
 
+    public int getWidthKey()
+    {
+        return Math.min(widthKey, 20);
+    }
+
     public int getWidthType()
     {
-        return widthType;
+        return Math.min(widthType, widthTypeMax);
+    }
+
+    public int getWidthDefault()
+    {
+        return Math.min(widthDefault, 30);
     }
 
     public void setWidthType(int widthType)
@@ -114,24 +124,24 @@ public class InvarField<T extends InvarType>
         this.widthType = widthType;
     }
 
-    public int getWidthKey()
-    {
-        return widthKey;
-    }
-
     public void setWidthKey(int widthKey)
     {
         this.widthKey = widthKey;
     }
 
-    public int getWidthDefault()
-    {
-        return widthDefault;
-    }
-
     public void setWidthDefault(int widthDefault)
     {
         this.widthDefault = widthDefault;
+    }
+
+    public int getWidthTypeMax()
+    {
+        return widthTypeMax;
+    }
+
+    public void setWidthTypeMax(int widthTypeMax)
+    {
+        this.widthTypeMax = widthTypeMax;
     }
 
 }

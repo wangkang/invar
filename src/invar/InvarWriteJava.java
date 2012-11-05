@@ -7,6 +7,9 @@ import invar.model.InvarType;
 import invar.model.InvarType.TypeID;
 import invar.model.TypeEnum;
 import invar.model.TypeStruct;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
@@ -38,7 +41,8 @@ final public class InvarWriteJava extends WriteOutputCode
         c.typeRedefine(TypeID.LIST, "java.util", "LinkedList", "<?>");
         c.typeRedefine(TypeID.GHOST, "java.lang", "Throwable", "");
         c.typeRedefine(TypeID.GHOST, "java.nio", "ByteBuffer", "");
-        //log(c.dumpTypeAll().toString());
+
+        //System.out.println(c.dumpTypeAll());
         return true;
     }
 
@@ -52,18 +56,17 @@ final public class InvarWriteJava extends WriteOutputCode
         int widthDefault = 1;
         for (InvarField<InvarType> f : fs)
         {
+            f.setWidthTypeMax(35);
             f.makeTypeFormatted(getContext());
-            structDefaults(f);
             if (f.getTypeFormatted().length() > widthType)
                 widthType = f.getTypeFormatted().length();
             if (f.getKey().length() > widthKey)
                 widthKey = f.getKey().length();
-            if (f.getDefault().length() > widthDefault)
-                widthDefault = f.getDefault().length();
+            String deft = evalFieldDefault(f);
+            if (deft.length() > widthDefault)
+                widthDefault = deft.length();
         }
-
-        StringBuilder imports = codeStructImports2(fs, type.getPack());
-
+        StringBuilder imports = codeStructImports(fs, type.getPack());
         StringBuilder fields = new StringBuilder();
         StringBuilder setters = new StringBuilder();
         StringBuilder getters = new StringBuilder();
@@ -97,16 +100,17 @@ final public class InvarWriteJava extends WriteOutputCode
         return key;
     }
 
-    private StringBuilder codeStructImports2(List<InvarField<InvarType>> fs, InvarPackage pack)
+    private StringBuilder codeStructImports(List<InvarField<InvarType>> fs, InvarPackage pack)
     {
         SortedSet<String> keys = new TreeSet<String>();
         for (InvarField<InvarType> f : fs)
         {
             String key = "";
             key = importTypeCheck(f.getType(), pack);
-            if (keys.contains(key))
-                continue;
-            keys.add(key);
+            // System.out.println(pack.getName() + "---" + f.getKey() + "---"
+            //+ key + "---" + f.getGenerics().size());
+            if (!keys.contains(key))
+                keys.add(key);
             for (InvarType typeGene : f.getGenerics())
             {
                 key = importTypeCheck(typeGene, pack);
@@ -129,22 +133,20 @@ final public class InvarWriteJava extends WriteOutputCode
         return code;
     }
 
-    private Object codeStructGetter(InvarField<InvarType> f)
+    private StringBuilder codeStructField(InvarField<InvarType> f)
     {
         StringBuilder code = new StringBuilder();
+        code.append(brIndent);
+        code.append(fixedLen(f.getWidthType() + 1, f.getTypeFormatted() + " "));
+        code.append(fixedLen(f.getWidthKey(), f.getKey()));
+        code.append(" = ");
+        String deft = evalFieldDefault(f);
+        code.append(fixedLen(f.getWidthDefault() + 1, deft + ";"));
         if (!f.getComment().equals(""))
         {
-            code.append(brIndent);
-            code.append("/** " + f.getComment() + " */");
+            code.append("// ");
+            code.append(f.getComment());
         }
-        code.append(brIndent);
-        code.append("public ");
-        code.append(fixedLen(f.getWidthType(), f.getTypeFormatted()));
-        code.append(" get" + upperHeadChar(f.getKey()));
-        code.append("()");
-        code.append("{");
-        code.append("return this." + f.getKey() + ";");
-        code.append("}");
         return code;
     }
 
@@ -167,7 +169,7 @@ final public class InvarWriteJava extends WriteOutputCode
         code.append("(");
         code.append(f.getTypeFormatted());
         code.append(" value)");
-        code.append("{");
+        code.append(" {");
         code.append("this." + f.getKey());
         code.append(" = value;");
         code.append(" return this;");
@@ -175,19 +177,23 @@ final public class InvarWriteJava extends WriteOutputCode
         return code.toString();
     }
 
-    private StringBuilder codeStructField(InvarField<InvarType> f)
+    private Object codeStructGetter(InvarField<InvarType> f)
     {
         StringBuilder code = new StringBuilder();
-        code.append(brIndent);
-        code.append(fixedLen(f.getWidthType() + 1, f.getTypeFormatted() + " "));
-        code.append(fixedLen(f.getWidthKey(), f.getKey()));
-        code.append(" = ");
-        code.append(fixedLen(f.getWidthDefault() + 1, f.getDefault() + ";"));
         if (!f.getComment().equals(""))
         {
-            code.append("// ");
-            code.append(f.getComment());
+            code.append(brIndent);
+            code.append("/** " + f.getComment() + " */");
         }
+        code.append(brIndent);
+        code.append("public ");
+        code.append(fixedLen(f.getWidthType(), f.getTypeFormatted()));
+        code.append(" get");
+        code.append(fixedLen(f.getWidthKey() + 3, upperHeadChar(f.getKey())
+                + "() "));
+        code.append("{");
+        code.append("return this." + f.getKey() + ";");
+        code.append("}");
         return code;
     }
 
@@ -285,59 +291,67 @@ final public class InvarWriteJava extends WriteOutputCode
         return code.toString();
     }
 
-    private void structDefaults(InvarField<?> f)
+    private String evalFieldDefault(InvarField<?> f)
     {
-        String deft = f.getDefault();
+        String deft = "";
         switch (f.getType().getId()){
+        case UINT64:
+        case STRING:
+            deft = "\"" + f.getDefault() + "\"";
+            break;
         case INT8:
         case INT16:
         case INT32:
-            if (f.getDefault().equals(""))
-                f.setDefault("-1");
+            deft = f.getDefault().equals("") ? "-1" : f.getDefault();
             break;
         case UINT8:
         case UINT16:
-            if (f.getDefault().equals(""))
-                f.setDefault("0");
+            deft = f.getDefault().equals("") ? "0" : f.getDefault();
             break;
         case UINT32:
         case INT64:
-            if (f.getDefault().equals(""))
-                f.setDefault("-1L");
-            else
-                f.setDefault(f.getDefault() + "L");
+            deft = f.getDefault().equals("") ? "-1L" : f.getDefault() + "L";
             break;
         case FLOAT:
-            if (f.getDefault().equals(""))
-                f.setDefault("0.00F");
-            else
-                f.setDefault(f.getDefault() + "F");
+            deft = f.getDefault().equals("") ? "0.00F" : f.getDefault() + "F";
             break;
         case DOUBLE:
-            if (f.getDefault().equals(""))
-                f.setDefault("0.00");
-            break;
-        case UINT64:
-        case STRING:
-            f.setDefault(deft.equals("") ? "\"\"" : "\"" + f.getDefault()
-                    + "\"");
+            deft = f.getDefault().equals("") ? "0.00" : f.getDefault();
             break;
         case BOOL:
-            boolean bool = Boolean.parseBoolean(deft);
-            f.setDefault(bool ? "true" : "false");
+            boolean bool = Boolean.parseBoolean(f.getDefault());
+            deft = bool ? "true" : "false";
             break;
         case ENUM:
             @SuppressWarnings ("unchecked") Iterator<String> i = ((InvarField<TypeEnum>)f)
                     .getType().getKeys().iterator();
             if (i.hasNext())
-                f.setDefault(f.getType().getName() + "." + i.next());
+                deft = (f.getType().getName() + "." + i.next());
             else
-                f.setDefault("new " + f.getType().getName() + "(-999999)");
+                deft = ("new " + f.getType().getName() + "(-999999)");
             break;
         default:
-            f.setDefault("new " + f.getTypeFormatted() + "()");
-
+            deft = ("new " + f.getTypeFormatted() + "()");
         }
+        return deft;
     }
 
+    static protected char[] getChars(byte[] bytes)
+    {
+        Charset cs = Charset.forName("UTF-8");
+        ByteBuffer bb = ByteBuffer.allocate(bytes.length);
+        bb.put(bytes);
+        bb.flip();
+        CharBuffer cb = cs.decode(bb);
+        return cb.array();
+    }
+    static protected byte[] getBytes(char[] chars)
+    {
+        Charset cs = Charset.forName("UTF-8");
+        CharBuffer cb = CharBuffer.allocate(chars.length);
+        cb.put(chars);
+        cb.flip();
+        ByteBuffer bb = cs.encode(cb);
+        return bb.array();
+    }
 }

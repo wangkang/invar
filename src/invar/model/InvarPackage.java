@@ -10,15 +10,15 @@ public class InvarPackage
 {
     private final String              name;
     private final Boolean             needWrite;
-    //
+
     private File                      codeDir;
     private HashMap<String,InvarType> typeMap;
 
-    public InvarPackage(String name, Boolean needWrite, int capacity)
+    public InvarPackage(String name, Boolean needWrite)
     {
         this.name = name;
         this.needWrite = needWrite;
-        this.typeMap = new HashMap<String,InvarType>(capacity);
+        this.typeMap = new HashMap<String,InvarType>();
     }
 
     public void put(InvarType t)

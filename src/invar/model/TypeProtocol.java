@@ -2,7 +2,6 @@ package invar.model;
 
 public class TypeProtocol extends InvarType
 {
-
     private TypeStruct server;
     private TypeStruct client;
     private Boolean    noClient;

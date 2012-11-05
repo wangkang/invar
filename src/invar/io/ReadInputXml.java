@@ -11,6 +11,7 @@ import invar.model.TypeStruct;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeMap;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -20,42 +21,43 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class ReadInputXml
+final public class ReadInputXml
 {
-    static private final String SPLIT_PACK_TYPE  = "::";
-    static private final String SPLIT_VECTOR     = "-";
+    static private final String SPLIT_PACK_TYPE     = "::";
+    static private final String SPLIT_GNERICS       = "-";
 
-    static private final String ATTR_PACK_NAME   = "name";
-    static private final String ATTR_STRUCT_NAME = "name";
-    static private final String ATTR_ENUM_VAL    = "value";
-    static private final String ATTR_COMMENT     = "doc";
-    static private final String ATTR_FIELD_NAME  = "name";
-    static private final String ATTR_FIELD_DEFT  = "value";
-    static private final String ATTR_FIELD_ENC   = "encode";
-    static private final String ATTR_FIELD_DEC   = "decode";
-    static private final String XML_NODE_CLIENT  = "client";
-    static private final String XML_NODE_SERVER  = "server";
+    static private final String ATTR_COMMENT        = "doc";
+    static private final String ATTR_PACK_NAME      = "name";
+    static private final String ATTR_STRUCT_CHARSET = "charset";
+    static private final String ATTR_STRUCT_NAME    = "name";
+    static private final String ATTR_FIELD_NAME     = "name";
+    static private final String ATTR_FIELD_DEFT     = "value";
+    static private final String ATTR_FIELD_ENC      = "encode";
+    static private final String ATTR_FIELD_DEC      = "decode";
+    static private final String ATTR_ENUM_VAL       = "value";
+    static private final String XML_NODE_CLIENT     = "client";
+    static private final String XML_NODE_SERVER     = "server";
 
-    // Build in types
-    static private final String BI_INT8          = "Int8";
-    static private final String BI_INT16         = "Int16";
-    static private final String BI_INT32         = "Int32";
-    static private final String BI_INT64         = "Int64";
-    static private final String BI_UINT8         = "Uint8";
-    static private final String BI_UINT16        = "Uint16";
-    static private final String BI_UINT32        = "Uint32";
-    static private final String BI_UINT64        = "Uint64";
-    static private final String BI_FLOAT         = "Float";
-    static private final String BI_DOUBLE        = "Double";
-    static private final String BI_BOOL          = "Bool";
-    static private final String BI_STRING        = "String";
-    static private final String BI_MAP           = "Map";
-    static private final String BI_VECTOR        = "Vec";
+    //Build in types
+    static private final String BI_INT8             = "int8";
+    static private final String BI_INT16            = "int16";
+    static private final String BI_INT32            = "int32";
+    static private final String BI_INT64            = "int64";
+    static private final String BI_UINT8            = "uint8";
+    static private final String BI_UINT16           = "uint16";
+    static private final String BI_UINT32           = "uint32";
+    static private final String BI_UINT64           = "uint64";
+    static private final String BI_FLOAT            = "float";
+    static private final String BI_DOUBLE           = "double";
+    static private final String BI_BOOL             = "bool";
+    static private final String BI_STRING           = "string";
+    static private final String BI_MAP              = "map";
+    static private final String BI_VECTOR           = "vec";
 
-    // User custom types, will be write to code file.
-    static private final String BI_ENUM          = "Enum";
-    static private final String BI_STRUCT        = "Struct";
-    static private final String BI_PROTOCOL      = "Protoc";
+    //User custom types, will be write to code file.
+    static private final String EXT_ENUM            = "Enum";
+    static private final String EXT_STRUCT          = "Struct";
+    static private final String EXT_PROTOCOL        = "Protoc";
 
     static public TreeMap<TypeID,String> makeTypeIdMap()
     {
@@ -77,6 +79,36 @@ public class ReadInputXml
         return map;
     }
 
+    static public String makeTestXmlString(String prefix)
+    {
+        StringBuilder code = new StringBuilder();
+        TreeMap<TypeID,String> map = makeTypeIdMap();
+        Iterator<TypeID> i;
+        i = map.keySet().iterator();
+        while (i.hasNext())
+        {
+            TypeID key = i.next();
+            if (TypeID.LIST == key)
+                continue;
+            if (TypeID.MAP == key)
+                continue;
+            String name = map.get(key);
+            String nkey = "test" + prefix + name;
+            if (prefix != "")
+                name = prefix + "-" + name;
+            code.append("<" + name + " ");
+            code.append(ATTR_FIELD_NAME);
+            code.append("=\"" + nkey + "\" ");
+            code.append(ATTR_FIELD_DEFT);
+            code.append("=\"" + "" + "\" ");
+            code.append(ATTR_COMMENT);
+            code.append("=\"" + "" + "\" ");
+            code.append("/>");
+            code.append("\n");
+        }
+        return code.toString();
+    }
+
     private final InvarContext context;
     private final String       pathXml;
     private final InputStream  input;
@@ -90,10 +122,11 @@ public class ReadInputXml
         this.pathXml = pathXml;
     }
 
-    public void parseTypes() throws Throwable
+    public void build() throws Throwable
     {
         Document doc = DocumentBuilderFactory.newInstance()
                 .newDocumentBuilder().parse(input);
+
         if (!doc.hasChildNodes())
             return;
 
@@ -115,21 +148,22 @@ public class ReadInputXml
             String name = getAttr(n, ATTR_STRUCT_NAME);
             String comment = getAttrOptional(n, ATTR_COMMENT);
             InvarType t = null;
-            if (nameNode.equals(BI_STRUCT.toLowerCase()))
+            if (nameNode.equals(EXT_STRUCT.toLowerCase()))
             {
-                t = new TypeStruct(name, pack, comment);
+                t = new TypeStruct(name, pack, comment)
+                        .setCharset(getAttrOptional(n, ATTR_STRUCT_CHARSET));
             }
-            else if (nameNode.equals(BI_ENUM.toLowerCase()))
+            else if (nameNode.equals(EXT_ENUM.toLowerCase()))
             {
                 t = new TypeEnum(name, pack, comment);
             }
-            else if (nameNode.equals(BI_PROTOCOL.toLowerCase()))
+            else if (nameNode.equals(EXT_PROTOCOL.toLowerCase()))
             {
                 t = new TypeProtocol(name, pack, comment);
             }
             else
             {
-                onError("Invalid xml node: " + n.getNodeName());
+                log("Invalid xml node: " + formatXmlNode(n));
                 continue;
             }
             pack.add(t);
@@ -141,20 +175,19 @@ public class ReadInputXml
     {
         if (pack == null)
             return;
-
         for (Node n : typeNodes)
         {
             String nameNode = n.getNodeName().toLowerCase();
             String nameType = getAttr(n, ATTR_STRUCT_NAME);
-            if (nameNode.equals(BI_STRUCT.toLowerCase()))
+            if (nameNode.equals(EXT_STRUCT.toLowerCase()))
             {
                 decStruct(n, pack.<TypeStruct> findType(nameType));
             }
-            else if (nameNode.equals(BI_ENUM.toLowerCase()))
+            else if (nameNode.equals(EXT_ENUM.toLowerCase()))
             {
                 decEnum(n, pack.<TypeEnum> findType(nameType));
             }
-            else if (nameNode.equals(BI_PROTOCOL.toLowerCase()))
+            else if (nameNode.equals(EXT_PROTOCOL.toLowerCase()))
             {
                 decProtocol(n, pack.<TypeProtocol> findType(nameType), nameType);
             }
@@ -190,28 +223,68 @@ public class ReadInputXml
         }
     }
 
+    private void decProtocol(Node node, TypeProtocol type, String typeName) throws Throwable
+    {
+        NodeList nodes = node.getChildNodes();
+        Node nClient = null;
+        Node nServer = null;
+        for (int i = 0; i < nodes.getLength(); i++)
+        {
+            Node n = nodes.item(i);
+            if (Node.ELEMENT_NODE != n.getNodeType())
+                continue;
+            if (n.getNodeName().toLowerCase().equals(XML_NODE_CLIENT))
+            {
+                if (nClient == null)
+                    nClient = n;
+                else
+                    onError(node, "Repeated element in protocol '" + typeName
+                            + "'");
+            }
+            else if (n.getNodeName().toLowerCase().equals(XML_NODE_SERVER))
+            {
+                if (nServer == null)
+                    nServer = n;
+                else
+                    onError(node, "Repeated element in protocol '" + typeName
+                            + "'");
+            }
+            else
+            {
+                onError(node, "Invalid element in protocol '" + typeName + "'");
+            }
+        }
+        if (nClient != null)
+        {
+            decStruct(nClient, type.getClient());
+            type.setNoClient(false);
+        }
+        if (nClient != null)
+        {
+            decStruct(nServer, type.getServer());
+            type.setNoServer(false);
+        }
+    }
+
     private void decStructField(Node n, TypeStruct type) throws Throwable
     {
         String nodeName = n.getNodeName();
-        String[] nameTypes = nodeName.split(SPLIT_VECTOR);
-        if (nameTypes.length > 3)
+        String[] nameTypes = nodeName.split(SPLIT_GNERICS);
+        if (nameTypes.length > 8)
         {
-            onError("Type format is invalid: " + nodeName);
+            onError(n, "Invalid node in struct '" + type.getName()
+                    + "': Max type count is 8.");
         }
-
-        InvarType typeBasic = findType(nameTypes[0]);
-
+        //First type of the field
+        InvarType typeBasic = searchType(nameTypes[0], n);
         if (typeBasic.getId() == TypeID.PROTOCOL)
         {
-            onError("Invalid element '" + n.getNodeName() + "' in struct '"
-                    + type.getName() + "'.");
+            onError(n, "Invalid node in struct '" + type.getName()
+                    + "': Protocol type can not be here.");
         }
-
         String key = getAttr(n, ATTR_FIELD_NAME);
         String comment = getAttrOptional(n, ATTR_COMMENT);
-
-        InvarField<?> field = new InvarField<InvarType>(typeBasic, key, comment);
-
+        InvarField<?> field = null;
         switch (typeBasic.getId()){
         case ENUM:
             field = new InvarField<TypeEnum>((TypeEnum)typeBasic, key, comment);
@@ -219,80 +292,24 @@ public class ReadInputXml
         case STRUCT:
             field = new InvarField<TypeStruct>((TypeStruct)typeBasic, key, comment);
             break;
-
-        case LIST:
-            if (nameTypes.length != 2)
-            {
-                onError("Vector format is invalid: " + nodeName);
-            }
-            field.getGenerics().add(findType(nameTypes[1]));
-            break;
-
-        case MAP:
-            InvarType typeKey = null;
-            InvarType typeValue = null;
-            if (nameTypes.length < 2)
-            {
-                onError("HashMap format is invalid: " + nodeName);
-            }
-            else if (nameTypes.length == 2)
-            {
-                typeKey = findType(BI_STRING);
-                typeValue = findType(nameTypes[1]);
-            }
-            else
-            {
-                typeKey = findType(nameTypes[1]);
-                typeValue = findType(nameTypes[2]);
-            }
-            field.getGenerics().add(typeKey);
-            field.getGenerics().add(typeValue);
-            break;
-
         default:
             field = new InvarField<InvarType>(typeBasic, key, comment);
         }
-
+        List<String> names = fixNameTypes(nameTypes, n);
+        parseGenerics(field.getGenerics(), names, 1, n);
         setFieldCommonAttrs(n, field);
         type.addField(field);
     }
 
-    private InvarType findType(String name) throws Throwable
+    private void parseGenerics(LinkedList<InvarType> generics, List<String> nameTypes, int i, Node n) throws Throwable
     {
-        String[] names = name.split(SPLIT_PACK_TYPE);
-        String typeName = null;
-        InvarPackage typePack = null;
-        if (names.length == 1)
-        {
-            typePack = pack;
-            typeName = names[0];
-        }
-        else if (names.length == 2)
-        {
-            typePack = context.findOrCreatePack(names[0]);
-            typeName = names[1];
-        }
-        else
-        {
-            onError("Invalid type name: " + name);
-        }
-        InvarType fieldType = null;
-        fieldType = context.findType(typeName, typePack);
-        if (fieldType == null)
-        {
-            // find type in all packages
-            fieldType = context.findType(typeName);
-        }
-        if (fieldType == null)
-        {
-            onError("Undefined type: " + name);
-        }
-        return fieldType;
-    }
-
-    private void onError(String hint) throws Exception
-    {
-        throw new Exception("\nFile parse error: " + pathXml + "\n" + hint);
+        int len = nameTypes.size();
+        if (i >= len)
+            return;
+        String nameType = nameTypes.get(i);
+        InvarType type = searchType(nameType, n);
+        generics.add(type);
+        parseGenerics(generics, nameTypes, ++i, n);
     }
 
     private void setFieldCommonAttrs(Node node, InvarField<? extends InvarType> field)
@@ -310,50 +327,6 @@ public class ReadInputXml
 
     }
 
-    private void decProtocol(Node node, TypeProtocol type, String typeName) throws Throwable
-    {
-        NodeList nodes = node.getChildNodes();
-        Node nClient = null;
-        Node nServer = null;
-        for (int i = 0; i < nodes.getLength(); i++)
-        {
-            Node n = nodes.item(i);
-            if (Node.ELEMENT_NODE != n.getNodeType())
-                continue;
-            if (n.getNodeName().toLowerCase().equals(XML_NODE_CLIENT))
-            {
-                if (nClient == null)
-                    nClient = n;
-                else
-                    onError("Repeated element '" + n.getNodeName()
-                            + "' in protocol '" + typeName + "'");
-            }
-            else if (n.getNodeName().toLowerCase().equals(XML_NODE_SERVER))
-            {
-                if (nServer == null)
-                    nServer = n;
-                else
-                    onError("Repeated element '" + n.getNodeName()
-                            + "' in protocol '" + typeName + "'");
-            }
-            else
-            {
-                onError("Invalid element '" + n.getNodeName()
-                        + "' in protocol '" + typeName + "'");
-            }
-        }
-        if (nClient != null)
-        {
-            decStruct(nClient, type.getClient());
-            type.setNoClient(false);
-        }
-        if (nClient != null)
-        {
-            decStruct(nServer, type.getServer());
-            type.setNoServer(false);
-        }
-    }
-
     private String getAttrOptional(Node node, String name)
     {
         Node n = node.getAttributes().getNamedItem(name);
@@ -368,60 +341,125 @@ public class ReadInputXml
         String v = getAttrOptional(node, name);
         if (v.equals(""))
         {
-            onError(formatXmlNode(node) + "\nAttribute '" + name
-                    + "' is required.");
+            onError(node, "Attribute '" + name + "' is required.");
         }
         return v;
     }
 
-    protected void log(String txt)
+    private List<String> fixNameTypes(final String[] nameTypes, Node n) throws Throwable
+    {
+        List<String> names = new LinkedList<String>();
+        int len = nameTypes.length;
+        for (int i = 0; i < len; i++)
+        {
+            String name = nameTypes[i];
+            names.add(name);
+            InvarType type = searchType(name, n);
+            if (TypeID.LIST == type.getId())
+            {
+                if (i == len - 1)
+                    names.add(BI_INT32);
+            }
+            else if (TypeID.MAP == type.getId())
+            {
+                if (i == len - 1)
+                {
+                    names.add(BI_STRING);
+                    names.add(BI_INT32);
+                }
+                else if (i == len - 2)
+                {
+                    names.add(BI_STRING);
+                }
+            }
+            else
+            {
+            }
+        }
+        return names;
+    }
+
+    private InvarType searchType(final String name, final Node n) throws Throwable
+    {
+        String[] names = name.split(SPLIT_PACK_TYPE);
+        String typeName = null;
+        InvarPackage typePack = null;
+        InvarType fieldType = null;
+
+        if (names.length == 1)
+        {
+            typeName = names[0];
+        }
+        else if (names.length == 2)
+        {
+            typePack = context.findOrCreatePack(names[0]);
+            typeName = names[1];
+        }
+        else
+        {
+            onError(n, "Invalid type name: " + name);
+        }
+
+        fieldType = context.findBuildInType(typeName);
+        if (fieldType != null)
+            return fieldType;
+
+        if (typePack != null)
+        {
+            fieldType = typePack.getType(typeName);
+            if (fieldType != null)
+                return fieldType;
+        }
+        else
+        {
+            List<InvarType> types = context.findTypes(typeName);
+            if (types.size() == 1)
+            {
+                fieldType = types.get(0);
+                return fieldType;
+            }
+            else if (types.size() > 1)
+            {
+                StringBuilder s = new StringBuilder();
+                for (InvarType t : types)
+                    s.append("\n" + t.fullName("::"));
+                onError(n, "Find " + types.size()
+                        + " types. You should select one." + s.toString());
+            }
+            else
+            {
+            }
+        }
+        if (fieldType == null)
+        {
+            onError(n, "Undefined type: " + name);
+        }
+        return fieldType;
+    }
+
+    private void onError(Node n, String hint) throws Exception
+    {
+        throw new Exception("File parse error: " + pathXml + "\n"
+                + formatXmlNode(n) + hint);
+    }
+
+    private void log(String txt)
     {
         System.out.println(txt);
     }
 
-    static public String makeTestXmlString(String prefix)
+    private String formatXmlNode(Node n)
     {
+        NamedNodeMap attrs = n.getAttributes();
         StringBuilder code = new StringBuilder();
-        TreeMap<TypeID,String> map = makeTypeIdMap();
-        Iterator<TypeID> i;
-        i = map.keySet().iterator();
-        while (i.hasNext())
-        {
-            TypeID key = i.next();
-            if (TypeID.LIST == key)
-                continue;
-            if (TypeID.MAP == key)
-                continue;
-            String name = map.get(key);
-            String nkey = "test" + prefix + name;
-            if (prefix != "")
-                name = prefix + "-" + name;
-            code.append("<" + name + " ");
-            code.append(ATTR_FIELD_NAME);
-            code.append("=\"" + nkey + "\" ");
-            code.append(ATTR_FIELD_DEFT);
-            code.append("=\"" + "" + "\" ");
-            code.append(ATTR_COMMENT);
-            code.append("=\"" + "" + "\" ");
-            code.append("/>");
-            code.append("\n");
-        }
-        return code.toString();
-    }
-
-    private String formatXmlNode(Node node)
-    {
-        NamedNodeMap attrs = node.getAttributes();
-        StringBuilder code = new StringBuilder();
-        code.append("<" + node.getNodeName());
+        code.append("<" + n.getNodeName());
         int len = attrs.getLength();
         for (int i = 0; i < len; i++)
         {
-            Node n = attrs.item(i);
-            code.append(" " + n.toString());
+            Node a = attrs.item(i);
+            code.append(" " + a.toString());
         }
-        code.append(" />");
+        code.append(" />\n");
         return code.toString();
     }
-
 }
