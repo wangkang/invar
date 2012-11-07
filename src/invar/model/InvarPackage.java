@@ -4,7 +4,6 @@ import invar.model.InvarType.TypeID;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Set;
 
 public class InvarPackage
 {
@@ -31,18 +30,6 @@ public class InvarPackage
         return typeMap.get(name);
     }
 
-    @SuppressWarnings ("unchecked")
-    public <T extends InvarType> T findType(String typeName) throws Throwable
-    {
-        if (!typeMap.containsKey(typeName))
-        {
-            throw new Error("No type " + "named '" + typeName
-                    + "' in package '" + name + "'");
-        }
-        InvarType type = typeMap.get(typeName);
-        return (T)type;
-    }
-
     public InvarType getType(TypeID id)
     {
         InvarType type = null;
@@ -57,9 +44,34 @@ public class InvarPackage
         return type;
     }
 
-    public Set<String> getTypeNames()
+    public void clearGhostTypes()
     {
-        return typeMap.keySet();
+        InvarType type = null;
+        Iterator<String> i = typeMap.keySet().iterator();
+        while (i.hasNext())
+        {
+            String key = i.next();
+            type = typeMap.get(key);
+            if (type.getId() == TypeID.GHOST)
+                typeMap.remove(key);
+        }
+    }
+
+    @SuppressWarnings ("unchecked")
+    public <T extends InvarType> T findType(String typeName) throws Throwable
+    {
+        if (!typeMap.containsKey(typeName))
+        {
+            throw new Error("No type " + "named '" + typeName
+                    + "' in package '" + name + "'");
+        }
+        InvarType type = typeMap.get(typeName);
+        return (T)type;
+    }
+
+    public Iterator<String> getTypeNames()
+    {
+        return typeMap.keySet().iterator();
     }
 
     public InvarPackage add(InvarType t) throws Exception

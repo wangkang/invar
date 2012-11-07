@@ -32,8 +32,8 @@ public class InvarField<T extends InvarType>
 
     public String makeTypeFormatted(InvarContext ctx)
     {
-        InvarType tR = ctx.typeRedirect(type);
-        typeFormatted = tR.getName() + evalGenerics(ctx, tR);
+        InvarType t = type.getRedirect() == null ? type : type.getRedirect();
+        typeFormatted = t.getName() + evalGenerics(ctx, t);
         return getTypeFormatted();
     }
 
@@ -49,7 +49,7 @@ public class InvarField<T extends InvarType>
         String s = typeBasic.getGeneric();
         for (InvarType t : getGenerics())
         {
-            t = ctx.typeRedirect(t);
+            t = t.getRedirect() == null ? t : t.getRedirect();
             s = s.replaceFirst("\\?", t.getName() + t.getGeneric());
         }
         return s;

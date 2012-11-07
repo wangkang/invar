@@ -3,6 +3,7 @@ package invar;
 import invar.model.InvarPackage;
 import invar.model.InvarType;
 import invar.model.InvarType.TypeID;
+import invar.model.TypeStruct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -11,22 +12,18 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
-/**
- * @author wkang
- */
 final public class InvarContext
 {
-    private final HashMap<TypeID,InvarType>    redirectTypes;
     private final HashMap<String,InvarPackage> packAll;
     private final InvarPackage                 packBuildIn;
+    private final TreeMap<String,InvarType>    structsWithAlias;
 
     public InvarContext() throws Exception
     {
+        structsWithAlias = new TreeMap<String,InvarType>();
         packBuildIn = new InvarPackage("#INVAR#", false);
         packAll = new HashMap<String,InvarPackage>();
         packAll.put(packBuildIn.getName(), packBuildIn);
-
-        redirectTypes = new HashMap<TypeID,InvarType>();
     }
 
     public InvarPackage addBuildInTypes(TreeMap<TypeID,String> map)
@@ -45,7 +42,6 @@ final public class InvarContext
         packAll.put(pack.getName(), pack);
         return pack;
     }
-
     public InvarContext typeRedefine(TypeID id, String namePack, String nameType, String generic)
     {
         if (TypeID.ENUM == id || TypeID.STRUCT == id || TypeID.PROTOCOL == id)
@@ -58,20 +54,36 @@ final public class InvarContext
             pack = new InvarPackage(namePack, false);
             packAll.put(namePack, pack);
         }
-        InvarType t = new InvarType(id, nameType, pack, "").setGeneric(generic);
-        redirectTypes.put(id, t);
-        pack.put(t);
+        InvarType type = packBuildIn.getType(id);
+        InvarType typeRedi = new InvarType(id, nameType, pack, "")
+                .setGeneric(generic);
+        type.setRedirect(typeRedi);
+        structsWithAlias.put(type.getName(), typeRedi);
+        pack.put(typeRedi);
         return this;
     }
-
-    public InvarType typeRedirect(InvarType type)
+    public InvarType ghostAdd(String namePack, String nameType, String generic)
     {
-        InvarType tR = type;
-        if (type.getPack() == packBuildIn)
+        InvarPackage pack = packAll.get(namePack);
+        if (pack == null)
         {
-            tR = findBuildInType(type.getId());
+            pack = new InvarPackage(namePack, false);
+            packAll.put(namePack, pack);
         }
-        return tR;
+        InvarType t = new InvarType(TypeID.GHOST, nameType, pack, "")
+                .setGeneric(generic);
+        pack.put(t);
+        return t;
+    }
+
+    public void ghostClear()
+    {
+        Iterator<String> i = packAll.keySet().iterator();
+        while (i.hasNext())
+        {
+            InvarPackage pack = packAll.get(i.next());
+            pack.clearGhostTypes();
+        }
     }
 
     public InvarPackage findOrCreatePack(String name)
@@ -110,16 +122,6 @@ final public class InvarContext
         return types;
     }
 
-    public InvarType findBuildInType(TypeID id)
-    {
-        InvarType t = redirectTypes.get(id);
-        if (t == null)
-        {
-            t = packBuildIn.getType(id);
-        }
-        return t;
-    }
-
     public InvarType findBuildInType(String typeName)
     {
         return packBuildIn.getType(typeName.toLowerCase());
@@ -141,6 +143,19 @@ final public class InvarContext
         return (T)t;
     }
 
+    public void aliasAdd(TypeStruct type)
+    {
+        structsWithAlias.put(type.getAlias(), type);
+    }
+    public InvarType aliasGet(String alias)
+    {
+        return structsWithAlias.get(alias);
+    }
+    public Iterator<String> aliasNames()
+    {
+        return structsWithAlias.keySet().iterator();
+    }
+
     public StringBuilder dumpTypeAll()
     {
         StringBuilder s = new StringBuilder();
@@ -152,22 +167,22 @@ final public class InvarContext
             InvarPackage pack = en.getValue();
             s.append(pack.getName());
             s.append("\n");
-            Iterator<String> iTypeName = pack.getTypeNames().iterator();
+            Iterator<String> iTypeName = pack.getTypeNames();
             while (iTypeName.hasNext())
             {
                 String typeName = iTypeName.next();
                 InvarType type = pack.getType(typeName);
                 s.append(makeFixedLenString(" ", 21, type.getPack().getName()
                         + "." + type.getName()));
-                if (this.isBuildInPack(pack))
+                if (type.getRedirect() != null)
                 {
-                    type = findBuildInType(type.getId());
+                    InvarType typeR = type.getRedirect();
                     s.append("--->  ");
-                    String namePack = type.getPack().getName();
+                    String namePack = typeR.getPack().getName();
                     if (!namePack.equals(""))
                         s.append(namePack + ".");
-                    s.append(type.getName());
-                    s.append(type.getGeneric());
+                    s.append(typeR.getName());
+                    s.append(typeR.getGeneric());
                 }
                 s.append("\n");
             }

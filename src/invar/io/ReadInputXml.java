@@ -25,11 +25,11 @@ final public class ReadInputXml
 {
     static private final String SPLIT_PACK_TYPE     = "::";
     static private final String SPLIT_GNERICS       = "-";
-
     static private final String ATTR_COMMENT        = "doc";
     static private final String ATTR_PACK_NAME      = "name";
-    static private final String ATTR_STRUCT_CHARSET = "charset";
     static private final String ATTR_STRUCT_NAME    = "name";
+    static private final String ATTR_STRUCT_CHARSET = "charset";
+    static private final String ATTR_STRUCT_ALIAS   = "alias";
     static private final String ATTR_FIELD_NAME     = "name";
     static private final String ATTR_FIELD_DEFT     = "value";
     static private final String ATTR_FIELD_ENC      = "encode";
@@ -115,7 +115,7 @@ final public class ReadInputXml
     private InvarPackage       pack;
     private List<Node>         typeNodes;
 
-    public ReadInputXml(InvarContext ctx, InputStream input, String pathXml) throws Throwable
+    public ReadInputXml(InvarContext ctx, InputStream input, String pathXml)
     {
         this.context = ctx;
         this.input = input;
@@ -150,8 +150,17 @@ final public class ReadInputXml
             InvarType t = null;
             if (nameNode.equals(EXT_STRUCT.toLowerCase()))
             {
-                t = new TypeStruct(name, pack, comment)
-                        .setCharset(getAttrOptional(n, ATTR_STRUCT_CHARSET));
+                TypeStruct ts = new TypeStruct(name, pack, comment);
+                ts.setCharset(getAttrOptional(n, ATTR_STRUCT_CHARSET));
+                ts.setAlias(getAttrOptional(n, ATTR_STRUCT_ALIAS));
+                String alias = ts.getAlias();
+                if (!alias.equals(""))
+                {
+                    if (context.aliasGet(alias) != null)
+                        onError(n, "Repeated struct alias: " + alias);
+                    context.aliasAdd(ts);
+                }
+                t = ts;
             }
             else if (nameNode.equals(EXT_ENUM.toLowerCase()))
             {
@@ -170,7 +179,6 @@ final public class ReadInputXml
             typeNodes.add(n);
         }
     }
-
     public void parse() throws Throwable
     {
         if (pack == null)

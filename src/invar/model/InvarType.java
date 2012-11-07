@@ -16,6 +16,7 @@ public class InvarType
     private final String       name;
     private final String       comment;
     private String             generic;
+    private InvarType          redirect;
 
     public InvarType(TypeID id, String name, InvarPackage pack, String comment)
     {
@@ -24,7 +25,6 @@ public class InvarType
         this.comment = comment;
         this.pack = pack;
         this.generic = "";
-
     }
 
     final public InvarType setGeneric(String template)
@@ -61,6 +61,16 @@ public class InvarType
     final public String getGeneric()
     {
         return generic;
+    }
+
+    public InvarType getRedirect()
+    {
+        return redirect;
+    }
+
+    public void setRedirect(InvarType redirect)
+    {
+        this.redirect = redirect;
     }
 
 }

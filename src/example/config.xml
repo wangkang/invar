@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package name="invar.config" xmlns="INVAR.RULE">
+
+
+	<Struct name="ConfigData" alias="conf">
+		<String name="name" />
+		<String name="key" />
+		<ItemType name="type" />
+		<Int32 name="count" />
+		<UserRole name="myRole" />
+		<Vec-UserRole name="partners" />
+		<Vec-Vec-Int32 name="block" />
+		<MAP-UserRole-UserRole name="partnersMap" />
+		<Struct name="test" />
+		<Map-Vec-Int32-Vec-Int16 name="complex08" />
+	</Struct>
+
+
+</package>

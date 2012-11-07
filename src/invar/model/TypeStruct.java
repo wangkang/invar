@@ -10,12 +10,14 @@ public class TypeStruct extends InvarType
 {
     private LinkedHashMap<String,InvarField<InvarType>> fields;
     private String                                      charset;
+    private String                                      alias;
 
     public TypeStruct(String name, InvarPackage pack, String comment)
     {
         super(TypeID.STRUCT, name, pack, comment);
         fields = new LinkedHashMap<String,InvarField<InvarType>>();
         setCharset("UTF-8");
+        setAlias("");
     }
 
     public List<InvarField<InvarType>> listFields()
@@ -93,6 +95,16 @@ public class TypeStruct extends InvarType
     {
         this.charset = charset;
         return this;
+    }
+
+    public String getAlias()
+    {
+        return alias;
+    }
+
+    public void setAlias(String alias)
+    {
+        this.alias = alias;
     }
 
 }

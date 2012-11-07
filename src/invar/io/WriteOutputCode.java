@@ -18,6 +18,7 @@ public abstract class WriteOutputCode
 {
     abstract protected Boolean beforeWrite(InvarContext ctx);
     abstract protected String codeStruct(TypeStruct type);
+    abstract protected String codeStructAlias(InvarType type);
     abstract protected String codeEnum(TypeEnum type);
 
     InvarContext context  = null;
@@ -37,6 +38,7 @@ public abstract class WriteOutputCode
     final public WriteOutputCode setContext(InvarContext context)
     {
         this.context = context;
+        getContext().findOrCreatePack("invar");
         return this;
     }
 
@@ -108,7 +110,7 @@ public abstract class WriteOutputCode
         while (i.hasNext())
         {
             InvarPackage pack = getContext().getPack(i.next());
-            Iterator<String> iTypeName = pack.getTypeNames().iterator();
+            Iterator<String> iTypeName = pack.getTypeNames();
             while (iTypeName.hasNext())
             {
                 String typeName = iTypeName.next();
@@ -154,9 +156,18 @@ public abstract class WriteOutputCode
                 }
             }
         }
+        files.putAll(makeAliasFile(suffix));
         return files;
     }
-
+    private HashMap<File,String> makeAliasFile(String suffix)
+    {
+        HashMap<File,String> files = new HashMap<File,String>();
+        InvarType type = getContext().ghostAdd("invar", "InvarAlias", "");
+        File codeFile = new File(type.getPack().getCodeDir(), type.getName()
+                + suffix);
+        files.put(codeFile, codeStructAlias(type));
+        return files;
+    }
     protected HashMap<File,String> makeProtocFiles(String string)
     {
         HashMap<File,String> files = new HashMap<File,String>();
@@ -204,7 +215,7 @@ public abstract class WriteOutputCode
             File file = i.next();
             String content = files.get(file);
             FileWriter writer = new FileWriter(file, false);
-            writer.write(content);
+            writer.write(content == null ? "" : content);
             writer.close();
             log("write -> " + file.getAbsolutePath());
         }

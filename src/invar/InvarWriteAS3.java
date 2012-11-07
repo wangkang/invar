@@ -23,6 +23,7 @@ final public class InvarWriteAS3 extends WriteOutputCode
     @Override
     protected Boolean beforeWrite(final InvarContext c)
     {
+        c.ghostClear();
         c.typeRedefine(TypeID.INT8, "", "int", "");
         c.typeRedefine(TypeID.INT16, "", "int", "");
         c.typeRedefine(TypeID.INT32, "", "int", "");
@@ -37,8 +38,6 @@ final public class InvarWriteAS3 extends WriteOutputCode
         c.typeRedefine(TypeID.BOOL, "", "Boolean", "");
         c.typeRedefine(TypeID.LIST, "", "Vector", ".<?>");
         c.typeRedefine(TypeID.MAP, "flash.utils", "Dictionary", "");
-        //c.typeRedefine(TypeID.GHOST, "java.lang", "Throwable", "");
-        //c.typeRedefine(TypeID.GHOST, "java.nio", "ByteBuffer", "");
         //System.out.println(c.dumpTypeAll());
         return true;
     }
@@ -90,7 +89,7 @@ final public class InvarWriteAS3 extends WriteOutputCode
         String key = "";
         if (type.getPack() != packCurr)
         {
-            type = getContext().typeRedirect(type);
+            type = type.getRedirect() == null ? type : type.getRedirect();
             if (!type.getPack().getName().equals(""))
                 key = type.getPack().getName() + "." + type.getName();
         }
@@ -321,5 +320,12 @@ final public class InvarWriteAS3 extends WriteOutputCode
             deft = ("new " + f.getTypeFormatted() + "()");
         }
         return deft;
+    }
+
+    @Override
+    protected String codeStructAlias(InvarType type)
+    {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

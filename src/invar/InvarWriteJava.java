@@ -25,6 +25,7 @@ final public class InvarWriteJava extends WriteOutputCode
     @Override
     protected Boolean beforeWrite(final InvarContext c)
     {
+        c.ghostClear();
         c.typeRedefine(TypeID.INT8, "java.lang", "Byte", "");
         c.typeRedefine(TypeID.INT16, "java.lang", "Short", "");
         c.typeRedefine(TypeID.INT32, "java.lang", "Integer", "");
@@ -39,18 +40,69 @@ final public class InvarWriteJava extends WriteOutputCode
         c.typeRedefine(TypeID.BOOL, "java.lang", "Boolean", "");
         c.typeRedefine(TypeID.MAP, "java.util", "HashMap", "<?,?>");
         c.typeRedefine(TypeID.LIST, "java.util", "LinkedList", "<?>");
-        c.typeRedefine(TypeID.GHOST, "java.lang", "Throwable", "");
-        c.typeRedefine(TypeID.GHOST, "java.nio", "ByteBuffer", "");
-
-        //System.out.println(c.dumpTypeAll());
+        //c.typeRedefine(TypeID.GHOST, "java.lang", "Throwable", "");
+        //c.typeRedefine(TypeID.GHOST, "java.nio", "ByteBuffer", "");
+        // System.out.println(c.dumpTypeAll());
         return true;
     }
 
     @Override
+    protected String codeStructAlias(InvarType typeWrapper)
+    {
+        Iterator<String> i = getContext().aliasNames();
+
+        StringBuilder imports = new StringBuilder();
+        StringBuilder codeA = new StringBuilder();
+        StringBuilder codeT = new StringBuilder();
+
+        codeA.append(brIndent);
+        codeA.append("static public HashMap<String,Class<?>> mapAliasType()");
+        codeA.append(brIndent);
+        codeA.append("{");
+        codeA.append(brIndent2);
+        codeA.append("HashMap<String,Class<?>> map = new HashMap<String,Class<?>>();");
+        imports.append(br);
+        codeT.append(brIndent);
+        codeT.append("static public HashMap<Class<?>,String> mapTypeAlias()");
+        codeT.append(brIndent);
+        codeT.append("{");
+        codeT.append(brIndent2);
+        codeT.append("HashMap<Class<?>,String> map = new HashMap<Class<?>,String>();");
+        while (i.hasNext())
+        {
+            String alias = i.next();
+            InvarType type = getContext().aliasGet(alias);
+            codeA.append(brIndent2);
+            codeA.append("map.put(\"" + alias + "\", " + type.getName()
+                    + ".class);");
+            codeT.append(brIndent2);
+            codeT.append("map.put(" + type.getName() + ".class" + ", \""
+                    + alias + "\");");
+            if (!type.getPack().getName().startsWith("java.lang"))
+            {
+                imports.append(br);
+                imports.append("import " + type.getPack().getName() + "."
+                        + type.getName() + ";");
+            }
+        }
+        codeA.append(brIndent2);
+        codeA.append("return map;");
+        codeA.append(brIndent);
+        codeA.append("}");
+        codeT.append(brIndent2);
+        codeT.append("return map;");
+        codeT.append(brIndent);
+        codeT.append("}");
+        StringBuilder body = new StringBuilder();
+        body.append(codeA);
+        body.append(br);
+        body.append(codeT);
+        return codeClassFile(typeWrapper, body, imports);
+    }
+    @Override
     protected String codeStruct(TypeStruct type)
     {
         List<InvarField<InvarType>> fs = type.listFields();
-
         int widthType = 1;
         int widthKey = 1;
         int widthDefault = 1;
@@ -76,7 +128,7 @@ final public class InvarWriteJava extends WriteOutputCode
             f.setWidthKey(widthKey);
             f.setWidthDefault(widthDefault);
 
-            fields.append(codeStructField(f));
+            fields.append(codeStructField(f, type));
             setters.append(codeStructSetter(f, type.getName()));
             getters.append(codeStructGetter(f));
         }
@@ -94,7 +146,7 @@ final public class InvarWriteJava extends WriteOutputCode
         String key = "";
         if (type.getPack() != packCurr)
         {
-            type = getContext().typeRedirect(type);
+            type = type.getRedirect() == null ? type : type.getRedirect();
             key = type.getPack().getName() + "." + type.getName();
         }
         return key;
@@ -133,14 +185,14 @@ final public class InvarWriteJava extends WriteOutputCode
         return code;
     }
 
-    private StringBuilder codeStructField(InvarField<InvarType> f)
+    private StringBuilder codeStructField(InvarField<InvarType> f, TypeStruct s)
     {
         StringBuilder code = new StringBuilder();
         code.append(brIndent);
         code.append(fixedLen(f.getWidthType() + 1, f.getTypeFormatted() + " "));
         code.append(fixedLen(f.getWidthKey(), f.getKey()));
         code.append(" = ");
-        String deft = evalFieldDefault(f);
+        String deft = f.getType() != s ? evalFieldDefault(f) : "null";
         code.append(fixedLen(f.getWidthDefault() + 1, deft + ";"));
         if (!f.getComment().equals(""))
         {
@@ -149,7 +201,6 @@ final public class InvarWriteJava extends WriteOutputCode
         }
         return code;
     }
-
     private String codeStructSetter(InvarField<InvarType> f, String nameType)
     {
         if (TypeID.LIST == f.getType().getId())
@@ -354,4 +405,5 @@ final public class InvarWriteJava extends WriteOutputCode
         ByteBuffer bb = cs.encode(cb);
         return bb.array();
     }
+
 }
