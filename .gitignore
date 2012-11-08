@@ -1,13 +1,11 @@
-*.class
+.*
 bin/
 tmp/
 temp/
-.*
-
-
-
-
-# Package Files #
+*.class
 *.jar
 *.war
 *.ear
+
+src_test/
+code/

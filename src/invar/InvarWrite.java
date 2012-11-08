@@ -1,6 +1,5 @@
-package invar.io;
+package invar;
 
-import invar.InvarContext;
 import invar.model.InvarPackage;
 import invar.model.InvarType;
 import invar.model.InvarType.TypeID;
@@ -10,36 +9,33 @@ import invar.model.TypeStruct;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
-public abstract class WriteOutputCode
+public abstract class InvarWrite
 {
     abstract protected Boolean beforeWrite(InvarContext ctx);
+    abstract protected String codeEnum(TypeEnum type);
     abstract protected String codeStruct(TypeStruct type);
     abstract protected String codeStructAlias(InvarType type);
-    abstract protected String codeEnum(TypeEnum type);
 
-    InvarContext context  = null;
-    File         dirRoot  = null;
-    String[]     keywords = null;
+    final private InvarContext                context;
+    final private File                        dirRoot;
+    final private HashMap<InputStream,String> exportFiles;
 
-    final public WriteOutputCode setDirRoot(String path)
+    public InvarWrite(InvarContext context, String dirRootPath)
     {
-        File file = new File(path);
+        File file = new File(dirRootPath);
         if (file.exists())
-            deleteDirs(path);
-        file.mkdirs();
-        dirRoot = file;
-        return this;
-    }
-
-    final public WriteOutputCode setContext(InvarContext context)
-    {
+            deleteDirs(dirRootPath);
+        this.dirRoot = file;
         this.context = context;
-        getContext().findOrCreatePack("invar");
-        return this;
+        this.exportFiles = new HashMap<InputStream,String>();
     }
 
     final public void write(String suffix) throws Throwable
@@ -62,7 +58,7 @@ public abstract class WriteOutputCode
         return context;
     }
 
-    protected void log(String txt)
+    final protected void log(Object txt)
     {
         System.out.println(txt);
     }
@@ -71,12 +67,8 @@ public abstract class WriteOutputCode
     {
         int delta = len - str.length();
         if (delta > 0)
-        {
             for (int i = 0; i < delta; i++)
-            {
                 str += blank;
-            }
-        }
         return str;
     }
     final protected String upperHeadChar(String s)
@@ -91,16 +83,26 @@ public abstract class WriteOutputCode
     {
         return fixedLen(blank, len, "");
     }
-    protected void setKeywords(String[] keywords)
+
+    final protected void exportFile(String resPath, String fileDir, String fileName)
     {
-        this.keywords = keywords;
-    }
-    protected void checkKeywords(String name) throws Exception
-    {
-        if (Arrays.binarySearch(keywords, name) >= 0)
+        InputStream res = getClass().getResourceAsStream(resPath);
+        if (res != null)
         {
-            throw new Exception(name + " is a reserved word.");
+            makeDirs(fileDir);
+            exportFiles.put(res, fileDir + "/" + fileName);
         }
+        else
+        {
+            //log("[WARN] Resource does not exist: " + resPath);
+        }
+    }
+
+    private void makeDirs(String path)
+    {
+        File dir = new File(dirRoot, path);
+        if (!dir.exists())
+            dir.mkdirs();
     }
 
     private HashMap<File,String> makeFiles(String suffix)
@@ -163,8 +165,8 @@ public abstract class WriteOutputCode
     {
         HashMap<File,String> files = new HashMap<File,String>();
         InvarType type = getContext().ghostAdd("invar", "InvarAlias", "");
-        File codeFile = new File(type.getPack().getCodeDir(), type.getName()
-                + suffix);
+        makeDirs("invar");
+        File codeFile = new File(dirRoot, "invar/" + type.getName() + suffix);
         files.put(codeFile, codeStructAlias(type));
         return files;
     }
@@ -183,8 +185,7 @@ public abstract class WriteOutputCode
             if (!pack.getNeedWrite())
                 continue;
             String path = pack.getName().replace('.', '/') + '/';
-            File dirs = new File(dirRoot, path);
-            dirs.mkdirs();
+            makeDirs(path);
             File packDir = new File(dirRoot, path);
             if (!packDir.exists())
             {
@@ -199,6 +200,8 @@ public abstract class WriteOutputCode
     {
         File delfolder = new File(dir);
         File oldFile[] = delfolder.listFiles();
+        if (oldFile == null)
+            return;
         for (int i = 0; i < oldFile.length; i++)
         {
             if (oldFile[i].isDirectory())
@@ -207,8 +210,10 @@ public abstract class WriteOutputCode
         }
         delfolder.delete();
     }
+
     private void writeFiles(HashMap<File,String> files) throws IOException
     {
+        parseExportFiles(files);
         Iterator<File> i = files.keySet().iterator();
         while (i.hasNext())
         {
@@ -221,4 +226,45 @@ public abstract class WriteOutputCode
         }
     }
 
+    private void parseExportFiles(HashMap<File,String> files) throws IOException
+    {
+        Iterator<InputStream> i = exportFiles.keySet().iterator();
+        while (i.hasNext())
+        {
+            InputStream res = i.next();
+            File file = new File(dirRoot, exportFiles.get(res));
+            byte[] bs = new byte[res.available()];
+            res.read(bs);
+            char[] chars = getChars(bs);
+            files.put(file, String.copyValueOf(chars));
+        }
+    }
+
+    static protected char[] getChars(byte[] bytes)
+    {
+        Charset cs = Charset.forName("UTF-8");
+        ByteBuffer bb = ByteBuffer.allocate(bytes.length);
+        bb.put(bytes);
+        bb.flip();
+        CharBuffer cb = cs.decode(bb);
+        return cb.array();
+    }
+
+    static protected byte[] getBytes(char[] chars)
+    {
+        Charset cs = Charset.forName("UTF-8");
+        CharBuffer cb = CharBuffer.allocate(chars.length);
+        cb.put(chars);
+        cb.flip();
+        ByteBuffer bb = cs.encode(cb);
+        return bb.array();
+    }
+
+    static protected void checkKeywords(String name, String[] keywords) throws Exception
+    {
+        if (Arrays.binarySearch(keywords, name) >= 0)
+        {
+            throw new Exception(name + " is a reserved word.");
+        }
+    }
 }

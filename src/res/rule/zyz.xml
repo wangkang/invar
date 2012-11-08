@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package name="test.xyz">
+
+	<struct name="ConfigRoot" alias="root">
+		<String name="revision" />
+		<Info name="info" />
+		<InfoX name="infox" />
+	</struct>
+
+	<struct name="InfoX" alias="infox" doc="Complex data structure">
+		<test.abc::Conflict name="conflictType" />
+		<Vec-Map-Int16-Info name="infovm" doc="a map list" />
+		<Vec-Vec-Info name="info2d" doc="2 dimension list" />
+		<Vec-Vec-Vec-Info name="info3d" doc="3 dimension list" />
+		<Map-Vec-Enum-Info name="mvei" />
+		<Map-Info-Vec-Enum name="mive" />
+		<Map-Vec-Info-Vec-Enum name="mvive" />
+		<Vec-Map-Vec-Info-Vec-Enum name="vmvive" />
+	</struct>
+
+	<struct name="Conflict">
+		<String name="text" />
+	</struct>
+
+
+</package>

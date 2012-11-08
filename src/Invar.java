@@ -1,94 +1,58 @@
 import invar.InvarContext;
+import invar.InvarReadRule;
 import invar.InvarWriteAS3;
 import invar.InvarWriteJava;
-import invar.io.ReadInputXml;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * @author wkang
- */
 final public class Invar
 {
-    static private String outPathJava  = "temp/java/";
-    static private String outPathFlash = "temp/flash/";
+    static final String ARG_HELP       = "-help";
+    static final String ARG_RULE_PATH  = "-rule";
+    static final String ARG_JAVA_PATH  = "-java";
+    static final String ARG_FLASH_PATH = "-flash";
+
+    static String       rulePath       = "rule/";
+    static String       outPathJava    = "code/java/";
+    static String       outPathFlash   = "code/flash/";
 
     static public void main(String[] args) throws Throwable
     {
-        System.out.println("Start: " + new Date().toString());
-
         HashMap<String,List<String>> mapArgs = parseArguments(args);
-        if (mapArgs.get("-help") != null)
+        if (mapArgs.get(ARG_HELP) != null)
         {
             showHelp();
             return;
         }
-
+        log("Invar start: " + new Date().toString());
         InvarContext ctx = new InvarContext();
-        ctx.addBuildInTypes(ReadInputXml.makeTypeIdMap());
-        handleXmlInputs(ctx, mapArgs.get("-xml"));
+        ctx.addBuildInTypes(InvarReadRule.makeTypeIdMap());
+        List<String> rules = mapArgs.get(ARG_RULE_PATH);
+        if (rules != null && rules.size() > 0)
+            rulePath = rules.get(0);
+        InvarReadRule.start(rulePath, ".xml", ctx);
 
         List<String> outPath = null;
-
-        outPath = mapArgs.get("-java");
+        outPath = mapArgs.get(ARG_JAVA_PATH);
         if (outPath != null)
         {
             if (outPath.size() > 0)
                 outPathJava = outPath.get(0);
-            new InvarWriteJava().setDirRoot(outPathJava).setContext(ctx)
-                    .write(".java");
+            new InvarWriteJava(ctx, outPathJava).write(".java");
         }
-
-        outPath = mapArgs.get("-flash");
+        outPath = mapArgs.get(ARG_FLASH_PATH);
         if (outPath != null)
         {
             if (outPath.size() > 0)
                 outPathFlash = outPath.get(0);
-            new InvarWriteAS3().setDirRoot(outPathFlash).setContext(ctx)
-                    .write(".as");
+            new InvarWriteAS3(ctx, outPathFlash).write(".as");
         }
-
-        System.out.println("End: " + new Date().toString());
-
-        //System.out.println(ReadInputXml.makeTestXmlString(""));
-        //System.out.println(ReadInputXml.makeTestXmlString("Vec"));
-        //System.out.println(ReadInputXml.makeTestXmlString("Map"));
+        log("Invar end: " + new Date().toString());
     }
 
-    private static void handleXmlInputs(InvarContext ctx, List<String> pathXmls) throws Throwable
-    {
-        if (pathXmls == null || pathXmls.size() == 0)
-        {
-            showHelp();
-            return;
-        }
-        else
-        {
-            List<ReadInputXml> xmls = new ArrayList<ReadInputXml>();
-            for (String pathXml : pathXmls)
-            {
-                InputStream input = Invar.class.getResourceAsStream(pathXml);
-                if (input == null)
-                    throw new IOException("Invalid file path " + pathXml);
-                xmls.add(new ReadInputXml(ctx, input, pathXml));
-            }
-            for (ReadInputXml x : xmls)
-            {
-                x.build();
-            }
-            // System.out.println(ctx.dumpTypeAll());
-            for (ReadInputXml x : xmls)
-            {
-                x.parse();
-            }
-        }
-    }
-    private static HashMap<String,List<String>> parseArguments(String[] args)
+    static HashMap<String,List<String>> parseArguments(String[] args)
     {
         HashMap<String,List<String>> mapArgs = new HashMap<String,List<String>>();
         List<String> listCurrent = null;
@@ -107,20 +71,29 @@ final public class Invar
         return mapArgs;
     }
 
-    private static void showHelp()
+    static void showHelp()
     {
         StringBuilder s = new StringBuilder();
-        s.append("flaspect [ -help | -xml | -java | -flash ]");
         s.append("\n");
-        s.append("-help");
-        s.append("\n");
-        s.append("-xml");
-        s.append("\n");
-        s.append("-java");
-        s.append("\n");
-        s.append("-flash");
-        s.append("\n");
-        System.out.println(s);
+        s.append("Description: ");
+        s.append("\n  ");
+        s.append("Invariable data interchange format in your project.");
+        s.append("\n\n");
+        s.append("Argument List: ");
+        s.append("\n  ");
+        s.append(ARG_HELP);
+        s.append("\n  ");
+        s.append(ARG_RULE_PATH);
+        s.append("\n  ");
+        s.append(ARG_JAVA_PATH);
+        s.append("\n  ");
+        s.append(ARG_FLASH_PATH);
+        log(s);
+    }
+
+    static void log(Object txt)
+    {
+        System.out.println(txt);
     }
 
 }

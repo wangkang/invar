@@ -1,6 +1,5 @@
-package invar.io;
+package invar;
 
-import invar.InvarContext;
 import invar.model.InvarField;
 import invar.model.InvarPackage;
 import invar.model.InvarType;
@@ -8,7 +7,7 @@ import invar.model.InvarType.TypeID;
 import invar.model.TypeEnum;
 import invar.model.TypeProtocol;
 import invar.model.TypeStruct;
-import java.io.InputStream;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -21,8 +20,58 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-final public class ReadInputXml
+final public class InvarReadRule
 {
+    static public void start(String path, String suffix, InvarContext ctx) throws Throwable
+    {
+        File file = new File(path);
+        if (!file.exists())
+            return;
+        log("Path: " + file.getAbsolutePath());
+        List<File> files = new ArrayList<File>();
+        recursiveReadFile(files, file, suffix);
+        List<InvarReadRule> xmls = new ArrayList<InvarReadRule>();
+        for (File f : files)
+        {
+            log("Read <- " + f.getAbsolutePath());
+            Document doc = DocumentBuilderFactory.newInstance()
+                    .newDocumentBuilder().parse(f);
+            if (!doc.hasChildNodes())
+                return;
+            InvarReadRule read = new InvarReadRule(ctx, f.getAbsolutePath());
+            read.build(doc);
+            xmls.add(read);
+        }
+        for (InvarReadRule x : xmls)
+        {
+            x.parse();
+        }
+    }
+    static private void recursiveReadFile(List<File> all, File file, String suffix)
+    {
+        if (all.size() > 1024)
+            return;
+        if (file.isFile())
+        {
+            all.add(file);
+        }
+        else if (file.isDirectory())
+        {
+            if (file.getName().startsWith("."))
+                return;
+            File[] files = file.listFiles();
+            for (int i = 0; i < files.length; i++)
+                recursiveReadFile(all, files[i], suffix);
+        }
+        else
+        {
+        }
+    }
+    static private void log(Object txt)
+    {
+        System.out.println(txt);
+    }
+
     static private final String SPLIT_PACK_TYPE     = "::";
     static private final String SPLIT_GNERICS       = "-";
     static private final String ATTR_COMMENT        = "doc";
@@ -111,22 +160,17 @@ final public class ReadInputXml
 
     private final InvarContext context;
     private final String       pathXml;
-    private final InputStream  input;
     private InvarPackage       pack;
     private List<Node>         typeNodes;
 
-    public ReadInputXml(InvarContext ctx, InputStream input, String pathXml)
+    public InvarReadRule(InvarContext ctx, String pathXml)
     {
         this.context = ctx;
-        this.input = input;
         this.pathXml = pathXml;
     }
 
-    public void build() throws Throwable
+    private void build(Document doc) throws Throwable
     {
-        Document doc = DocumentBuilderFactory.newInstance()
-                .newDocumentBuilder().parse(input);
-
         if (!doc.hasChildNodes())
             return;
 
@@ -179,7 +223,7 @@ final public class ReadInputXml
             typeNodes.add(n);
         }
     }
-    public void parse() throws Throwable
+    private void parse() throws Throwable
     {
         if (pack == null)
             return;
@@ -204,7 +248,6 @@ final public class ReadInputXml
             }
         }
     }
-
     private void decEnum(Node node, TypeEnum type) throws NumberFormatException, DOMException, Exception
     {
         NodeList nodes = node.getChildNodes();
@@ -447,13 +490,7 @@ final public class ReadInputXml
 
     private void onError(Node n, String hint) throws Exception
     {
-        throw new Exception("File parse error: " + pathXml + "\n"
-                + formatXmlNode(n) + hint);
-    }
-
-    private void log(String txt)
-    {
-        System.out.println(txt);
+        throw new Exception(hint + "\n" + formatXmlNode(n) + "\n" + pathXml);
     }
 
     private String formatXmlNode(Node n)
@@ -467,7 +504,7 @@ final public class ReadInputXml
             Node a = attrs.item(i);
             code.append(" " + a.toString());
         }
-        code.append(" />\n");
+        code.append(" />");
         return code.toString();
     }
 }

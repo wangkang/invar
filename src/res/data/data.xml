@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+
+	<string var="revision" value="235" />
+
+	<info var="info" text="this is a string value">
+
+		<uint16 var="numb6" value="666" />
+		<info var="self">
+			<string var="text" value="string set to self" />
+		</info>
+
+	</info>
+
+	<infox var="infox" />
+
+</root>
