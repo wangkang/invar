@@ -13,7 +13,6 @@ final public class Invar
     static final String ARG_RULE_PATH  = "-rule";
     static final String ARG_JAVA_PATH  = "-java";
     static final String ARG_FLASH_PATH = "-flash";
-
     static String       rulePath       = "rule/";
     static String       outPathJava    = "code/java/";
     static String       outPathFlash   = "code/flash/";
@@ -33,7 +32,6 @@ final public class Invar
         if (rules != null && rules.size() > 0)
             rulePath = rules.get(0);
         InvarReadRule.start(rulePath, ".xml", ctx);
-
         List<String> outPath = null;
         outPath = mapArgs.get(ARG_JAVA_PATH);
         if (outPath != null)
@@ -95,5 +93,4 @@ final public class Invar
     {
         System.out.println(txt);
     }
-
 }

@@ -17,12 +17,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
-public abstract class InvarWrite
+abstract public class InvarWrite
 {
+
     abstract protected Boolean beforeWrite(InvarContext ctx);
+
     abstract protected String codeEnum(TypeEnum type);
+
     abstract protected String codeStruct(TypeStruct type);
-    abstract protected String codeStructAlias(InvarType type);
+
+    abstract protected String codeRuntime(InvarType type);
 
     final private InvarContext                context;
     final private File                        dirRoot;
@@ -63,27 +67,6 @@ public abstract class InvarWrite
         System.out.println(txt);
     }
 
-    final protected String fixedLen(String blank, Integer len, String str)
-    {
-        int delta = len - str.length();
-        if (delta > 0)
-            for (int i = 0; i < delta; i++)
-                str += blank;
-        return str;
-    }
-    final protected String upperHeadChar(String s)
-    {
-        return s.substring(0, 1).toUpperCase() + s.substring(1, s.length());
-    }
-    final protected String fixedLen(Integer len, String str)
-    {
-        return fixedLen(" ", len, str);
-    }
-    final protected String fixedLen(String blank, Integer len)
-    {
-        return fixedLen(blank, len, "");
-    }
-
     final protected void exportFile(String resPath, String fileDir, String fileName)
     {
         InputStream res = getClass().getResourceAsStream(resPath);
@@ -94,7 +77,7 @@ public abstract class InvarWrite
         }
         else
         {
-            //log("[WARN] Resource does not exist: " + resPath);
+            log("Export resource does not exist: " + resPath);
         }
     }
 
@@ -116,62 +99,65 @@ public abstract class InvarWrite
             while (iTypeName.hasNext())
             {
                 String typeName = iTypeName.next();
-                File codeDir = pack.getCodeDir();
-                if (codeDir == null)
-                {
-                    //System.out.println("code dir null. " + typeName);
-                    continue;
-                }
-                InvarType type = pack.getType(typeName);
-                if (TypeID.ENUM == type.getId())
-                {
-                    TypeEnum t = (TypeEnum)type;
-                    File codeFile = new File(codeDir, t.getName() + suffix);
-                    files.put(codeFile, codeEnum(t));
-                }
-                else if (TypeID.STRUCT == type.getId())
-                {
-                    TypeStruct t = (TypeStruct)type;
-                    File codeFile = new File(codeDir, t.getName() + suffix);
-                    files.put(codeFile, codeStruct(t));
-                }
-                else if (TypeID.PROTOCOL == type.getId())
-                {
-                    TypeProtocol t = (TypeProtocol)type;
-                    File codeFile = null;
-                    if (t.hasClient())
-                    {
-                        codeFile = new File(codeDir, t.getClient().getName()
-                                + suffix);
-                        files.put(codeFile, codeStruct(t.getClient()));
-                    }
-                    if (t.hasServer())
-                    {
-                        codeFile = new File(codeDir, t.getServer().getName()
-                                + suffix);
-                        files.put(codeFile, codeStruct(t.getServer()));
-                    }
-                }
-                else
-                {
-                    // do nothing
-                }
+                makeFile(files, pack, typeName, suffix);
             }
         }
-        files.putAll(makeAliasFile(suffix));
+        files.putAll(makeRuntimeFile(suffix));
         return files;
     }
-    private HashMap<File,String> makeAliasFile(String suffix)
+
+    private void makeFile(HashMap<File,String> fs, InvarPackage pack, String tName, String suffix)
+    {
+        File codeDir = pack.getCodeDir();
+        if (codeDir == null)
+            return;
+        InvarType type = pack.getType(tName);
+        if (TypeID.ENUM == type.getId())
+        {
+            TypeEnum t = (TypeEnum)type;
+            File codeFile = new File(codeDir, t.getName() + suffix);
+            fs.put(codeFile, codeEnum(t));
+        }
+        else if (TypeID.STRUCT == type.getId())
+        {
+            TypeStruct t = (TypeStruct)type;
+            File codeFile = new File(codeDir, t.getName() + suffix);
+            fs.put(codeFile, codeStruct(t));
+        }
+        else if (TypeID.PROTOCOL == type.getId())
+        {
+            TypeProtocol t = (TypeProtocol)type;
+            File codeFile = null;
+            if (t.hasClient())
+            {
+                codeFile = new File(codeDir, t.getClient().getName() + suffix);
+                fs.put(codeFile, codeStruct(t.getClient()));
+            }
+            if (t.hasServer())
+            {
+                codeFile = new File(codeDir, t.getServer().getName() + suffix);
+                fs.put(codeFile, codeStruct(t.getServer()));
+            }
+        }
+        else
+        {
+            // do nothing
+        }
+    }
+
+    private HashMap<File,String> makeRuntimeFile(String suffix)
     {
         HashMap<File,String> files = new HashMap<File,String>();
-        InvarType type = getContext().ghostAdd("invar", "InvarAlias", "");
+        InvarType type = getContext().ghostAdd("invar", "InvarRuntime", "");
         makeDirs("invar");
         File codeFile = new File(dirRoot, "invar/" + type.getName() + suffix);
-        files.put(codeFile, codeStructAlias(type));
+        files.put(codeFile, codeRuntime(type));
         return files;
     }
-    protected HashMap<File,String> makeProtocFiles(String string)
+
+    protected HashMap<File,String> makeProtocFile(String string)
     {
+        //TODO make a protocol interface code
         HashMap<File,String> files = new HashMap<File,String>();
         return files;
     }
@@ -189,13 +175,13 @@ public abstract class InvarWrite
             File packDir = new File(dirRoot, path);
             if (!packDir.exists())
             {
-                throw new Exception("Dir do not exist: "
-                        + packDir.getAbsolutePath());
+                throw new Exception("Dir do not exist: " + packDir.getAbsolutePath());
             }
             pack.setCodeDir(packDir);
             log("mkdir -> " + packDir.getAbsolutePath());
         }
     }
+
     private void deleteDirs(String dir)
     {
         File delfolder = new File(dir);
@@ -226,7 +212,8 @@ public abstract class InvarWrite
         }
     }
 
-    private void parseExportFiles(HashMap<File,String> files) throws IOException
+    private void parseExportFiles(HashMap<File,String> files)
+        throws IOException
     {
         Iterator<InputStream> i = exportFiles.keySet().iterator();
         while (i.hasNext())
@@ -238,6 +225,63 @@ public abstract class InvarWrite
             char[] chars = getChars(bs);
             files.put(file, String.copyValueOf(chars));
         }
+    }
+
+    final protected StringBuilder dumpTypeAll()
+    {
+        StringBuilder s = new StringBuilder();
+        Iterator<String> i = getContext().getPackNames();
+        while (i.hasNext())
+        {
+            InvarPackage pack = getContext().getPack(i.next());
+            s.append(pack.getName());
+            s.append("\n");
+            Iterator<String> iTypeName = pack.getTypeNames();
+            while (iTypeName.hasNext())
+            {
+                String typeName = iTypeName.next();
+                InvarType type = pack.getType(typeName);
+                s.append(fixedLen(" ", 21, pack.getName() + "." + typeName));
+                if (type.getRedirect() != null)
+                {
+                    InvarType typeR = type.getRedirect();
+                    s.append("--->  ");
+                    String namePack = typeR.getPack().getName();
+                    if (!namePack.equals(""))
+                        s.append(namePack + ".");
+                    s.append(typeR.getName());
+                    s.append(typeR.getGeneric());
+                }
+                s.append("\n");
+            }
+            s.append(fixedLen("-", 80));
+            s.append("\n");
+        }
+        return s;
+    }
+
+    static protected String upperHeadChar(String s)
+    {
+        return s.substring(0, 1).toUpperCase() + s.substring(1, s.length());
+    }
+
+    static protected String fixedLen(String blank, Integer len, String str)
+    {
+        int delta = len - str.length();
+        if (delta > 0)
+            for (int i = 0; i < delta; i++)
+                str += blank;
+        return str;
+    }
+
+    static protected String fixedLen(Integer len, String str)
+    {
+        return fixedLen(" ", len, str);
+    }
+
+    static protected String fixedLen(String blank, Integer len)
+    {
+        return fixedLen(blank, len, "");
     }
 
     static protected char[] getChars(byte[] bytes)
@@ -260,11 +304,11 @@ public abstract class InvarWrite
         return bb.array();
     }
 
-    static protected void checkKeywords(String name, String[] keywords) throws Exception
+    static protected void checkKeywords(String s, String[] ks) throws Exception
     {
-        if (Arrays.binarySearch(keywords, name) >= 0)
+        if (Arrays.binarySearch(ks, s) >= 0)
         {
-            throw new Exception(name + " is a reserved word.");
+            throw new Exception(s + " is a reserved word.");
         }
     }
 }

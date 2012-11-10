@@ -4,11 +4,9 @@ public class InvarType
 {
     static public enum TypeID
     {
-        INT8, INT16, INT32, INT64, UINT8, UINT16, UINT32, UINT64,
-
-        FLOAT, DOUBLE, BOOL, STRING, LIST, MAP, GHOST,
-
-        ENUM, STRUCT, PROTOCOL
+        STRUCT, ENUM, PROTOCOL, //
+        INT8, INT16, INT32, INT64, UINT8, UINT16, UINT32, UINT64, //
+        FLOAT, DOUBLE, BOOL, STRING, LIST, MAP, GHOST//
     };
 
     private final TypeID       id;
@@ -72,5 +70,4 @@ public class InvarType
     {
         this.redirect = redirect;
     }
-
 }

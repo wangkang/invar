@@ -22,8 +22,6 @@ final public class InvarWriteAS3 extends InvarWrite
     final static private String br       = "\n";
     final static private String brIndent = br + indent;
 
-    //final static private String brIndent2 = br + indent + indent;
-
     @Override
     protected Boolean beforeWrite(final InvarContext c)
     {
@@ -49,11 +47,11 @@ final public class InvarWriteAS3 extends InvarWrite
     @Override
     protected String codeStruct(TypeStruct type)
     {
-        List<InvarField<InvarType>> fs = type.listFields();
+        List<InvarField> fs = type.listFields();
         int widthType = 1;
         int widthKey = 1;
         int widthDefault = 1;
-        for (InvarField<InvarType> f : fs)
+        for (InvarField f : fs)
         {
             f.setWidthTypeMax(20);
             f.makeTypeFormatted(getContext());
@@ -64,17 +62,15 @@ final public class InvarWriteAS3 extends InvarWrite
             if (f.getDefault().length() > widthDefault)
                 widthDefault = f.getDefault().length();
         }
-
         StringBuilder imports = codeStructImports(fs, type.getPack());
         StringBuilder fields = new StringBuilder();
         StringBuilder setters = new StringBuilder();
         StringBuilder getters = new StringBuilder();
-        for (InvarField<InvarType> f : fs)
+        for (InvarField f : fs)
         {
             f.setWidthType(widthType);
             f.setWidthKey(widthKey);
             f.setWidthDefault(widthDefault);
-
             fields.append(codeStructField(f));
             setters.append(codeStructSetter(f, type.getName()));
             getters.append(codeStructGetter(f));
@@ -100,10 +96,10 @@ final public class InvarWriteAS3 extends InvarWrite
         return key;
     }
 
-    private StringBuilder codeStructImports(List<InvarField<InvarType>> fs, InvarPackage pack)
+    private StringBuilder codeStructImports(List<InvarField> fs, InvarPackage pack)
     {
         SortedSet<String> keys = new TreeSet<String>();
-        for (InvarField<InvarType> f : fs)
+        for (InvarField f : fs)
         {
             String key = "";
             key = importTypeCheck(f.getType(), pack);
@@ -131,7 +127,7 @@ final public class InvarWriteAS3 extends InvarWrite
         return code;
     }
 
-    private Object codeStructGetter(InvarField<InvarType> f)
+    private Object codeStructGetter(InvarField f)
     {
         StringBuilder code = new StringBuilder();
         if (!f.getComment().equals(""))
@@ -142,15 +138,15 @@ final public class InvarWriteAS3 extends InvarWrite
         code.append(brIndent);
         code.append("public function ");
         code.append("get");
-        code.append(fixedLen(f.getWidthKey() + 2, upperHeadChar(f.getKey())
-                + "()"));
+        code.append(fixedLen(f.getWidthKey() + 2, upperHeadChar(f.getKey()) + "()"));
         code.append(fixedLen(f.getWidthType() + 2, " :" + f.getTypeFormatted()));
         code.append(" {");
         code.append("return this." + f.getKey() + ";");
         code.append("}");
         return code;
     }
-    private String codeStructSetter(InvarField<InvarType> f, String nameType)
+
+    private String codeStructSetter(InvarField f, String nameType)
     {
         if (TypeID.LIST == f.getType().getId())
             return "";
@@ -178,7 +174,7 @@ final public class InvarWriteAS3 extends InvarWrite
         return code.toString();
     }
 
-    private StringBuilder codeStructField(InvarField<InvarType> f)
+    private StringBuilder codeStructField(InvarField f)
     {
         StringBuilder code = new StringBuilder();
         code.append(brIndent);
@@ -212,7 +208,6 @@ final public class InvarWriteAS3 extends InvarWrite
             if (type.getValue(key).toString().length() > lenVal)
                 lenVal = type.getValue(key).toString().length();
         }
-
         StringBuilder codePuts = new StringBuilder();
         i = type.getKeys().iterator();
         while (i.hasNext())
@@ -236,16 +231,12 @@ final public class InvarWriteAS3 extends InvarWrite
         code.append(brIndent);
         code.append("public static function isValid(value:int):Boolean {return map[value];}");
         code.append(brIndent);
-        code.append("public static function convert(value:int):"
-                + type.getName() + " {return map[value];}");
-
+        code.append("public static function convert(value:int):" + type.getName() + " {return map[value];}");
         code.append(br);
         code.append(brIndent);
         code.append("public function getValue():int {return this.value;}");
         code.append(brIndent);
-        code.append("public function " + type.getName()
-                + "(value:int) {this.value = value;}");
-
+        code.append("public function " + type.getName() + "(value:int) {this.value = value;}");
         code.append(br);
         code.append(brIndent);
         code.append("private var value:int;");
@@ -258,6 +249,7 @@ final public class InvarWriteAS3 extends InvarWrite
         imports.append("import flash.utils.Dictionary;");
         return codeClassFile(type, code, imports);
     }
+
     private String codeClassFile(InvarType type, StringBuilder body, StringBuilder imports)
     {
         StringBuilder code = new StringBuilder();
@@ -285,7 +277,7 @@ final public class InvarWriteAS3 extends InvarWrite
         return code.toString();
     }
 
-    private String evalFieldDefault(InvarField<?> f)
+    private String evalFieldDefault(InvarField f)
     {
         String deft = null;
         switch (f.getType().getId()){
@@ -313,12 +305,10 @@ final public class InvarWriteAS3 extends InvarWrite
             deft = bool ? "true" : "false";
             break;
         case ENUM:
-            @SuppressWarnings ("unchecked") Iterator<String> i = ((InvarField<TypeEnum>)f)
-                    .getType().getKeys().iterator();
-            if (i.hasNext())
-                deft = (f.getType().getName() + "." + i.next());
-            else
-                deft = ("new " + f.getType().getName() + "(-999999)");
+            Iterator<String> i = ((TypeEnum)f.getType()).getKeys().iterator();
+            deft = i.hasNext()
+                ? f.getType().getName() + "." + i.next()
+                : "new " + f.getType().getName() + "(-999999)";
             break;
         default:
             deft = ("new " + f.getTypeFormatted() + "()");
@@ -327,7 +317,7 @@ final public class InvarWriteAS3 extends InvarWrite
     }
 
     @Override
-    protected String codeStructAlias(InvarType type)
+    protected String codeRuntime(InvarType type)
     {
         // TODO Auto-generated method stub
         return null;

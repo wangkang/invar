@@ -1,6 +1,7 @@
 package invar.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -8,21 +9,21 @@ import java.util.Set;
 
 public class TypeStruct extends InvarType
 {
-    private LinkedHashMap<String,InvarField<InvarType>> fields;
-    private String                                      charset;
-    private String                                      alias;
+    private HashMap<String,InvarField> fields;
+    private String                     charset;
+    private String                     alias;
 
     public TypeStruct(String name, InvarPackage pack, String comment)
     {
         super(TypeID.STRUCT, name, pack, comment);
-        fields = new LinkedHashMap<String,InvarField<InvarType>>();
+        fields = new LinkedHashMap<String,InvarField>();
         setCharset("UTF-8");
         setAlias("");
     }
 
-    public List<InvarField<InvarType>> listFields()
+    public List<InvarField> listFields()
     {
-        List<InvarField<InvarType>> list = new ArrayList<InvarField<InvarType>>();
+        List<InvarField> list = new ArrayList<InvarField>();
         Iterator<String> i = fields.keySet().iterator();
         while (i.hasNext())
         {
@@ -39,20 +40,16 @@ public class TypeStruct extends InvarType
         while (i.hasNext())
         {
             String key = i.next();
-            //TypeID id = getFieldType(key);
             if (key.length() > len)
-            {
                 len = key.length();
-            }
         }
         return len;
     }
 
-    @SuppressWarnings ("unchecked")
-    public TypeStruct addField(InvarField<? extends InvarType> f) throws Exception
+    public TypeStruct addField(InvarField f) throws Exception
     {
         checkKey(f.getKey());
-        fields.put(f.getKey(), (InvarField<InvarType>)f);
+        fields.put(f.getKey(), f);
         return this;
     }
 
@@ -61,7 +58,7 @@ public class TypeStruct extends InvarType
         return fields.keySet();
     }
 
-    public InvarField<InvarType> getField(String key)
+    public InvarField getField(String key)
     {
         return fields.get(key);
     }
@@ -71,18 +68,17 @@ public class TypeStruct extends InvarType
         return fields.get(key).getType().getId();
     }
 
-    @SuppressWarnings ("unchecked")
-    public <T extends InvarField<InvarType>> T getFieldCorect(String key)
+    public InvarField getFieldCorect(String key)
     {
-        return (T)fields.get(key);
+        return fields.get(key);
     }
 
     private void checkKey(String key) throws Exception
     {
         if (fields.containsKey(key))
         {
-            throw new Exception("Repeated key '" + key + "' in struct '"
-                    + getName() + "'.");
+            throw new Exception("Repeated key '" + key + //
+            "' in struct '" + getName() + "'.");
         }
     }
 
@@ -106,5 +102,4 @@ public class TypeStruct extends InvarType
     {
         this.alias = alias;
     }
-
 }

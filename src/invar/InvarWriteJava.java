@@ -8,7 +8,6 @@ import invar.model.TypeEnum;
 import invar.model.TypeStruct;
 import java.util.Iterator;
 import java.util.List;
-import java.util.SortedSet;
 import java.util.TreeSet;
 
 final public class InvarWriteJava extends InvarWrite
@@ -22,6 +21,8 @@ final public class InvarWriteJava extends InvarWrite
     final static private String br        = "\n";
     final static private String brIndent  = br + indent;
     final static private String brIndent2 = br + indent + indent;
+    final static private String brIndent3 = br + indent + indent + indent;
+    final static private String brIndent4 = br + indent + indent + indent + indent;
 
     @Override
     protected Boolean beforeWrite(final InvarContext c)
@@ -41,71 +42,19 @@ final public class InvarWriteJava extends InvarWrite
         c.typeRedefine(TypeID.BOOL, "java.lang", "Boolean", "");
         c.typeRedefine(TypeID.MAP, "java.util", "HashMap", "<?,?>");
         c.typeRedefine(TypeID.LIST, "java.util", "LinkedList", "<?>");
-        // System.out.println(c.dumpTypeAll());
+        exportFile("InvarNum.java", "invar", "InvarNum.java");
         exportFile("InvarReadData.java", "invar", "InvarReadData.java");
         return true;
     }
-    @Override
-    protected String codeStructAlias(InvarType typeWrapper)
-    {
-        Iterator<String> i = getContext().aliasNames();
 
-        StringBuilder imports = new StringBuilder();
-        StringBuilder codeA = new StringBuilder();
-        StringBuilder codeT = new StringBuilder();
-
-        codeA.append(brIndent);
-        codeA.append("static public HashMap<String,Class<?>> mapAliasType()");
-        codeA.append(brIndent);
-        codeA.append("{");
-        codeA.append(brIndent2);
-        codeA.append("HashMap<String,Class<?>> map = new HashMap<String,Class<?>>();");
-        imports.append(br);
-        codeT.append(brIndent);
-        codeT.append("static public HashMap<Class<?>,String> mapTypeAlias()");
-        codeT.append(brIndent);
-        codeT.append("{");
-        codeT.append(brIndent2);
-        codeT.append("HashMap<Class<?>,String> map = new HashMap<Class<?>,String>();");
-        while (i.hasNext())
-        {
-            String alias = i.next();
-            InvarType type = getContext().aliasGet(alias);
-            codeA.append(brIndent2);
-            codeA.append("map.put(\"" + alias + "\", " + type.getName()
-                    + ".class);");
-            codeT.append(brIndent2);
-            codeT.append("map.put(" + type.getName() + ".class" + ", \""
-                    + alias + "\");");
-            if (!type.getPack().getName().startsWith("java.lang"))
-            {
-                imports.append(br);
-                imports.append("import " + type.getPack().getName() + "."
-                        + type.getName() + ";");
-            }
-        }
-        codeA.append(brIndent2);
-        codeA.append("return map;");
-        codeA.append(brIndent);
-        codeA.append("}");
-        codeT.append(brIndent2);
-        codeT.append("return map;");
-        codeT.append(brIndent);
-        codeT.append("}");
-        StringBuilder body = new StringBuilder();
-        body.append(codeA);
-        //body.append(br);
-        //body.append(codeT);
-        return codeClassFile(typeWrapper, body, imports);
-    }
     @Override
     protected String codeStruct(TypeStruct type)
     {
-        List<InvarField<InvarType>> fs = type.listFields();
+        List<InvarField> fs = type.listFields();
         int widthType = 1;
         int widthKey = 1;
         int widthDefault = 1;
-        for (InvarField<InvarType> f : fs)
+        for (InvarField f : fs)
         {
             f.setWidthTypeMax(35);
             f.makeTypeFormatted(getContext());
@@ -117,19 +66,34 @@ final public class InvarWriteJava extends InvarWrite
             if (deft.length() > widthDefault)
                 widthDefault = deft.length();
         }
-        StringBuilder imports = codeStructImports(fs, type.getPack());
         StringBuilder fields = new StringBuilder();
         StringBuilder setters = new StringBuilder();
         StringBuilder getters = new StringBuilder();
-        for (InvarField<InvarType> f : fs)
+        TreeSet<String> imps = new TreeSet<String>();
+        for (InvarField f : fs)
         {
             f.setWidthType(widthType);
             f.setWidthKey(widthKey);
             f.setWidthDefault(widthDefault);
-
             fields.append(codeStructField(f, type));
             setters.append(codeStructSetter(f, type.getName()));
             getters.append(codeStructGetter(f));
+
+            String numAnotation = "invar.InvarNum";
+            TypeID id = f.getType().getId();
+            if (!imps.contains(numAnotation) && //
+            TypeID.UINT8 == id || TypeID.UINT16 == id || TypeID.UINT32 == id)
+            {
+                imps.add(numAnotation);
+            }
+            String key = "";
+            key = importTypeCheck(f.getType(), type.getPack());
+            imps.add(key);
+            for (InvarType typeGene : f.getGenerics())
+            {
+                key = importTypeCheck(typeGene, type.getPack());
+                imps.add(key);
+            }
         }
         StringBuilder body = new StringBuilder();
         body.append(fields);
@@ -137,7 +101,7 @@ final public class InvarWriteJava extends InvarWrite
         body.append(setters);
         body.append(br);
         body.append(getters);
-        return codeClassFile(type, body, imports);
+        return codeClassFile(type, body, codeStructImports(imps));
     }
 
     private String importTypeCheck(InvarType type, InvarPackage packCurr)
@@ -151,25 +115,8 @@ final public class InvarWriteJava extends InvarWrite
         return key;
     }
 
-    private StringBuilder codeStructImports(List<InvarField<InvarType>> fs, InvarPackage pack)
+    private StringBuilder codeStructImports(TreeSet<String> keys)
     {
-        SortedSet<String> keys = new TreeSet<String>();
-        for (InvarField<InvarType> f : fs)
-        {
-            String key = "";
-            key = importTypeCheck(f.getType(), pack);
-            // System.out.println(pack.getName() + "---" + f.getKey() + "---"
-            //+ key + "---" + f.getGenerics().size());
-            if (!keys.contains(key))
-                keys.add(key);
-            for (InvarType typeGene : f.getGenerics())
-            {
-                key = importTypeCheck(typeGene, pack);
-                if (keys.contains(key))
-                    continue;
-                keys.add(key);
-            }
-        }
         StringBuilder code = new StringBuilder();
         code.append(br);
         for (String key : keys)
@@ -184,7 +131,7 @@ final public class InvarWriteJava extends InvarWrite
         return code;
     }
 
-    private StringBuilder codeStructField(InvarField<InvarType> f, TypeStruct s)
+    private StringBuilder codeStructField(InvarField f, TypeStruct s)
     {
         StringBuilder code = new StringBuilder();
         code.append(brIndent);
@@ -200,18 +147,34 @@ final public class InvarWriteJava extends InvarWrite
         }
         return code;
     }
-    private String codeStructSetter(InvarField<InvarType> f, String nameType)
+
+    private String codeStructSetter(InvarField f, String nameType)
     {
         if (TypeID.LIST == f.getType().getId())
             return "";
         if (TypeID.MAP == f.getType().getId())
             return "";
+
         StringBuilder code = new StringBuilder();
+
         if (!f.getComment().equals(""))
         {
             code.append(brIndent);
             code.append("/** @param value " + f.getComment() + " */");
         }
+        String max = null;
+        if (TypeID.UINT8 == f.getType().getId())
+            max = "255";
+        else if (TypeID.UINT16 == f.getType().getId())
+            max = "65535";
+        else if (TypeID.UINT32 == f.getType().getId())
+            max = "4294967295L";
+        if (max != null)
+        {
+            code.append(brIndent);
+            code.append("@InvarNum (min = 0, max = " + max + ")");
+        }
+
         String key = upperHeadChar(f.getKey());
         code.append(brIndent);
         code.append("public " + nameType);
@@ -227,7 +190,7 @@ final public class InvarWriteJava extends InvarWrite
         return code.toString();
     }
 
-    private Object codeStructGetter(InvarField<InvarType> f)
+    private Object codeStructGetter(InvarField f)
     {
         StringBuilder code = new StringBuilder();
         if (!f.getComment().equals(""))
@@ -239,8 +202,7 @@ final public class InvarWriteJava extends InvarWrite
         code.append("public ");
         code.append(fixedLen(f.getWidthType(), f.getTypeFormatted()));
         code.append(" get");
-        code.append(fixedLen(f.getWidthKey() + 3, upperHeadChar(f.getKey())
-                + "() "));
+        code.append(fixedLen(f.getWidthKey() + 3, upperHeadChar(f.getKey()) + "() "));
         code.append("{");
         code.append("return this." + f.getKey() + ";");
         code.append("}");
@@ -262,54 +224,156 @@ final public class InvarWriteJava extends InvarWrite
             if (type.getValue(key).toString().length() > lenVal)
                 lenVal = type.getValue(key).toString().length();
         }
+        String tName = type.getName();
+        String sPub = "static final public ";
         StringBuilder codePuts = new StringBuilder();
+        codePuts.append("if (map != null)");
+        codePuts.append(brIndent3);
+        codePuts.append("return map;");
+        codePuts.append(brIndent2);
+        codePuts.append("map = new HashMap<Integer," + tName + ">();");
         i = type.getKeys().iterator();
         while (i.hasNext())
         {
             String key = i.next();
-
             if (!type.getComment(key).equals(""))
             {
                 code.append(brIndent);
                 code.append("/** " + type.getComment(key) + " */");
             }
             code.append(brIndent);
-            code.append("public final static " + type.getName() + " ");
-            code.append(fixedLen(lenKey, key) + " = new " + type.getName()
-                    + "(");
+            code.append(sPub + tName + " ");
+            code.append(fixedLen(lenKey, key) + " = new " + tName + "(");
             code.append(type.getValue(key) + ");");
             codePuts.append(brIndent2);
             codePuts.append("map.put(" + type.getValue(key) + ", " + key + ");");
         }
+        codePuts.append(brIndent2);
+        codePuts.append("return map;");
+        StringBuilder codeParse = new StringBuilder();
+        codeParse.append("HashMap<Integer," + tName + "> m = all();");
+        codeParse.append(brIndent2);
+        codeParse.append("return m.get(v);");
+        code.append(br);
+        code.append(codeMethod(sPub + tName + " parse(Integer v)", codeParse.toString()));
+        code.append(br);
+        code.append(codeMethod(sPub + "HashMap<Integer," + tName + "> all()", codePuts.toString()));
         code.append(br);
         code.append(brIndent);
-        code.append("public static HashMap<Integer," + type.getName()
-                + "> map;");
-        code.append(brIndent);
-        code.append("{");
-        code.append(brIndent2);
-        code.append("map = new HashMap<Integer," + type.getName() + ">();");
-        code.append(codePuts);
-        code.append(brIndent);
-        code.append("}");
+        code.append("static private HashMap<Integer," + tName + "> map;");
         code.append(br);
-        code.append(brIndent);
-        code.append("public " + type.getName() + "(Integer value)");
-        code.append(brIndent);
-        code.append("{");
-        code.append(brIndent2);
-        code.append("this.value = value;");
-        code.append(brIndent);
-        code.append("}");
+        code.append(codeMethod("public " + type.getName() + "(Integer value)", "this.value = value;"));
         code.append(br);
+        code.append(codeMethod("@Override" + brIndent + "public String toString()",//
+                               "return \"" + tName + "(\" + value + \")\";"));
         code.append(brIndent);
         code.append("public final Integer value;");
         code.append(brIndent);
+
         StringBuilder imports = new StringBuilder();
         imports.append(br);
         imports.append(br);
         imports.append("import java.util.HashMap;");
         return codeClassFile(type, code, imports);
+    }
+
+    private StringBuilder codeMethod(String head, String body)
+    {
+        StringBuilder code = new StringBuilder();
+        code.append(brIndent);
+        code.append(head);
+        code.append(brIndent);
+        code.append("{");
+        code.append(brIndent2);
+        code.append(body);
+        code.append(brIndent);
+        code.append("}");
+        return code;
+    }
+
+    @Override
+    protected String codeRuntime(InvarType typeWrapper)
+    {
+        StringBuilder meBasic = new StringBuilder();
+        StringBuilder meEnums = new StringBuilder();
+        StringBuilder meStruct = new StringBuilder();
+
+        String hm2 = "HashMap<String,Class<?>> map = new HashMap<String,Class<?>>();";
+        Iterator<String> i = getContext().aliasNames();
+        TreeSet<String> imps = new TreeSet<String>();
+        meBasic.append(hm2);
+        meEnums.append(hm2);
+        meStruct.append(hm2);
+        InvarType rootType = null;
+        while (i.hasNext())
+        {
+            String alias = i.next();
+            InvarType type = getContext().aliasGet(alias);
+            imps.add(type.getPack().getName() + "." + type.getName());
+            String put = brIndent2 + "map.put(\"" + alias + "\", " + type.getName() + ".class);";
+            if (type instanceof TypeStruct)
+                meStruct.append(put);
+            else if (type instanceof TypeEnum)
+                meEnums.append(put);
+            else
+                meBasic.append(put);
+            if (alias.equals("root"))
+                rootType = type;
+        }
+        meBasic.append(brIndent2 + "return map;");
+        meEnums.append(brIndent2 + "return map;");
+        meStruct.append(brIndent2 + "return map;");
+
+        StringBuilder meMain = new StringBuilder();
+        StringBuilder meStart = new StringBuilder();
+
+        String hMain = "static public void main(String[] args) throws Exception";
+        String hStart = "static public void start(Object o, String dir, String suffix, Boolean verbose) throws Exception";
+        String hBasic = "static private HashMap<String,Class<?>> aliasBasic()";
+        String hEnum = "static private HashMap<String,Class<?>> aliasEnums()";
+        String hStruct = "static private HashMap<String,Class<?>> aliasStructs()";
+
+        meMain.append("HashMap<String,List<String>> mapArgs = new HashMap<String,List<String>>();");
+        meMain.append(brIndent2 + "List<String> listCurrent = null;");
+        meMain.append(brIndent2 + "for (String arg : args)");
+        meMain.append(brIndent2 + "{");
+        meMain.append(brIndent3 + "if (arg.charAt(0) == '-')");
+        meMain.append(brIndent3 + "{");
+        meMain.append(brIndent4 + "listCurrent = new LinkedList<String>();");
+        meMain.append(brIndent4 + "mapArgs.put(arg, listCurrent);");
+        meMain.append(brIndent3 + "}");
+        meMain.append(brIndent3 + "else if (listCurrent != null)");
+        meMain.append(brIndent3 + "{");
+        meMain.append(brIndent4 + "listCurrent.add(arg);");
+        meMain.append(brIndent3 + "}");
+        meMain.append(brIndent2 + "}");
+        meMain.append(brIndent2 + "List<String> argS = mapArgs.get(\"-suffix\");");
+        meMain.append(brIndent2 + "List<String> argP = mapArgs.get(\"-path\");");
+        meMain.append(brIndent2 + "String suffix = argS != null && argS.size() > 0 ? argS.get(0) : \".xml\";");
+        meMain.append(brIndent2 + "String path = argP != null && argP.size() > 0 ? argP.get(0) : \"data\";");
+        meMain.append(rootType != null
+            ? brIndent2 + "start(new " + rootType.getName() + "(), path, suffix, true);"
+            : brIndent2 + "System.out.println(\"Please define a struct with alias 'root'.\");");
+
+        meStart.append("InvarReadData.verbose = verbose;");
+        meStart.append(brIndent2 + "InvarReadData.aliasBasics = aliasBasic();");
+        meStart.append(brIndent2 + "InvarReadData.aliasEnums = aliasEnums();");
+        meStart.append(brIndent2 + "InvarReadData.aliasStructs = aliasStructs();");
+        meStart.append(brIndent2 + "InvarReadData.start(o, dir, suffix);");
+
+        StringBuilder body = new StringBuilder();
+        body.append(codeMethod(hMain, meMain.toString()));
+        body.append(br);
+        body.append(codeMethod(hStart, meStart.toString()));
+        body.append(br);
+        body.append(codeMethod(hBasic, meBasic.toString()));
+        body.append(br);
+        body.append(codeMethod(hEnum, meEnums.toString()));
+        body.append(br);
+        body.append(codeMethod(hStruct, meStruct.toString()));
+        imps.add("java.util.List");
+
+        return codeClassFile(typeWrapper, body, codeStructImports(imps));
     }
 
     private String codeClassFile(InvarType type, StringBuilder body, StringBuilder imports)
@@ -341,47 +405,53 @@ final public class InvarWriteJava extends InvarWrite
         return code.toString();
     }
 
-    private String evalFieldDefault(InvarField<?> f)
+    private String evalFieldDefault(InvarField f)
     {
         String deft = "";
+        String deftF = f.getDefault();
         switch (f.getType().getId()){
         case UINT64:
         case STRING:
-            deft = "\"" + f.getDefault() + "\"";
+            deft = "\"" + deftF + "\"";
             break;
         case INT8:
         case INT16:
         case INT32:
-            deft = f.getDefault().equals("") ? "-1" : f.getDefault();
+            deft = deftF.equals("") ? "-1" : deftF;
             break;
         case UINT8:
         case UINT16:
-            deft = f.getDefault().equals("") ? "0" : f.getDefault();
+            deft = deftF.equals("") ? "0" : deftF;
             break;
         case UINT32:
         case INT64:
-            deft = f.getDefault().equals("") ? "-1L" : f.getDefault() + "L";
+            deft = deftF.equals("") ? "-1L" : deftF + "L";
             break;
         case FLOAT:
-            deft = f.getDefault().equals("") ? "0.00F" : f.getDefault() + "F";
+            deft = deftF.equals("") ? "0.00F" : deftF + "F";
             break;
         case DOUBLE:
-            deft = f.getDefault().equals("") ? "0.00" : f.getDefault();
+            deft = deftF.equals("") ? "0.00" : deftF;
             break;
         case BOOL:
-            boolean bool = Boolean.parseBoolean(f.getDefault());
-            deft = bool ? "true" : "false";
+            deft = deftF.equals("") ? "false" : deftF;
             break;
         case ENUM:
-            @SuppressWarnings ("unchecked") Iterator<String> i = ((InvarField<TypeEnum>)f)
-                    .getType().getKeys().iterator();
-            if (i.hasNext())
-                deft = (f.getType().getName() + "." + i.next());
+            Iterator<String> i = ((TypeEnum)f.getType()).getKeys().iterator();
+            if (deftF.equals(""))
+            {
+                deft = i.hasNext()
+                    ? f.getType().getName() + "." + i.next()
+                    : "new " + f.getType().getName() + "(-999999)";
+            }
             else
-                deft = ("new " + f.getType().getName() + "(-999999)");
+            {
+                deft = deftF;
+
+            }
             break;
         default:
-            deft = ("new " + f.getTypeFormatted() + "()");
+            deft = "new " + f.getTypeFormatted() + "()";
         }
         return deft;
     }

@@ -1,17 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-
-	<string var="revision" value="235" />
-
-	<info var="info" text="this is a string value">
-
-		<uint16 var="numb6" value="666" />
-		<info var="self">
-			<string var="text" value="string set to self" />
+	<info var="info">
+		<info var="next">
+			<int8 var="numb1" value="-0x80" />
+			<int8 var="numb1" value="0x7F" />
+			<int16 var="numb2" value="-0x8000" />
+			<int16 var="numb2" value="0x7FFF" />
+			<int32 var="numb3" value="-0x80000000" />
+			<int32 var="numb3" value="0x7FFFFFFF" />
+			<int64 var="numb4" value="-0x8000000000000000" />
+			<int64 var="numb4" value="0x7FFFFFFFFFFFFFFF" />
+			<uint8 var="numb5" value="0xFF" />
+			<uint16 var="numb6" value="0xFFFF" />
+			<uint32 var="numb7" value="0xFFFFFFFF" />
+			<uint64 var="numb8" value="FFFFFFFFFFFFFFFF" />
+			<float var="numb9" value="98.7654321" />
+			<double var="numb10" value="987654321.123456789" />
+			<bool var="bool" value="true" />
+			<string var="text" value="China" />
+			<vec var="infos">
+				<info text="A" numb8="18" />
+				<info text="B" numb8="28" />
+				<info text="C" numb8="38" />
+			</vec>
 		</info>
-
+		<map var="mapEnum">
+			<Enumeration key="one" value="1" />
+			<Enumeration key="two" value="2" />
+			<Enumeration key="ten" value="10" />
+		</map>
 	</info>
 
+	<string var="revision" value="236" />
 	<infox var="infox" />
 
 </root>

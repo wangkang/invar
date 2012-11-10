@@ -3,22 +3,22 @@ package invar.model;
 import invar.InvarContext;
 import java.util.LinkedList;
 
-public class InvarField<T extends InvarType>
+public class InvarField
 {
-    private final T               type;
-    private final String          key;
-    private final String          comment;
-    private LinkedList<InvarType> generics;
-    private String                typeFormatted;
-    private String                defaultVal;
-    private Boolean               encode;
-    private Boolean               decode;
-    private int                   widthTypeMax = 30;
-    private int                   widthType    = 1;
-    private int                   widthKey     = 1;
-    private int                   widthDefault = 1;
+    private final InvarType             type;
+    private final LinkedList<InvarType> generics;
+    private final String                key;
+    private final String                comment;
+    private String                      typeFormatted;
+    private String                      defaultVal;
+    private Boolean                     encode;
+    private Boolean                     decode;
+    private int                         widthTypeMax = 32;
+    private int                         widthType    = 1;
+    private int                         widthKey     = 1;
+    private int                         widthDefault = 1;
 
-    public InvarField(T type, String key, String comment)
+    public InvarField(InvarType type, String key, String comment)
     {
         this.type = type;
         this.typeFormatted = "";
@@ -30,16 +30,31 @@ public class InvarField<T extends InvarType>
         this.setDefault("");
     }
 
-    public String makeTypeFormatted(InvarContext ctx)
+    public InvarType getType()
     {
-        InvarType t = type.getRedirect() == null ? type : type.getRedirect();
-        typeFormatted = t.getName() + evalGenerics(ctx, t);
-        return getTypeFormatted();
+        return type;
+    }
+
+    public LinkedList<InvarType> getGenerics()
+    {
+        return generics;
     }
 
     public String getTypeFormatted()
     {
         return typeFormatted;
+    }
+
+    public String getKey()
+    {
+        return key;
+    }
+
+    public String makeTypeFormatted(InvarContext ctx)
+    {
+        InvarType t = type.getRedirect() == null ? type : type.getRedirect();
+        typeFormatted = t.getName() + evalGenerics(ctx, t);
+        return getTypeFormatted();
     }
 
     private String evalGenerics(InvarContext ctx, InvarType typeBasic)
@@ -53,20 +68,6 @@ public class InvarField<T extends InvarType>
             s = s.replaceFirst("\\?", t.getName() + t.getGeneric());
         }
         return s;
-    }
-    public T getType()
-    {
-        return (T)type;
-    }
-
-    public LinkedList<InvarType> getGenerics()
-    {
-        return generics;
-    }
-
-    public String getKey()
-    {
-        return key;
     }
 
     public void setEncode(Boolean encode)
@@ -143,5 +144,4 @@ public class InvarField<T extends InvarType>
     {
         this.widthTypeMax = widthTypeMax;
     }
-
 }

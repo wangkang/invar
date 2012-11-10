@@ -9,7 +9,6 @@ public class InvarPackage
 {
     private final String              name;
     private final Boolean             needWrite;
-
     private File                      codeDir;
     private HashMap<String,InvarType> typeMap;
 
@@ -44,6 +43,17 @@ public class InvarPackage
         return type;
     }
 
+    public InvarType findType(String typeName) throws Throwable
+    {
+        if (!typeMap.containsKey(typeName))
+        {
+            throw new Error("No type " + "named '" + typeName //
+                    + "' in package '" + name + "'");
+        }
+        InvarType type = typeMap.get(typeName);
+        return type;
+    }
+
     public void clearGhostTypes()
     {
         InvarType type = null;
@@ -55,18 +65,6 @@ public class InvarPackage
             if (type.getId() == TypeID.GHOST)
                 typeMap.remove(key);
         }
-    }
-
-    @SuppressWarnings ("unchecked")
-    public <T extends InvarType> T findType(String typeName) throws Throwable
-    {
-        if (!typeMap.containsKey(typeName))
-        {
-            throw new Error("No type " + "named '" + typeName
-                    + "' in package '" + name + "'");
-        }
-        InvarType type = typeMap.get(typeName);
-        return (T)type;
     }
 
     public Iterator<String> getTypeNames()
@@ -107,15 +105,6 @@ public class InvarPackage
         return name;
     }
 
-    public void checkTypeName(String typeName) throws Exception
-    {
-        if (typeMap.containsKey(typeName))
-        {
-            throw new Exception("Repeated type name '" + typeName
-                    + "' in package '" + name + "'.");
-        }
-    }
-
     public File getCodeDir()
     {
         return codeDir;
@@ -131,4 +120,12 @@ public class InvarPackage
         return needWrite;
     }
 
+    private void checkTypeName(String typeName) throws Exception
+    {
+        if (typeMap.containsKey(typeName))
+        {
+            throw new Exception("Repeated type name '" + typeName//
+                    + "' in package '" + name + "'.");
+        }
+    }
 }
