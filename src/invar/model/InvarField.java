@@ -50,6 +50,13 @@ public class InvarField
         return key;
     }
 
+    public void checkConflict(InvarPackage pack)
+    {
+        InvarType t = type.getRedirect() == null ? type : type.getRedirect();
+        if (t.getPack() != pack && pack.getType(t.getName()) != null)
+            typeFormatted = t.fullName(".");
+    }
+
     public String makeTypeFormatted(InvarContext ctx)
     {
         InvarType t = type.getRedirect() == null ? type : type.getRedirect();
@@ -144,4 +151,5 @@ public class InvarField
     {
         this.widthTypeMax = widthTypeMax;
     }
+
 }

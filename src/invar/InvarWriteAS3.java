@@ -18,9 +18,13 @@ final public class InvarWriteAS3 extends InvarWrite
         super(context, dirRootPath);
     }
 
-    final static private String indent   = "    ";
-    final static private String br       = "\n";
-    final static private String brIndent = br + indent;
+    final static private String indent    = "    ";
+    final static private String br        = "\n";
+    final static private String brIndent  = br + indent;
+    final static private String brIndent2 = br + indent + indent;
+
+    //final static private String brIndent3 = br + indent + indent + indent;
+    //final static private String brIndent4 = br + indent + indent + indent + indent;
 
     @Override
     protected Boolean beforeWrite(final InvarContext c)
@@ -55,6 +59,7 @@ final public class InvarWriteAS3 extends InvarWrite
         {
             f.setWidthTypeMax(20);
             f.makeTypeFormatted(getContext());
+            f.checkConflict(type.getPack());
             if (f.getTypeFormatted().length() > widthType)
                 widthType = f.getTypeFormatted().length();
             if (f.getKey().length() > widthKey)
@@ -71,7 +76,7 @@ final public class InvarWriteAS3 extends InvarWrite
             f.setWidthType(widthType);
             f.setWidthKey(widthKey);
             f.setWidthDefault(widthDefault);
-            fields.append(codeStructField(f));
+            fields.append(codeStructField(f, type));
             setters.append(codeStructSetter(f, type.getName()));
             getters.append(codeStructGetter(f));
         }
@@ -136,12 +141,11 @@ final public class InvarWriteAS3 extends InvarWrite
             code.append("/** " + f.getComment() + " */");
         }
         code.append(brIndent);
-        code.append("public function ");
-        code.append("get");
-        code.append(fixedLen(f.getWidthKey() + 2, upperHeadChar(f.getKey()) + "()"));
+        code.append("public function get ");
+        code.append(fixedLen(f.getWidthKey() + 2, (f.getKey()) + "()"));
         code.append(fixedLen(f.getWidthType() + 2, " :" + f.getTypeFormatted()));
         code.append(" {");
-        code.append("return this." + f.getKey() + ";");
+        code.append("return _" + f.getKey() + ";");
         code.append("}");
         return code;
     }
@@ -167,23 +171,23 @@ final public class InvarWriteAS3 extends InvarWrite
         code.append(f.getTypeFormatted() + ")");
         code.append(":" + nameType);
         code.append(" {");
-        code.append("this." + f.getKey());
+        code.append("_" + f.getKey());
         code.append(" = value;");
         code.append(" return this;");
         code.append("}");
         return code.toString();
     }
 
-    private StringBuilder codeStructField(InvarField f)
+    private StringBuilder codeStructField(InvarField f, TypeStruct s)
     {
         StringBuilder code = new StringBuilder();
         code.append(brIndent);
-        code.append("private var ");
+        code.append("private var _");
         code.append(fixedLen(f.getWidthKey(), f.getKey()));
         code.append(" :");
         code.append(fixedLen(f.getWidthType() + 1, f.getTypeFormatted()));
         code.append(" = ");
-        String deft = evalFieldDefault(f);
+        String deft = f.getType() != s ? evalFieldDefault(f) : "null";
         code.append(fixedLen(f.getWidthDefault() + 1, deft + ";"));
         if (!f.getComment().equals(""))
         {
@@ -248,6 +252,36 @@ final public class InvarWriteAS3 extends InvarWrite
         imports.append(br);
         imports.append("import flash.utils.Dictionary;");
         return codeClassFile(type, code, imports);
+    }
+
+    private StringBuilder codeStructImports(TreeSet<String> keys)
+    {
+        StringBuilder code = new StringBuilder();
+        code.append(br);
+        for (String key : keys)
+        {
+            if (key.equals("") || key.startsWith("."))
+                continue;
+            code.append(br);
+            code.append("import ");
+            code.append(key);
+            code.append(";");
+        }
+        return code;
+    }
+
+    private StringBuilder codeMethod(String head, String body)
+    {
+        StringBuilder code = new StringBuilder();
+        code.append(brIndent);
+        code.append(head);
+        code.append(brIndent);
+        code.append("{");
+        code.append(brIndent2);
+        code.append(body);
+        code.append(brIndent);
+        code.append("}");
+        return code;
     }
 
     private String codeClassFile(InvarType type, StringBuilder body, StringBuilder imports)
@@ -317,9 +351,57 @@ final public class InvarWriteAS3 extends InvarWrite
     }
 
     @Override
-    protected String codeRuntime(InvarType type)
+    protected String codeRuntime(InvarType typeWrapper)
     {
-        // TODO Auto-generated method stub
-        return null;
+        StringBuilder meBasic = new StringBuilder();
+        StringBuilder meEnums = new StringBuilder();
+        StringBuilder meStruct = new StringBuilder();
+
+        String hm2 = "var map:Dictionary = new Dictionary();";
+        Iterator<String> i = getContext().aliasNames();
+        TreeSet<String> imps = new TreeSet<String>();
+        meBasic.append(hm2);
+        meEnums.append(hm2);
+        meStruct.append(hm2);
+        while (i.hasNext())
+        {
+            String alias = i.next();
+            InvarType type = getContext().aliasGet(alias);
+            imps.add(type.getPack().getName() + "." + type.getName());
+            String put = brIndent2 + "map['" + alias + "'] = " + type.getName() + ";";
+            if (type instanceof TypeStruct)
+                meStruct.append(put);
+            else if (type instanceof TypeEnum)
+                meEnums.append(put);
+            else
+                meBasic.append(put);
+        }
+        meBasic.append(brIndent2 + "return map;");
+        meEnums.append(brIndent2 + "return map;");
+        meStruct.append(brIndent2 + "return map;");
+
+        StringBuilder meStart = new StringBuilder();
+        //String hStart = "static public function start(Object o, String dir, String suffix, Boolean verbose):void";
+        String hBasic = "static public function aliasBasic():Dictionary";
+        String hEnum = "static public function aliasEnums():Dictionary";
+        String hStruct = "static public function aliasStructs():Dictionary";
+
+        meStart.append("InvarReadData.verbose = verbose;");
+        meStart.append(brIndent2 + "InvarReadData.aliasBasics = aliasBasic();");
+        meStart.append(brIndent2 + "InvarReadData.aliasEnums = aliasEnums();");
+        meStart.append(brIndent2 + "InvarReadData.aliasStructs = aliasStructs();");
+        meStart.append(brIndent2 + "InvarReadData.start(o, dir, suffix);");
+
+        StringBuilder body = new StringBuilder();
+        //body.append(codeMethod(hStart, meStart.toString()));
+        //body.append(br);
+        body.append(codeMethod(hBasic, meBasic.toString()));
+        body.append(br);
+        body.append(codeMethod(hEnum, meEnums.toString()));
+        body.append(br);
+        body.append(codeMethod(hStruct, meStruct.toString()));
+
+        return codeClassFile(typeWrapper, body, codeStructImports(imps));
     }
+
 }
