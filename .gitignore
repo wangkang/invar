@@ -6,6 +6,7 @@ temp/
 *.jar
 *.war
 *.ear
+*.swf
 
 src_test/
 code/

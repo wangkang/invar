@@ -154,9 +154,7 @@ final public class InvarWriteJava extends InvarWrite
             return "";
         if (TypeID.MAP == f.getType().getId())
             return "";
-
         StringBuilder code = new StringBuilder();
-
         if (!f.getComment().equals(""))
         {
             code.append(brIndent);
@@ -174,7 +172,6 @@ final public class InvarWriteJava extends InvarWrite
             code.append(brIndent);
             code.append("@InvarNum (min = 0, max = " + max + ")");
         }
-
         String key = upperHeadChar(f.getKey());
         code.append(brIndent);
         code.append("public " + nameType);

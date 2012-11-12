@@ -33,7 +33,7 @@ public class InvarType
 
     final public String fullName(String splitter)
     {
-        return pack.getName() + splitter + name;
+        return (pack.getName() != "") ? pack.getName() + splitter + name : name;
     }
 
     final public TypeID getId()

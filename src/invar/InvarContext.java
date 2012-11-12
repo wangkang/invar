@@ -22,7 +22,7 @@ final public class InvarContext
     public InvarContext() throws Exception
     {
         typeWithAlias = new LinkedHashMap<String,InvarType>();
-        packBuildIn = new InvarPackage("#INVAR#", false);
+        packBuildIn = new InvarPackage("", false);
         packAll = new HashMap<String,InvarPackage>();
         packAll.put(packBuildIn.getName(), packBuildIn);
     }
@@ -38,6 +38,10 @@ final public class InvarContext
             String name = map.get(id);
             InvarType type = new InvarType(id, name, pack, name + "[buildin]");
             packBuildIn.put(type);
+            if (TypeID.LIST == id)
+                type.setGeneric("<?>");
+            else if (TypeID.MAP == id)
+                type.setGeneric("<?,?>");
         }
         packAll.put(pack.getName(), pack);
         return pack;

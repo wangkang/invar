@@ -40,7 +40,8 @@ final public class InvarReadData
         {
             log("Read <- " + f.getAbsolutePath());
             Document doc = DocumentBuilderFactory.newInstance()
-                                                 .newDocumentBuilder().parse(f);
+                                                 .newDocumentBuilder()
+                                                 .parse(f);
             if (!doc.hasChildNodes())
                 return;
             Node nRoot = doc.getFirstChild();
@@ -55,7 +56,7 @@ final public class InvarReadData
     static private final String PREFIX_GETTER   = "get";
 
     static private final String ATTR_MAP_KEY    = "key";
-    static private final String ATTR_FIELD_NAME = "var";
+    static private final String ATTR_FIELD_NAME = "invar";
     static private final String ATTR_VALUE      = "value";
 
     static private String upperHeadChar(String s)
@@ -216,8 +217,11 @@ final public class InvarReadData
                 String getterName = PREFIX_GETTER + upperHeadChar(key);
                 Method getter = mapGetters.get(getterName);
                 if (getter == null)
+                {
+                    if (key == ATTR_MAP_KEY)
+                        continue;
                     onError("No getter named \"" + getterName + "\" in " + o.getClass(), cn);
-
+                }
                 Class<?> vType = getter.getReturnType();
                 Object co = null;
                 if (isSimpleValue(vType))
@@ -406,7 +410,7 @@ final public class InvarReadData
         if (ClsN == null)
             onError("\nNode name \"" + name + "\" is not a correct alias.", n);
         if (ClsN != ClsO)
-            onError("\nRequire: " + ClsN + "\nCurrent: " + ClsO, n);
+            onError("Require: " + ClsO + "\nCurrent: " + ClsN, n);
         return ClsN;
     }
 

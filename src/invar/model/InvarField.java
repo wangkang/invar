@@ -77,6 +77,34 @@ public class InvarField
         return s;
     }
 
+    public String evalGenerics(InvarContext ctx, String split)
+    {
+        InvarType typeBasic = type;
+        String s = typeBasic.getGeneric();
+        for (InvarType t : getGenerics())
+        {
+            s = s.replaceFirst("\\?", t.fullName(split) + t.getGeneric());
+        }
+        return typeBasic.fullName(split) + s;
+    }
+
+    public String evalGenericsFull(InvarContext ctx, String split)
+    {
+        InvarType typeBasic = type.getRedirect() == null//
+            ? type
+            : type.getRedirect();
+        //typeBasic = type;
+        if (getGenerics().size() == 0)
+            return "";
+        String s = typeBasic.getGeneric();
+        for (InvarType t : getGenerics())
+        {
+            t = t.getRedirect() == null ? t : t.getRedirect();
+            s = s.replaceFirst("\\?", t.fullName(split) + t.getGeneric());
+        }
+        return typeBasic.fullName(split) + s;
+    }
+
     public void setEncode(Boolean encode)
     {
         this.encode = encode;

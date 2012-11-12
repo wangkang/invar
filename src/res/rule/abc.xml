@@ -24,7 +24,7 @@
 		<Enumeration var="e" value="Enumeration.OPTION_TEN" doc="set default enum value" />
 		<Vec-Info var="infos" doc="Field comments are here. infos" />
 		<Map-Enumeration var="mapEnum" />
-		<Map-Int32-Info var="mapInfo" doc="Field comments are here. infoMap" />
+		<Map-Uint8-Info var="mapInfo" doc="Field comments are here. infoMap" />
 	</struct>
 
 	<protoc name="Proto">
@@ -42,8 +42,8 @@
 		</server>
 	</protoc>
 
-	<struct name="Conflict">
-		<Double var="pi" value="3.1415926" />
+	<struct name="Conflict" alias="conflict">
+		<vec-int8 var="bytes" />
 	</struct>
 
 </package>

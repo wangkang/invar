@@ -19,8 +19,7 @@
 	</struct>
 
 	<struct name="Conflict">
-		<String var="text" />
+		<Double var="pi" value="3.1415926" />
 	</struct>
-
 
 </package>

@@ -8,7 +8,6 @@ import invar.model.TypeEnum;
 import invar.model.TypeStruct;
 import java.util.Iterator;
 import java.util.List;
-import java.util.SortedSet;
 import java.util.TreeSet;
 
 final public class InvarWriteAS3 extends InvarWrite
@@ -22,9 +21,6 @@ final public class InvarWriteAS3 extends InvarWrite
     final static private String br        = "\n";
     final static private String brIndent  = br + indent;
     final static private String brIndent2 = br + indent + indent;
-
-    //final static private String brIndent3 = br + indent + indent + indent;
-    //final static private String brIndent4 = br + indent + indent + indent + indent;
 
     @Override
     protected Boolean beforeWrite(final InvarContext c)
@@ -42,9 +38,10 @@ final public class InvarWriteAS3 extends InvarWrite
         c.typeRedefine(TypeID.DOUBLE, "", "Number", "");
         c.typeRedefine(TypeID.STRING, "", "String", "");
         c.typeRedefine(TypeID.BOOL, "", "Boolean", "");
-        c.typeRedefine(TypeID.LIST, "", "Vector", ".<?>");
+        c.typeRedefine(TypeID.LIST, "__AS3__.vec", "Vector", ".<?>");
         c.typeRedefine(TypeID.MAP, "flash.utils", "Dictionary", "");
-        //System.out.println(c.dumpTypeAll());
+        //exportFile("../res/invar/InvarReadData.as", "invar", "InvarReadData.as");
+        //exportFile("../res/invar/InvarTestAS3.as", "invar", "InvarTestAS3.as");
         return true;
     }
 
@@ -103,7 +100,7 @@ final public class InvarWriteAS3 extends InvarWrite
 
     private StringBuilder codeStructImports(List<InvarField> fs, InvarPackage pack)
     {
-        SortedSet<String> keys = new TreeSet<String>();
+        TreeSet<String> keys = new TreeSet<String>();
         for (InvarField f : fs)
         {
             String key = "";
@@ -120,30 +117,28 @@ final public class InvarWriteAS3 extends InvarWrite
         }
         StringBuilder code = new StringBuilder();
         code.append(br);
-        for (String key : keys)
-        {
-            if (key.equals("") || key.startsWith("java.lang"))
-                continue;
-            code.append(br);
-            code.append("import ");
-            code.append(key);
-            code.append(";");
-        }
+        code.append(codeStructImports(keys));
         return code;
     }
 
     private Object codeStructGetter(InvarField f)
     {
         StringBuilder code = new StringBuilder();
+        code.append(br);
+        String meta = codeMetaDataGenerics(f);
+        if (!meta.equals(""))
+        {
+            code.append(brIndent);
+            code.append("[InvarGenerics(T='" + meta + "')]");
+        }
         if (!f.getComment().equals(""))
         {
             code.append(brIndent);
             code.append("/** " + f.getComment() + " */");
         }
         code.append(brIndent);
-        code.append("public function get ");
-        code.append(fixedLen(f.getWidthKey() + 2, (f.getKey()) + "()"));
-        code.append(fixedLen(f.getWidthType() + 2, " :" + f.getTypeFormatted()));
+        code.append("public function get " + f.getKey() + "()");
+        code.append(":" + f.getTypeFormatted());
         code.append(" {");
         code.append("return _" + f.getKey() + ";");
         code.append("}");
@@ -233,14 +228,16 @@ final public class InvarWriteAS3 extends InvarWrite
         }
         code.append(br);
         code.append(brIndent);
-        code.append("public static function isValid(value:int):Boolean {return map[value];}");
+        code.append("public static function isValid(v:int):Boolean {return map[v];}");
         code.append(brIndent);
-        code.append("public static function convert(value:int):" + type.getName() + " {return map[value];}");
+        code.append("public static function convert(v:int):" + type.getName() + " {return map[v];}");
         code.append(br);
         code.append(brIndent);
-        code.append("public function getValue():int {return this.value;}");
+        code.append("public function " + type.getName() + "(v:int) {value = v;}");
         code.append(brIndent);
-        code.append("public function " + type.getName() + "(value:int) {this.value = value;}");
+        code.append("public function getValue():int {return value;}");
+        code.append(brIndent);
+        code.append("public function toString():String {return '" + type.getName() + "(' + value + ')';}");
         code.append(br);
         code.append(brIndent);
         code.append("private var value:int;");
@@ -254,13 +251,24 @@ final public class InvarWriteAS3 extends InvarWrite
         return codeClassFile(type, code, imports);
     }
 
+    private String codeMetaDataGenerics(InvarField f)
+    {
+        InvarContext c = getContext();
+        c.typeRedefine(TypeID.LIST, "__AS3__.vec", "Vector", "<?>");
+        c.typeRedefine(TypeID.MAP, "flash.utils", "Dictionary", "<?,?>");
+        String s = f.evalGenerics(c, "::");
+        c.typeRedefine(TypeID.MAP, "flash.utils", "Dictionary", "");
+        c.typeRedefine(TypeID.LIST, "__AS3__.vec", "Vector", ".<?>");
+        return s;
+    }
+
     private StringBuilder codeStructImports(TreeSet<String> keys)
     {
         StringBuilder code = new StringBuilder();
         code.append(br);
         for (String key : keys)
         {
-            if (key.equals("") || key.startsWith("."))
+            if (key.equals("") || key.startsWith(".") || key.startsWith("__AS3__.vec"))
                 continue;
             code.append(br);
             code.append("import ");
@@ -318,7 +326,7 @@ final public class InvarWriteAS3 extends InvarWrite
         case INT64:
         case UINT64:
         case STRING:
-            deft = "\"" + f.getDefault() + "\"";
+            deft = "'" + f.getDefault() + "'";
             break;
         case INT8:
         case INT16:
