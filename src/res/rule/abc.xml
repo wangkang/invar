@@ -8,42 +8,42 @@
 	</enum>
 
 	<struct name="Info" alias="info" doc="Struct comments.">
-		<String var="text" value="invar" />
-		<Bool var="bool" value="true" />
-		<Int8 var="numb1" value="1" />
-		<Int16 var="numb2" value="2" />
-		<Int32 var="numb3" value="3" />
-		<Int64 var="numb4" value="0x4FFFFFFFFFFFFFFF" />
-		<Uint8 var="numb5" value="5" />
-		<Uint16 var="numb6" value="6" />
-		<UInt32 var="numb7" value="7" />
-		<Uint64 var="numb8" value="8" />
-		<Float var="numb9" value="88888888.999999999" />
-		<Double var="numb10" value="9999999999.9999999999" />
-		<Info var="next" doc="Field comments are here. info" />
-		<Enumeration var="e" value="Enumeration.OPTION_TEN" doc="set default enum value" />
-		<Vec-Info var="infos" doc="Field comments are here. infos" />
-		<Map-Enumeration var="mapEnum" />
-		<Map-Uint8-Info var="mapInfo" doc="Field comments are here. infoMap" />
+		<String name="text" value="invar" />
+		<Bool name="bool" value="true" />
+		<Int8 name="numb1" value="1" />
+		<Int16 name="numb2" value="2" />
+		<Int32 name="numb3" value="3" />
+		<Int64 name="numb4" value="0x4FFFFFFFFFFFFFFF" />
+		<Uint8 name="numb5" value="5" />
+		<Uint16 name="numb6" value="6" />
+		<UInt32 name="numb7" value="7" />
+		<Uint64 name="numb8" value="8" />
+		<Float name="numb9" value="88888888.999999999" />
+		<Double name="numb10" value="9999999999.9999999999" />
+		<Info name="next" doc="Field comments are here. info" />
+		<Enumeration name="e" value="Enumeration.OPTION_TEN" doc="set default enum value" />
+		<Vec-Info name="infos" doc="Field comments are here. infos" />
+		<Map-Enumeration name="mapEnum" />
+		<Map-Uint8-Info name="mapInfo" doc="Field comments are here. infoMap" />
 	</struct>
 
 	<protoc name="Proto">
 		<client>
-			<Enumeration var="e" />
-			<Info var="struct" />
-			<String var="str" value="invar" />
-			<Bool var="bool" value="true" />
+			<Enumeration name="e" />
+			<Info name="struct" />
+			<String name="str" value="invar" />
+			<Bool name="bool" value="true" />
 		</client>
 		<server>
-			<Uint8 var="numUint8" value="5" />
-			<Uint16 var="numUint16" value="6" />
-			<UInt32 var="numUint32" value="7" />
-			<Uint64 var="numUint64" value="8" />
+			<Uint8 name="numUint8" value="5" />
+			<Uint16 name="numUint16" value="6" />
+			<UInt32 name="numUint32" value="7" />
+			<Uint64 name="numUint64" value="8" />
 		</server>
 	</protoc>
 
 	<struct name="Conflict" alias="conflict">
-		<vec-int8 var="bytes" />
+		<vec-int8 name="bytes" />
 	</struct>
 
 </package>

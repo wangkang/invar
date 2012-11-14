@@ -40,8 +40,8 @@ final public class InvarWriteAS3 extends InvarWrite
         c.typeRedefine(TypeID.BOOL, "", "Boolean", "");
         c.typeRedefine(TypeID.LIST, "__AS3__.vec", "Vector", ".<?>");
         c.typeRedefine(TypeID.MAP, "flash.utils", "Dictionary", "");
-        //exportFile("../res/invar/InvarReadData.as", "invar", "InvarReadData.as");
-        //exportFile("../res/invar/InvarTestAS3.as", "invar", "InvarTestAS3.as");
+        exportFile("/res/invar/InvarReadData.as", "invar", "InvarReadData.as");
+        exportFile("/res/invar/InvarTestAS3.as", "invar", "InvarTestAS3.as");
         return true;
     }
 
@@ -129,7 +129,7 @@ final public class InvarWriteAS3 extends InvarWrite
         if (!meta.equals(""))
         {
             code.append(brIndent);
-            code.append("[InvarGenerics(T='" + meta + "')]");
+            code.append("[InvarRule(T='" + meta + "')]");
         }
         if (!f.getComment().equals(""))
         {
@@ -256,7 +256,7 @@ final public class InvarWriteAS3 extends InvarWrite
         InvarContext c = getContext();
         c.typeRedefine(TypeID.LIST, "__AS3__.vec", "Vector", "<?>");
         c.typeRedefine(TypeID.MAP, "flash.utils", "Dictionary", "<?,?>");
-        String s = f.evalGenerics(c, "::");
+        String s = f.evalGenerics(c, ".");
         c.typeRedefine(TypeID.MAP, "flash.utils", "Dictionary", "");
         c.typeRedefine(TypeID.LIST, "__AS3__.vec", "Vector", ".<?>");
         return s;

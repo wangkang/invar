@@ -2,10 +2,13 @@ import invar.InvarContext;
 import invar.InvarReadRule;
 import invar.InvarWriteAS3;
 import invar.InvarWriteJava;
+import invar.InvarWriteXSD;
+import invar.model.InvarType.TypeID;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TreeMap;
 
 final public class Invar
 {
@@ -26,8 +29,9 @@ final public class Invar
             return;
         }
         log("Invar start: " + new Date().toString());
+        TreeMap<TypeID,String> basics = InvarReadRule.makeTypeIdMap();
         InvarContext ctx = new InvarContext();
-        ctx.addBuildInTypes(InvarReadRule.makeTypeIdMap());
+        ctx.addBuildInTypes(basics);
         List<String> rules = mapArgs.get(ARG_RULE_PATH);
         if (rules != null && rules.size() > 0)
             rulePath = rules.get(0);
@@ -47,6 +51,7 @@ final public class Invar
                 outPathFlash = outPath.get(0);
             new InvarWriteAS3(ctx, outPathFlash).write(".as");
         }
+        new InvarWriteXSD().write(ctx, basics);
         log("Invar end: " + new Date().toString());
     }
 

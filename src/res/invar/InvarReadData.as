@@ -1,8 +1,9 @@
-package invar{
+package invar {
 
 import flash.utils.Dictionary;
 import flash.utils.describeType;
 import flash.utils.getDefinitionByName;
+import flash.utils.getQualifiedClassName;
 
 final public class InvarReadData
 {
@@ -11,90 +12,85 @@ final public class InvarReadData
 	static public var aliasEnums:Dictionary = null;
 	static public var aliasStructs:Dictionary = null;
 
-
 	public function InvarReadData(path:String)
 	{
-		XML.ignoreWhitespace = true;
-		XML.ignoreComments = true;
 		this.path = path;
-		aliasBasics = InvarRuntime.aliasBasic();
-		aliasEnums = InvarRuntime.aliasEnums();
-		aliasStructs = InvarRuntime.aliasStructs();
 	}
 
-	public function parse(o:Object, n:XML):void
+	public function parse(o:Object, x:XML):void
 	{
-		parseObject(o, n, '', '');
+		parseObject(o, x, getQualifiedClassName(o), '');
 	}
-
 
 	private var path:String;
 
-
-	private function parseObject(o:Object, n:XML, T:String, debug:String):void
+	private function parseObject(o:Object, n:XML, rule:String, debug:String):void
 	{
-		var alias:String = n.name();
-		if (ALIAS_VEC == alias)
-			parseVec(Vector.<*>(o), n, T, debug);
-		else if (ALIAS_MAP == alias)
-			parseMap(Dictionary(o), n, T, debug);
+		var Cls:Class = loadGenericClass(rule);
+		if (!o)
+			onError(debug + ' is null.', n);
+		if (Vector == Cls)
+			parseVec(Vector.<*>(o), n, rule, debug);
+		else if (Dictionary == Cls)
+			parseMap(Dictionary(o), n, rule, debug);
 		else
-			parseStruct(o, n, debug);
+			parseStruct(o, n, rule, debug);
 	}
 
-	private function parseStruct(o:Object, n:XML, debug:String):void
+	private function parseStruct(o:Object, n:XML, rule:String, debug:String):void
 	{
-		var ClsO:Class = aliasStructs[n.name()];
-		if (!ClsO)
-			onError('No Class matches this XML', n);
+		var ClsO:Class = loadGenericClass(rule);
 		if (!(o is ClsO))
-			onError('Object does not match this XML', n);
-		var key:String = null;
-		var attrs:XMLList = n.attributes();
+			onError('Object does not matches this rule: ' + rule, n);
 		var x:XML = null;
+		var ClsX:Class = null;
+		var ruleX:String = null;
+		var key:String = null;
 		var v:Object;
-		var T:String = '';
+		var vStr:String;
+		var attrs:XMLList = n.attributes();
 		for each (x in attrs)
 		{
 			key = x.name();
-			if (ATTR_FIELD_NAME == key)
-				continue;
-			T = getFieldT(ClsO, key, n);
-			var ClsF:Class = getFieldType(ClsO, key, n);
-			v = parseSimple(ClsF, x.toXMLString(), T, debug + '.' + key, n);
+			if (key.indexOf('xsi') >= 0)
+                continue;
+			ruleX = getRule(ClsO, key, n);
+			ClsX = loadGenericClass(ruleX);
+			vStr = x.toXMLString();
+			v = parseSimple(ClsX, vStr, ruleX, debug + '.' + key, n);
 			invokeSetter(v, key, o, n);
 		}
+
 		var children:XMLList = n.children();
 		for each (x in children)
 		{
-			key = getAttr(x, ATTR_FIELD_NAME);
-			T = getFieldT(ClsO, key, n);
-			var alias:String = x.name();
-			var ClsX:Class = getClassByAlias(alias);
-			if (isSimple(alias))
+			key = x.name();
+			rule = getRule(ClsO, key, n);
+			ClsX = loadGenericClass(rule);
+			if (isSimpleType(ClsX))
 			{
-				v = parseSimple(ClsX, x.attribute(ATTR_VALUE), T, debug + '.' + key, x);
+				vStr = x.attribute(ATTR_VALUE);
+				v = parseSimple(ClsX, vStr, rule, debug + '.' + key, x);
 				invokeSetter(v, key, o, x);
 			}
 			else
 			{
-				T = getFieldT(ClsO, key, n);
 				var co:Object = invokeGetter(key, o, x);
-				if (co == null)
+				if (co == null && ClsX != Vector)
 				{
 					co = new ClsX();
 					invokeSetter(co, key, o, x);
 				}
-				parseObject(co, x, T, debug + '.' + key);
+				parseObject(co, x, rule, debug + '.' + key);
 			}
 		}
 	}
 
-	private function parseVec(vec:Vector.<*>, n:XML, T:String, debug:String):void
+	private function parseVec(vec:Vector.<*>, n:XML, rule:String, debug:String):void
 	{
-		var typeNames:Array = parseGenericTypes(T);
+		var typeNames:Array = parseGenericTypes(rule);
 		if (typeNames == null || typeNames.length != 1)
-			onError('Unexpected type: ' + T, n);
+			onError('Unexpected type: ' + rule, n);
 		var Cls:Class = loadGenericClass(typeNames[0]);
 		var children:XMLList = n.children();
 		for each (var x:XML in children)
@@ -104,11 +100,11 @@ final public class InvarReadData
 		}
 	}
 
-	private function parseMap(map:Dictionary, n:XML, T:String, debug:String):void
+	private function parseMap(map:Dictionary, n:XML, rule:String, debug:String):void
 	{
-		var typeNames:Array = parseGenericTypes(T);
+		var typeNames:Array = parseGenericTypes(rule);
 		if (typeNames == null || typeNames.length != 2)
-			onError('Unexpected type: ' + T, n);
+			onError('Unexpected type: ' + rule, n);
 		var ClsK:Class = loadGenericClass(typeNames[0]);
 		var ClsV:Class = loadGenericClass(typeNames[1]);
 		var children:XMLList = n.children();
@@ -140,18 +136,33 @@ final public class InvarReadData
 		}
 	}
 
-	private function parseGenericChild(x:XML, Cls:Class, T:String, debug:String):Object
+	private function parseGenericChild(x:XML, Cls:Class, rule:String, debug:String):Object
 	{
-		if (isSimple(x.name()))
+		if (isSimpleType(Cls))
 		{
-			return parseSimple(Cls, getAttr(x, ATTR_VALUE), T, debug, x);
+			return parseSimple(Cls, getAttr(x, ATTR_VALUE), rule, debug, x);
 		}
 		else
 		{
 			var co:Object = new Cls();
-			parseObject(co, x, T, debug);
+			parseObject(co, x, rule, debug);
 			return co;
 		}
+	}
+
+	private function loadGenericClass(rule:String):Class
+	{
+		var name:String = rule;
+		if (rule.indexOf(GENERIC_LEFT) >= 0)
+		{
+			name = rule.substring(0, rule.indexOf(GENERIC_LEFT));
+		}
+		var Cls:Class = getClassByAlias(name);
+		if (!Cls)
+			Cls = getDefinitionByName(name) as Class;
+		if (!Cls)
+			onError('No Class matches this rule: ' + rule, null);
+		return Cls;
 	}
 
 	private function parseSimple(Cls:Class, s:String, T:String, debug:String, x:XML):Object
@@ -168,12 +179,18 @@ final public class InvarReadData
 		else if (Boolean == Cls)
 			arg = (s == 'true' ? true : false);
 		else if (isEnum(Cls))
+		{
 			arg = Cls['convert'](parseInt(s));
+			if (!arg)
+				onError('Bad enum value: ' + s, x);
+		}
 		else
 		{
 		}
 		if (verbose)
-			log(fixedLen(32, debug) + ' : ' + fixedLen(24, T) + ' : ' + arg);
+		{
+			log(fixedLen(40, debug) + ' : ' + fixedLen(32, T) + ' : ' + arg);
+		}
 		if ('int8' == T)
 			checkNumber(arg, -0x80, 0x7F, debug, x);
 		else if ('int16' == T)
@@ -197,31 +214,22 @@ final public class InvarReadData
 		if (arg != arg)
 			onError(debug + ': Number is NaN', x);
 		if (arg < min || arg > max)
-			onError(debug + ': Number is out of range, [' + min + ', ' + max + ']', x);
+			onError(debug + ': Number is out of range [' + min + ', ' + max + ']', x);
 	}
 
-	private function getFieldType(ClsO:Class, key:String, n:XML):Class
+	private function getRule(ClsO:Class, key:String, n:XML):String
 	{
 		var map:Dictionary = getGetters(ClsO);
 		var x:XML = map[key];
 		if (!x)
 			onError('No getter named "' + key + '" in ' + ClsO, n);
-		return getDefinitionByName(x.@type) as Class;
-	}
-
-	private function getFieldT(ClsO:Class, key:String, n:XML):String
-	{
-		var map:Dictionary = getGetters(ClsO);
-		var x:XML = map[key];
-		if (!x)
-			onError('No getter named "' + key + '" in ' + ClsO, n);
-		var T:String = x.@type;
-		var gene:XMLList = x.elements('metadata').(@name == 'InvarGenerics');
+		var rule:String = x.@type;
+		var gene:XMLList = x.elements('metadata').(@name == 'InvarRule');
 		if (gene.toXMLString() == "")
-			return T;
+			return rule;
 		var Tx:XMLList = gene.elements('arg').(@key == 'T');
-		T = Tx[0].@value;
-		return T;
+		rule = Tx[0].@value;
+		return rule;
 	}
 
 	private function invokeGetter(key:String, o:Object, n:XML):Object
@@ -256,20 +264,15 @@ final public class InvarReadData
 		return v;
 	}
 
-
 	static private var GENERIC_LEFT:String = '<';
 	static private var GENERIC_RIGHT:String = '>';
 	static private var GENERIC_SPLIT:String = ',';
-	static private var ATTR_FIELD_NAME:String = 'invar';
 	static private var ATTR_MAP_KEY:String = 'key';
 	static private var ATTR_VALUE:String = 'value';
 	static private var PREFIX_SETTER:String = 'set';
-	static private var ALIAS_VEC:String = 'vec';
-	static private var ALIAS_MAP:String = 'map';
 	//
 	static private var mapClassSetters:Dictionary = new Dictionary();
 	static private var mapClassGetters:Dictionary = new Dictionary();
-
 
 	static private function reflect(ClsO:Class):void
 	{
@@ -296,16 +299,6 @@ final public class InvarReadData
 		}
 		mapClassSetters[ClsO] = dictSets;
 		mapClassGetters[ClsO] = dictGets;
-	}
-
-	static private function getClassByAlias(name:String):Class
-	{
-		var ClsN:Class = aliasBasics[name];
-		if (ClsN == null)
-			ClsN = aliasEnums[name];
-		if (ClsN == null)
-			ClsN = aliasStructs[name];
-		return ClsN;
 	}
 
 	static private function getGetters(ClsO:Class):Dictionary
@@ -367,34 +360,14 @@ final public class InvarReadData
 			return isEnum(Cls);
 	}
 
-	static private function isSimple(alias:String):Boolean
+	static private function getClassByAlias(name:String):Class
 	{
-		if (alias == ALIAS_VEC)
-			return false;
-		else if (alias == ALIAS_MAP)
-			return false;
-		else
-		{
-			var Cls:Class = aliasBasics[alias];
-			if (!Cls)
-				Cls = aliasEnums[alias];
-			if (!Cls)
-				return false;
-			return true;
-		}
-	}
-
-	static private function loadGenericClass(T:String):Class
-	{
-		var name:String = T;
-		if (T.indexOf(GENERIC_LEFT) >= 0)
-		{
-			name = T.substring(0, T.indexOf(GENERIC_LEFT));
-		}
-		var Cls:Class = aliasBasics[name];
-		if (!Cls)
-			Cls = getDefinitionByName(name) as Class;
-		return Cls;
+		var ClsN:Class = aliasBasics[name];
+		if (ClsN == null)
+			ClsN = aliasEnums[name];
+		if (ClsN == null)
+			ClsN = aliasStructs[name];
+		return ClsN;
 	}
 
 	static private function log(txt:Object):void

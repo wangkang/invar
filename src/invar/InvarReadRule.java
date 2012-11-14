@@ -82,7 +82,7 @@ final public class InvarReadRule
     static private final String ATTR_STRUCT_NAME    = "name";
     static private final String ATTR_STRUCT_CHARSET = "charset";
     static private final String ATTR_STRUCT_ALIAS   = "alias";
-    static private final String ATTR_FIELD_NAME     = "var";
+    static private final String ATTR_FIELD_NAME     = "name";
     static private final String ATTR_FIELD_DEFT     = "value";
     static private final String ATTR_FIELD_ENC      = "encode";
     static private final String ATTR_FIELD_DEC      = "decode";

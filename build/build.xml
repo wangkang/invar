@@ -32,6 +32,7 @@
 		</jar>
 		<jar jarfile="${invar.file.jar}" compress="true" basedir="${invar.dir.java}" update="true">
 			<include name="**/*.java" />
+			<include name="**/*.as" />
 			<include name="**/*.xml" />
 			<include name="**/*.txt" />
 		</jar>

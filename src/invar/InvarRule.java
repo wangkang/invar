@@ -7,9 +7,7 @@ import java.lang.annotation.Target;
 
 @Target (ElementType.METHOD)
 @Retention (RetentionPolicy.RUNTIME)
-public @interface InvarNum
+public @interface InvarRule
 {
-    long min();
-
-    long max();
+    String T();
 }

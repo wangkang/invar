@@ -42,7 +42,7 @@ final public class InvarWriteJava extends InvarWrite
         c.typeRedefine(TypeID.BOOL, "java.lang", "Boolean", "");
         c.typeRedefine(TypeID.MAP, "java.util", "HashMap", "<?,?>");
         c.typeRedefine(TypeID.LIST, "java.util", "LinkedList", "<?>");
-        exportFile("InvarNum.java", "invar", "InvarNum.java");
+        exportFile("InvarRule.java", "invar", "InvarRule.java");
         exportFile("InvarReadData.java", "invar", "InvarReadData.java");
         return true;
     }
@@ -78,13 +78,10 @@ final public class InvarWriteJava extends InvarWrite
             fields.append(codeStructField(f, type));
             setters.append(codeStructSetter(f, type.getName()));
             getters.append(codeStructGetter(f));
-
-            String numAnotation = "invar.InvarNum";
-            TypeID id = f.getType().getId();
-            if (!imps.contains(numAnotation) && //
-            TypeID.UINT8 == id || TypeID.UINT16 == id || TypeID.UINT32 == id)
+            String ruleAnotation = "invar.InvarRule";
+            if (!imps.contains(ruleAnotation))
             {
-                imps.add(numAnotation);
+                imps.add(ruleAnotation);
             }
             String key = "";
             key = importTypeCheck(f.getType(), type.getPack());
@@ -160,18 +157,6 @@ final public class InvarWriteJava extends InvarWrite
             code.append(brIndent);
             code.append("/** @param value " + f.getComment() + " */");
         }
-        String max = null;
-        if (TypeID.UINT8 == f.getType().getId())
-            max = "255";
-        else if (TypeID.UINT16 == f.getType().getId())
-            max = "65535";
-        else if (TypeID.UINT32 == f.getType().getId())
-            max = "4294967295L";
-        if (max != null)
-        {
-            code.append(brIndent);
-            code.append("@InvarNum (min = 0, max = " + max + ")");
-        }
         String key = upperHeadChar(f.getKey());
         code.append(brIndent);
         code.append("public " + nameType);
@@ -195,14 +180,20 @@ final public class InvarWriteJava extends InvarWrite
             code.append(brIndent);
             code.append("/** " + f.getComment() + " */");
         }
+        String meta = f.evalGenerics(getContext(), ".");
+        if (!meta.equals(""))
+        {
+            code.append(brIndent);
+            code.append("@InvarRule(T=\"" + meta + "\")");
+        }
         code.append(brIndent);
         code.append("public ");
-        code.append(fixedLen(f.getWidthType(), f.getTypeFormatted()));
-        code.append(" get");
-        code.append(fixedLen(f.getWidthKey() + 3, upperHeadChar(f.getKey()) + "() "));
+        code.append(f.getTypeFormatted());
+        code.append(" get" + upperHeadChar(f.getKey()) + "() ");
         code.append("{");
-        code.append("return this." + f.getKey() + ";");
+        code.append("return " + f.getKey() + ";");
         code.append("}");
+        code.append(br);
         return code;
     }
 
