@@ -292,7 +292,6 @@ final public class InvarWriteJava extends InvarWrite
         meBasic.append(hm2);
         meEnums.append(hm2);
         meStruct.append(hm2);
-        InvarType rootType = null;
         while (i.hasNext())
         {
             String alias = i.next();
@@ -305,8 +304,6 @@ final public class InvarWriteJava extends InvarWrite
                 meEnums.append(put);
             else
                 meBasic.append(put);
-            if (alias.equals("root"))
-                rootType = type;
         }
         meBasic.append(brIndent2 + "return map;");
         meEnums.append(brIndent2 + "return map;");
@@ -339,9 +336,11 @@ final public class InvarWriteJava extends InvarWrite
         meMain.append(brIndent2 + "List<String> argP = mapArgs.get(\"-path\");");
         meMain.append(brIndent2 + "String suffix = argS != null && argS.size() > 0 ? argS.get(0) : \".xml\";");
         meMain.append(brIndent2 + "String path = argP != null && argP.size() > 0 ? argP.get(0) : \"data\";");
-        meMain.append(rootType != null
-            ? brIndent2 + "start(new " + rootType.getName() + "(), path, suffix, true);"
-            : brIndent2 + "System.out.println(\"Please define a struct with alias 'root'.\");");
+
+        TypeStruct root = getContext().getStructRoot();
+        meMain.append(root != null
+            ? brIndent2 + "start(new " + root.getName() + "(), path, suffix, true);"
+            : brIndent2 + "System.out.println(\"Please define a struct with alias '" + getContext().getStructRootAlias() + "'.\");");
 
         meStart.append("InvarReadData.verbose = verbose;");
         meStart.append(brIndent2 + "InvarReadData.aliasBasics = aliasBasic();");

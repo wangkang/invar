@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<package name="test.xyz">
+<tns:package name="test.opq" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="invar.rule rule.xsd" xmlns:tns="invar.rule">
 
-	<struct name="ConfigRoot" alias="root">
-		<String name="revision" />
-		<Info name="info" />
-		<InfoX name="infox" />
+	<struct name="ConfigRoot" alias="root" doc="">
+		<field name="revision" type="String" doc="" />
+		<field name="info" type="Info" doc="" />
+		<field name="infox" type="InfoX" doc="" />
 	</struct>
 
-	<struct name="InfoX" alias="infox" doc="Complex data structure">
-		<test.abc::Conflict name="conflictType" />
-		<Vec-Map-Int16-Info name="infovm" doc="a map list" />
-		<Vec-Vec-Info name="info2d" doc="2 dimension list" />
-		<Vec-Vec-Vec-Info name="info3d" doc="3 dimension list" />
-		<Map-Vec-Enumeration-Info name="mvei" />
-		<Map-Info-Vec-Enumeration name="mive" />
-		<Map-Vec-Info-Vec-Enumeration name="mvive" />
-		<Vec-Map-Vec-Info-Vec-Enumeration name="vmvive" />
+	<struct name="Conflict" doc="">
+		<field name="pi" type="Double" value="3.1415926" doc="" />
 	</struct>
 
-	<struct name="Conflict">
-		<Double name="pi" value="3.1415926" />
+	<struct name="InfoX" doc="Complex data structure">
+
+		<field name="conflict" type="test.abc::Conflict" doc="Two types with the same name." />
+		<field name="info2d" type="Vec-Vec-Info" doc="2 dimension list" />
+		<field name="info3d" type="Vec-Vec-Vec-Info" doc="3 dimension list" />
+		<field name="infovm" type="Vec-Map-Int16-Info" doc="" />
+		<field name="mvei" type="Map-Vec-Gender-Info" doc="" />
+		<field name="mive" type="Map-Info-Vec-Gender" doc="" />
+		<field name="mvive" type="Map-Vec-Info-Vec-Gender" doc="" />
+		<field name="vmvive" type="Vec-Map-Vec-Info-Vec-Gender" doc="" />
 	</struct>
 
-</package>
+</tns:package>

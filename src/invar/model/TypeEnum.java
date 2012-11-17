@@ -16,8 +16,7 @@ public class TypeEnum extends InvarType
         optionComments = new LinkedHashMap<String,String>();
     }
 
-    public TypeEnum addOption(String key, Integer value, String comment)
-        throws Exception
+    public TypeEnum addOption(String key, Integer value, String comment) throws Exception
     {
         if (options.containsKey(key))
         {

@@ -1,4 +1,4 @@
-package invar {
+package invar{
 
 import flash.utils.Dictionary;
 import flash.utils.describeType;
@@ -12,6 +12,7 @@ final public class InvarReadData
 	static public var aliasEnums:Dictionary = null;
 	static public var aliasStructs:Dictionary = null;
 
+
 	public function InvarReadData(path:String)
 	{
 		this.path = path;
@@ -22,16 +23,19 @@ final public class InvarReadData
 		parseObject(o, x, getQualifiedClassName(o), '');
 	}
 
+
 	private var path:String;
+
 
 	private function parseObject(o:Object, n:XML, rule:String, debug:String):void
 	{
 		var Cls:Class = loadGenericClass(rule);
 		if (!o)
 			onError(debug + ' is null.', n);
-		if (Vector == Cls)
+		var L:String = ruleLeft(rule);
+		if (TYPE_VEC == L)
 			parseVec(Vector.<*>(o), n, rule, debug);
-		else if (Dictionary == Cls)
+		else if (TYPE_MAP == L)
 			parseMap(Dictionary(o), n, rule, debug);
 		else
 			parseStruct(o, n, rule, debug);
@@ -52,8 +56,10 @@ final public class InvarReadData
 		for each (x in attrs)
 		{
 			key = x.name();
-			if (key.indexOf('xsi') >= 0)
-                continue;
+			if (key.indexOf(XML_NS_SPLIT) >= 0)
+				continue;
+			if (!getGetters(ClsO) || !getGetters(ClsO)[key])
+				continue;
 			ruleX = getRule(ClsO, key, n);
 			ClsX = loadGenericClass(ruleX);
 			vStr = x.toXMLString();
@@ -76,34 +82,38 @@ final public class InvarReadData
 			else
 			{
 				var co:Object = invokeGetter(key, o, x);
-				if (co == null && ClsX != Vector)
+				if (co == null)
 				{
-					co = new ClsX();
+					co = newInstance(ClsX);
 					invokeSetter(co, key, o, x);
 				}
-				parseObject(co, x, rule, debug + '.' + key);
+				if (co)
+					parseObject(co, x, rule, debug + '.' + key);
 			}
 		}
 	}
 
 	private function parseVec(vec:Vector.<*>, n:XML, rule:String, debug:String):void
 	{
-		var typeNames:Array = parseGenericTypes(rule);
-		if (typeNames == null || typeNames.length != 1)
+		var R:String = ruleRight(rule);
+		if (R == null)
 			onError('Unexpected type: ' + rule, n);
-		var Cls:Class = loadGenericClass(typeNames[0]);
+		var Cls:Class = loadGenericClass(R);
 		var children:XMLList = n.children();
 		for each (var x:XML in children)
 		{
-			var v:Object = parseGenericChild(x, Cls, typeNames[0], debug + "[" + vec.length + "]");
+			var v:Object = parseGenericChild(x, Cls, R, debug + '[' + vec.length + ']');
 			vec.push(v);
 		}
 	}
 
 	private function parseMap(map:Dictionary, n:XML, rule:String, debug:String):void
 	{
-		var typeNames:Array = parseGenericTypes(rule);
-		if (typeNames == null || typeNames.length != 2)
+		var R:String = ruleRight(rule);
+		if (R == null)
+			onError('Unexpected type: ' + rule, n);
+		var typeNames:Array = R.split(GENERIC_SPLIT);
+		if (typeNames.length != 2)
 			onError('Unexpected type: ' + rule, n);
 		var ClsK:Class = loadGenericClass(typeNames[0]);
 		var ClsV:Class = loadGenericClass(typeNames[1]);
@@ -144,7 +154,7 @@ final public class InvarReadData
 		}
 		else
 		{
-			var co:Object = new Cls();
+			var co:Object = newInstance(Cls);
 			parseObject(co, x, rule, debug);
 			return co;
 		}
@@ -152,17 +162,48 @@ final public class InvarReadData
 
 	private function loadGenericClass(rule:String):Class
 	{
-		var name:String = rule;
-		if (rule.indexOf(GENERIC_LEFT) >= 0)
+		var L:String = ruleLeft(rule);
+		var Cls:Class;
+		if (L != 'vec')
 		{
-			name = rule.substring(0, rule.indexOf(GENERIC_LEFT));
+			Cls = getClassByAlias(L);
+			if (!Cls)
+				Cls = getDefinitionByName(L) as Class;
 		}
-		var Cls:Class = getClassByAlias(name);
-		if (!Cls)
-			Cls = getDefinitionByName(name) as Class;
+		else
+		{
+			var rules:Vector.<String> = new Vector.<String>();
+			evelRuleForVector(rule, rules);
+			var len:uint = rules.length;
+			if (len > 1)
+			{
+				var t:String = rules[len - 1];
+				var tC:Class = getClassByAlias(t);
+				if (tC)
+					t = getQualifiedClassName(tC);
+				for (var i:int = 0; i < len - 1; i++)
+					t = '__AS3__.vec::Vector.<' + t + '>';
+				Cls = getDefinitionByName(t) as Class;
+			}
+		}
 		if (!Cls)
 			onError('No Class matches this rule: ' + rule, null);
 		return Cls;
+	}
+
+	private function evelRuleForVector(rule:String, rules:Vector.<String>):void
+	{
+		var L:String = ruleLeft(rule);
+		var R:String = ruleRight(rule);
+		if (L == TYPE_VEC)
+		{
+			rules.push(L);
+			evelRuleForVector(R, rules);
+		}
+		else
+		{
+			rules.push(L);
+		}
 	}
 
 	private function parseSimple(Cls:Class, s:String, T:String, debug:String, x:XML):Object
@@ -264,15 +305,21 @@ final public class InvarReadData
 		return v;
 	}
 
+
 	static private var GENERIC_LEFT:String = '<';
 	static private var GENERIC_RIGHT:String = '>';
 	static private var GENERIC_SPLIT:String = ',';
+	static private var XML_NS_SPLIT:String = '::';
 	static private var ATTR_MAP_KEY:String = 'key';
 	static private var ATTR_VALUE:String = 'value';
 	static private var PREFIX_SETTER:String = 'set';
 	//
+	static private var TYPE_VEC:String = 'vec';
+	static private var TYPE_MAP:String = 'map';
+	//
 	static private var mapClassSetters:Dictionary = new Dictionary();
 	static private var mapClassGetters:Dictionary = new Dictionary();
+
 
 	static private function reflect(ClsO:Class):void
 	{
@@ -309,14 +356,23 @@ final public class InvarReadData
 		return mapClassGetters[ClsO];
 	}
 
-	static private function parseGenericTypes(T:String):Array
+	static private function ruleLeft(rule:String):String
 	{
-		var iBegin:int = T.indexOf(GENERIC_LEFT) + 1;
-		var iEnd:int = T.lastIndexOf(GENERIC_RIGHT);
+		var name:String = rule;
+		if (rule.indexOf(GENERIC_LEFT) >= 0)
+		{
+			name = rule.substring(0, rule.indexOf(GENERIC_LEFT));
+		}
+		return name;
+	}
+
+	static private function ruleRight(rule:String):String
+	{
+		var iBegin:int = rule.indexOf(GENERIC_LEFT) + 1;
+		var iEnd:int = rule.lastIndexOf(GENERIC_RIGHT);
 		if (iBegin > 0 && iEnd > iBegin)
 		{
-			var  substr:String = T.substring(iBegin, iEnd);
-			return substr.split(GENERIC_SPLIT);
+			return rule.substring(iBegin, iEnd);
 		}
 		return null;
 	}
@@ -368,6 +424,11 @@ final public class InvarReadData
 		if (ClsN == null)
 			ClsN = aliasStructs[name];
 		return ClsN;
+	}
+
+	static private function newInstance(Cls:Class):Object
+	{
+		return new Cls();
 	}
 
 	static private function log(txt:Object):void

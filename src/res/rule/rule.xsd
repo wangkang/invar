@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:tns="invar.rule" targetNamespace="invar.rule">
+
+	<xs:element name="package" type="tns:rule.package" />
+
+	<xs:complexType name="rule.package">
+		<xs:sequence>
+			<xs:element name="enum" type="tns:rule.enum" minOccurs="0"
+				maxOccurs="unbounded" />
+			<xs:element name="struct" type="tns:rule.struct" minOccurs="0"
+				maxOccurs="unbounded" />
+			<xs:element name="protoc" type="tns:rule.protoc" minOccurs="0"
+				maxOccurs="unbounded" />
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="alias" type="xs:string" use="optional" />
+		<xs:attribute name="doc" type="xs:string" use="optional" />
+	</xs:complexType>
+
+	<xs:complexType name="rule.protoc">
+		<xs:all>
+			<xs:element name="client" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="field" type="tns:rule.struct.field"
+							minOccurs="0" maxOccurs="unbounded" />
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="server" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="field" type="tns:rule.struct.field"
+							minOccurs="0" maxOccurs="unbounded" />
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:all>
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="doc" type="xs:string" use="required" />
+	</xs:complexType>
+
+	<xs:complexType name="rule.struct.field">
+		<xs:attribute name="type" type="tns:rule.type" use="required" />
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="doc" type="xs:string" use="required" />
+		<xs:attribute name="value" type="xs:string" use="optional" />
+	</xs:complexType>
+
+	<xs:complexType name="rule.struct">
+		<xs:sequence>
+			<xs:element name="field" type="tns:rule.struct.field" minOccurs="0"
+				maxOccurs="unbounded" />
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="doc" type="xs:string" use="required" />
+		<xs:attribute name="alias" type="xs:string" use="optional" />
+	</xs:complexType>
+
+	<xs:complexType name="rule.enum">
+		<xs:sequence>
+			<xs:element name="option" minOccurs="1" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:attribute name="name" type="xs:string" use="required" />
+					<xs:attribute name="value" type="xs:int" use="required" />
+					<xs:attribute name="doc" type="xs:string" use="required" />
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="doc" type="xs:string" use="required" />
+		<xs:attribute name="alias" type="xs:string" use="optional" />
+	</xs:complexType>
+
+
+	<xs:simpleType name="rule.type">
+		<xs:union>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="Int8" />
+					<xs:enumeration value="Int16" />
+					<xs:enumeration value="Int32" />
+					<xs:enumeration value="Int64" />
+					<xs:enumeration value="Uint8" />
+					<xs:enumeration value="Uint16" />
+					<xs:enumeration value="Uint32" />
+					<xs:enumeration value="Uint64" />
+					<xs:enumeration value="Float" />
+					<xs:enumeration value="Double" />
+					<xs:enumeration value="Bool" />
+					<xs:enumeration value="String" />
+					<xs:enumeration value="Vec-Int8" />
+					<xs:enumeration value="Vec-Int16" />
+					<xs:enumeration value="Vec-Int32" />
+					<xs:enumeration value="Vec-Int64" />
+					<xs:enumeration value="Vec-Uint8" />
+					<xs:enumeration value="Vec-Uint16" />
+					<xs:enumeration value="Vec-Uint32" />
+					<xs:enumeration value="Vec-Uint64" />
+					<xs:enumeration value="Vec-Float" />
+					<xs:enumeration value="Vec-Double" />
+					<xs:enumeration value="Vec-Bool" />
+					<xs:enumeration value="Vec-String" />
+					<xs:enumeration value="Map-Int8" />
+					<xs:enumeration value="Map-Int16" />
+					<xs:enumeration value="Map-Int32" />
+					<xs:enumeration value="Map-Int64" />
+					<xs:enumeration value="Map-Uint8" />
+					<xs:enumeration value="Map-Uint16" />
+					<xs:enumeration value="Map-Uint32" />
+					<xs:enumeration value="Map-Uint64" />
+					<xs:enumeration value="Map-Float" />
+					<xs:enumeration value="Map-Double" />
+					<xs:enumeration value="Map-Bool" />
+					<xs:enumeration value="Map-String" />
+					<xs:enumeration value="Map-Int32-String" />
+					<xs:enumeration value="Map-Int32-Bool" />
+					<xs:enumeration value="Map-Int32-Vec-String" />
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:pattern value="[A-Za-z]+[A-Za-z0-9_.:]*"></xs:pattern>
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:pattern value="(Vec\-)+[A-Za-z]+[A-Za-z0-9_.:]*" />
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:pattern value="(Map\-)+[A-Za-z]+[A-Za-z0-9_.:]*" />
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:pattern
+						value="(Vec\-)+(Map)+((\-[A-Za-z]+[A-Za-z0-9_.:]*)|(\-(Vec\-)+[A-Za-z_]+[A-Za-z0-9_.:]*)){1,2}" />
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:pattern
+						value="(Map)+((\-[A-Za-z_]+[A-Za-z0-9_.:]*)|(\-(Vec\-)+[A-Za-z_]+[A-Za-z0-9_.:]*)){1,2}" />
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:union>
+	</xs:simpleType>
+
+</schema>

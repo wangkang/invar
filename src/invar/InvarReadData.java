@@ -23,8 +23,7 @@ final public class InvarReadData
     static public HashMap<String,Class<?>> aliasStructs = null;
     static private String                  suffix;
 
-    static public void start(Object root, String path, String suffix)
-        throws Exception
+    static public void start(Object root, String path, String suffix) throws Exception
     {
         InvarReadData.suffix = suffix;
         File file = new File(path);
@@ -55,12 +54,12 @@ final public class InvarReadData
         recursiveReadFile(files, file, filter);
         for (File f : files)
         {
-            log("Read <- " + f.getAbsolutePath());
             Document doc = DocumentBuilderFactory.newInstance()
                                                  .newDocumentBuilder()
                                                  .parse(f);
             if (!doc.hasChildNodes())
                 return;
+            log("Read <- " + f.getAbsolutePath());
             Node nRoot = doc.getFirstChild();
             new InvarReadData(f.getAbsolutePath()).parse(root, nRoot);
         }
@@ -79,8 +78,7 @@ final public class InvarReadData
     private String path;
 
     @SuppressWarnings ("unchecked")
-    private void parse(Object o, Node n, String rule, String debug)
-        throws Exception
+    private void parse(Object o, Node n, String rule, String debug) throws Exception
     {
         if (o == null)
             onError(debug + " is null.", n);
@@ -93,8 +91,7 @@ final public class InvarReadData
             parseStruct(o, n, rule, debug);
     }
 
-    private void parseStruct(Object o, Node n, String rule, String debug)
-        throws Exception
+    private void parseStruct(Object o, Node n, String rule, String debug) throws Exception
     {
         Class<?> ClsO = loadGenericClass(rule);
         if (o.getClass().getName() != ClsO.getName())
@@ -105,9 +102,11 @@ final public class InvarReadData
         {
             Node x = attrs.item(i);
             String key = x.getNodeName();
-            if (key.indexOf("xsi") >= 0)
+            if (key.indexOf(":") >= 0)
                 continue;
             String ruleX = getRule(ClsO, key, n);
+            if (ruleX == null)
+                continue;
             Class<?> ClsX = loadGenericClass(ruleX);
             String vStr = x.getNodeValue();
             Object v = parseSimple(ClsX, vStr, ruleX, debug + '.' + key, n);
@@ -122,6 +121,8 @@ final public class InvarReadData
                 continue;
             String key = x.getNodeName();
             String ruleX = getRule(ClsO, key, n);
+            if (ruleX == null)
+                continue;
             Class<?> ClsX = loadGenericClass(ruleX);
             String vStr = null;
             Object v = null;
@@ -144,13 +145,12 @@ final public class InvarReadData
         }
     }
 
-    private void parseVec(LinkedList<Object> list, Node n, String rule, String debug)
-        throws Exception
+    private void parseVec(LinkedList<Object> list, Node n, String rule, String debug) throws Exception
     {
-        String[] typeNames = parseGenericTypes(rule);
-        if (typeNames == null || typeNames.length != 1)
+        String R = ruleRight(rule);
+        if (R == null)
             onError("Unexpected type: " + rule.toString(), n);
-        Class<?> Cls = loadGenericClass(typeNames[0]);
+        Class<?> Cls = loadGenericClass(R);
         NodeList children = n.getChildNodes();
         int len = children.getLength();
         for (int i = 0; i < len; i++)
@@ -158,15 +158,17 @@ final public class InvarReadData
             Node vn = children.item(i);
             if (Node.ELEMENT_NODE != vn.getNodeType())
                 continue;
-            Object v = parseGenericChild(vn, Cls, typeNames[0], debug + "[" + list.size() + "]");
+            Object v = parseGenericChild(vn, Cls, R, debug + "[" + list.size() + "]");
             list.add(v);
         }
     }
 
-    private void parseMap(HashMap<Object,Object> map, Node n, String rule, String debug)
-        throws Exception
+    private void parseMap(HashMap<Object,Object> map, Node n, String rule, String debug) throws Exception
     {
-        String[] typeNames = parseGenericTypes(rule);
+        String R = ruleRight(rule);
+        if (R == null)
+            onError("Unexpected type: " + rule.toString(), n);
+        String[] typeNames = R.split(GENERIC_SPLIT);
         if (typeNames.length != 2)
             onError("Unexpected type: " + rule.toString(), n);
         Class<?> ClsK = loadGenericClass(typeNames[0]);
@@ -199,8 +201,7 @@ final public class InvarReadData
         }
     }
 
-    private Object parseGenericChild(Node cn, Class<?> Cls, String rule, String debug)
-        throws Exception
+    private Object parseGenericChild(Node cn, Class<?> Cls, String rule, String debug) throws Exception
     {
         if (isSimpleType(Cls))
             return parseSimple(Cls, getAttr(cn, ATTR_VALUE), rule, debug, cn);
@@ -212,8 +213,7 @@ final public class InvarReadData
         }
     }
 
-    private Object parseSimple(Class<?> vType, String s, String rule, String debug, Node x)
-        throws Exception
+    private Object parseSimple(Class<?> vType, String s, String rule, String debug, Node x) throws Exception
     {
         if (rule.equals("int8"))
             checkNumber(s, -0x80L, 0x7FL, debug, x);
@@ -270,8 +270,7 @@ final public class InvarReadData
         return arg;
     }
 
-    private void checkNumber(String s, Long min, Long max, String debug, Node x)
-        throws Exception
+    private void checkNumber(String s, Long min, Long max, String debug, Node x) throws Exception
     {
         Long v = Long.decode(s);
         if (v < min || v > max)
@@ -280,8 +279,7 @@ final public class InvarReadData
         }
     }
 
-    private static Object parseEnumObject(Class<?> type, String s)
-        throws Exception
+    private static Object parseEnumObject(Class<?> type, String s) throws Exception
     {
         Integer v = Integer.parseInt(s);
         Object o = null;
@@ -309,8 +307,10 @@ final public class InvarReadData
         HashMap<String,Method> map = getGetters(ClsO);
         String nameGetter = PREFIX_GETTER + upperHeadChar(key);
         Method method = map.get(nameGetter);
-        if (method == null)
+        if (method == null && key != ATTR_MAP_KEY)
             onError("No getter named '" + nameGetter + "' in " + ClsO, n);
+        if (method == null)
+            return null;
         String rule = method.getGenericReturnType().toString();
         InvarRule anno = method.getAnnotation(InvarRule.class);
         if (anno != null)
@@ -318,8 +318,7 @@ final public class InvarReadData
         return rule;
     }
 
-    private void invokeSetter(Object value, String key, Object o, Node n)
-        throws Exception
+    private void invokeSetter(Object value, String key, Object o, Node n) throws Exception
     {
         HashMap<String,Method> mapSetters = getSetters(o.getClass());
         String nameSetter = PREFIX_SETTER + upperHeadChar(key);
@@ -345,11 +344,7 @@ final public class InvarReadData
 
     private Class<?> loadGenericClass(String rule) throws Exception
     {
-        String name = rule;
-        if (rule.indexOf(GENERIC_LEFT) >= 0)
-        {
-            name = rule.substring(0, rule.indexOf(GENERIC_LEFT));
-        }
+        String name = ruleLeft(rule);
         Class<?> Cls = getClassByAlias(name);
         if (Cls == null)
             Cls = Class.forName(name);
@@ -429,14 +424,23 @@ final public class InvarReadData
         return methods;
     }
 
-    static private String[] parseGenericTypes(String T)
+    static private String ruleLeft(String rule)
     {
-        int iBegin = T.indexOf(GENERIC_LEFT) + 1;
-        int iEnd = T.lastIndexOf(GENERIC_RIGHT);
+        String name = rule;
+        if (rule.indexOf(GENERIC_LEFT) >= 0)
+        {
+            name = rule.substring(0, rule.indexOf(GENERIC_LEFT));
+        }
+        return name;
+    }
+
+    static private String ruleRight(String rule)
+    {
+        int iBegin = rule.indexOf(GENERIC_LEFT) + 1;
+        int iEnd = rule.lastIndexOf(GENERIC_RIGHT);
         if (iBegin > 0 && iEnd > iBegin)
         {
-            String substr = T.substring(iBegin, iEnd);
-            return substr.split(GENERIC_SPLIT);
+            return rule.substring(iBegin, iEnd);
         }
         return null;
     }

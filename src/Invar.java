@@ -1,13 +1,11 @@
 import invar.InvarContext;
+import invar.InvarMainArgs;
 import invar.InvarReadRule;
 import invar.InvarWriteAS3;
 import invar.InvarWriteJava;
 import invar.InvarWriteXSD;
 import invar.model.InvarType.TypeID;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.TreeMap;
 
 final public class Invar
@@ -16,62 +14,43 @@ final public class Invar
     static final String ARG_RULE_PATH  = "-rule";
     static final String ARG_JAVA_PATH  = "-java";
     static final String ARG_FLASH_PATH = "-flash";
-    static String       rulePath       = "rule/";
-    static String       outPathJava    = "code/java/";
-    static String       outPathFlash   = "code/flash/";
+    static final String ARG_XSD_PATH   = "-xsd";
 
-    static public void main(String[] args) throws Throwable
+    static public void main(String[] args)
     {
-        HashMap<String,List<String>> mapArgs = parseArguments(args);
-        if (mapArgs.get(ARG_HELP) != null)
+        InvarMainArgs a = new InvarMainArgs();
+        a.addDefault(ARG_RULE_PATH, "rule/");
+        a.addDefault(ARG_XSD_PATH, "data/");
+        a.addDefault(ARG_JAVA_PATH, "code/java/");
+        a.addDefault(ARG_FLASH_PATH, "code/flash/");
+        a.parseArguments(args);
+
+        if (a.has(ARG_HELP))
         {
             showHelp();
             return;
         }
-        log("Invar start: " + new Date().toString());
-        TreeMap<TypeID,String> basics = InvarReadRule.makeTypeIdMap();
-        InvarContext ctx = new InvarContext();
-        ctx.addBuildInTypes(basics);
-        List<String> rules = mapArgs.get(ARG_RULE_PATH);
-        if (rules != null && rules.size() > 0)
-            rulePath = rules.get(0);
-        InvarReadRule.start(rulePath, ".xml", ctx);
-        List<String> outPath = null;
-        outPath = mapArgs.get(ARG_JAVA_PATH);
-        if (outPath != null)
-        {
-            if (outPath.size() > 0)
-                outPathJava = outPath.get(0);
-            new InvarWriteJava(ctx, outPathJava).write(".java");
-        }
-        outPath = mapArgs.get(ARG_FLASH_PATH);
-        if (outPath != null)
-        {
-            if (outPath.size() > 0)
-                outPathFlash = outPath.get(0);
-            new InvarWriteAS3(ctx, outPathFlash).write(".as");
-        }
-        new InvarWriteXSD().write(ctx, basics);
-        log("Invar end: " + new Date().toString());
-    }
 
-    static HashMap<String,List<String>> parseArguments(String[] args)
-    {
-        HashMap<String,List<String>> mapArgs = new HashMap<String,List<String>>();
-        List<String> listCurrent = null;
-        for (String arg : args)
+        TreeMap<TypeID,String> basics = InvarReadRule.makeTypeIdMap();
+        try
         {
-            if (arg.charAt(0) == '-')
-            {
-                listCurrent = new LinkedList<String>();
-                mapArgs.put(arg, listCurrent);
-            }
-            else if (listCurrent != null)
-            {
-                listCurrent.add(arg);
-            }
+            log("Invar start: " + new Date().toString());
+            InvarContext ctx = new InvarContext();
+            ctx.addBuildInTypes(basics);
+            InvarReadRule.start(a.get(ARG_RULE_PATH), ".xml", ctx);
+
+            if (a.has(ARG_JAVA_PATH))
+                new InvarWriteJava(ctx, a.get(ARG_JAVA_PATH)).write(".java");
+            if (a.has(ARG_FLASH_PATH))
+                new InvarWriteAS3(ctx, a.get(ARG_FLASH_PATH)).write(".as");
+            if (a.has(ARG_XSD_PATH))
+                new InvarWriteXSD().write(ctx, basics, a.get(ARG_XSD_PATH));
+            log("Invar end: " + new Date().toString());
         }
-        return mapArgs;
+        catch (Throwable e)
+        {
+            e.printStackTrace();
+        }
     }
 
     static void showHelp()

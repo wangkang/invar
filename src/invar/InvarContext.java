@@ -18,6 +18,8 @@ final public class InvarContext
     private final InvarPackage                 packBuildIn;
     private final HashMap<String,InvarPackage> packAll;
     private final HashMap<String,InvarType>    typeWithAlias;
+    private String                             structRootAlias = "root";
+    private TypeStruct                         structRoot;
 
     public InvarContext() throws Exception
     {
@@ -131,21 +133,14 @@ final public class InvarContext
         return packBuildIn.getType(typeName.toLowerCase());
     }
 
+    public InvarType findBuildInType(TypeID id)
+    {
+        return packBuildIn.getType(id);
+    }
+
     public boolean isBuildInPack(InvarPackage pack)
     {
         return pack == packBuildIn;
-    }
-
-    @SuppressWarnings ("unchecked")
-    public <T extends InvarType> T findType(String name, InvarPackage pack)
-        throws Throwable
-    {
-        InvarType t = pack.getType(name);
-        if (t == null)
-        {
-            t = packBuildIn.getType(name);
-        }
-        return (T)t;
     }
 
     public void aliasAdd(TypeEnum type)
@@ -156,6 +151,8 @@ final public class InvarContext
     public void aliasAdd(TypeStruct type)
     {
         typeWithAlias.put(type.getAlias(), type);
+        if (type.getAlias().equals(structRootAlias))
+            structRoot = type;
     }
 
     public InvarType aliasGet(String alias)
@@ -166,6 +163,16 @@ final public class InvarContext
     public Iterator<String> aliasNames()
     {
         return typeWithAlias.keySet().iterator();
+    }
+
+    public TypeStruct getStructRoot()
+    {
+        return structRoot;
+    }
+
+    public String getStructRootAlias()
+    {
+        return structRootAlias;
     }
 
 }

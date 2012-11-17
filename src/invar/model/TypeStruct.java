@@ -68,11 +68,6 @@ public class TypeStruct extends InvarType
         return fields.get(key).getType().getId();
     }
 
-    public InvarField getFieldCorect(String key)
-    {
-        return fields.get(key);
-    }
-
     private void checkKey(String key) throws Exception
     {
         if (fields.containsKey(key))

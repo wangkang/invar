@@ -43,17 +43,6 @@ public class InvarPackage
         return type;
     }
 
-    public InvarType findType(String typeName) throws Throwable
-    {
-        if (!typeMap.containsKey(typeName))
-        {
-            throw new Error("No type " + "named '" + typeName //
-                    + "' in package '" + name + "'");
-        }
-        InvarType type = typeMap.get(typeName);
-        return type;
-    }
-
     public void clearGhostTypes()
     {
         InvarType type = null;
@@ -72,30 +61,8 @@ public class InvarPackage
         return typeMap.keySet().iterator();
     }
 
-    public InvarPackage add(InvarType t) throws Exception
+    public InvarPackage add(InvarType t)
     {
-        checkTypeName(t.getName());
-        typeMap.put(t.getName(), t);
-        return this;
-    }
-
-    public InvarPackage add(TypeEnum t) throws Exception
-    {
-        checkTypeName(t.getName());
-        typeMap.put(t.getName(), t);
-        return this;
-    }
-
-    public InvarPackage add(TypeStruct t) throws Exception
-    {
-        checkTypeName(t.getName());
-        typeMap.put(t.getName(), t);
-        return this;
-    }
-
-    public InvarPackage add(TypeProtocol t) throws Exception
-    {
-        checkTypeName(t.getName());
         typeMap.put(t.getName(), t);
         return this;
     }
@@ -118,14 +85,5 @@ public class InvarPackage
     public Boolean getNeedWrite()
     {
         return needWrite;
-    }
-
-    private void checkTypeName(String typeName) throws Exception
-    {
-        if (typeMap.containsKey(typeName))
-        {
-            throw new Exception("Repeated type name '" + typeName//
-                    + "' in package '" + name + "'.");
-        }
     }
 }

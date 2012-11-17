@@ -212,8 +212,7 @@ abstract public class InvarWrite
         }
     }
 
-    private void parseExportFiles(HashMap<File,String> files)
-        throws IOException
+    private void parseExportFiles(HashMap<File,String> files) throws IOException
     {
         Iterator<InputStream> i = exportFiles.keySet().iterator();
         while (i.hasNext())
