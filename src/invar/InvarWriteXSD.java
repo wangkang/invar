@@ -255,8 +255,22 @@ public class InvarWriteXSD
         if (tXSD != null)
         {
             code.append(brIndent);
-            code.append("<xs:attribute name=\"" + f.getKey() + "\" type=\"" + tXSD + "\" />");
-            return;
+            code.append("<xs:attribute ");
+            code.append("name=\"" + f.getKey() + "\" ");
+            code.append("type=\"" + tXSD + "\" ");
+            code.append("/>");
+        }
+        else if (TypeID.ENUM == id)
+        {
+            String tEnum = nsKey + ":" + f.getType().fullName(TYPE_SPLIT) + "Attr";
+            code.append(brIndent);
+            code.append("<xs:attribute ");
+            code.append("name=\"" + f.getKey() + "\" ");
+            code.append("type=\"" + tEnum + "\" ");
+            code.append("/>");
+        }
+        else
+        {
         }
     }
 
@@ -280,13 +294,18 @@ public class InvarWriteXSD
 
     private void codeEnum(TypeEnum type, StringBuilder code)
     {
+        String simpleName = type.fullName(".") + "Attr";
         code.append(br);
         code.append("<xs:complexType name=\"" + type.fullName(".") + "\">");
-        //code.append(brIndent);
-        code.append("<xs:attribute name=\"" + "value" + "\" ");
-        code.append("use=\"required\"");
+        code.append("<xs:attribute ");
+        code.append("type=\"" + nsKey + ":" + simpleName + "\" ");
+        code.append("name=\"" + "value" + "\" ");
+        code.append("use=\"" + "required" + "\" ");
+        code.append("/>");
+        code.append("</xs:complexType>");
+        code.append(br);
+        code.append("<xs:simpleType name=\"" + simpleName + "\"");
         code.append(">");
-        code.append("<xs:simpleType>");
         code.append(brIndent);
         code.append("<xs:restriction base=\"int\">");
         Iterator<String> i = type.getKeys().iterator();
@@ -296,7 +315,8 @@ public class InvarWriteXSD
             Integer value = type.getValue(key);
             code.append(brIndent2);
             code.append("<!-- ");
-            code.append(key + ": " + type.getComment(key));
+            code.append(key);
+            //code.append(key + ": " + type.getComment(key));
             code.append(" -->");
             //code.append(brIndent2);
             code.append("<xs:enumeration value=\"" + value + "\" />");
@@ -304,10 +324,6 @@ public class InvarWriteXSD
         code.append(brIndent);
         code.append("</xs:restriction>");
         code.append("</xs:simpleType>");
-        //code.append(brIndent);
-        code.append("</xs:attribute>");
-        code.append(br);
-        code.append("</xs:complexType>");
     }
 
     final static private String indent        = "  ";

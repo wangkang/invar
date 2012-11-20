@@ -129,13 +129,13 @@ xmlns:tns="invar.data" targetNamespace="invar.data">
   </xs:sequence>
   <xs:attribute name="revision" type="xs:string" />
 </xs:complexType>
-<xs:complexType name="test.abc.Gender"><xs:attribute name="value" use="required"><xs:simpleType>
+<xs:complexType name="test.abc.Gender"><xs:attribute type="tns:test.abc.GenderAttr" name="value" use="required" /></xs:complexType>
+<xs:simpleType name="test.abc.GenderAttr">
   <xs:restriction base="int">
-    <!-- MALE: Enum male --><xs:enumeration value="1" />
-    <!-- FEMALE: Enum female --><xs:enumeration value="2" />
-    <!-- NONE:  --><xs:enumeration value="10" />
-  </xs:restriction></xs:simpleType></xs:attribute>
-</xs:complexType>
+    <!-- MALE --><xs:enumeration value="1" />
+    <!-- FEMALE --><xs:enumeration value="2" />
+    <!-- NONE --><xs:enumeration value="10" />
+  </xs:restriction></xs:simpleType>
 <xs:complexType name="test.abc.Info">
   <xs:sequence>
     <xs:element name="number01" minOccurs="0" maxOccurs="2048" type="tns:int8" />
@@ -177,6 +177,7 @@ xmlns:tns="invar.data" targetNamespace="invar.data">
   <xs:attribute name="number10" type="xs:double" />
   <xs:attribute name="bool" type="xs:boolean" />
   <xs:attribute name="s" type="xs:string" />
+  <xs:attribute name="gender" type="tns:test.abc.GenderAttr" />
 </xs:complexType>
 <xs:complexType name="test.abc.Conflict">
   <xs:sequence>

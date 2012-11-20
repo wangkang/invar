@@ -37,12 +37,12 @@ final public class InvarReadRule
             @Override
             public boolean accept(File dir, String name)
             {
-                if (dir.getName().startsWith("."))
-                    return false;
-                else if (name.endsWith(InvarReadRule.suffix))
+                File f = new File(dir, name);
+                if (f.isDirectory() && !f.getName().startsWith("."))
                     return true;
-                else
-                    return false;
+                if (name.endsWith(InvarReadRule.suffix))
+                    return true;
+                return false;
             }
         };
         List<File> files = new ArrayList<File>();

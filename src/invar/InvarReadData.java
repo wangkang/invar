@@ -40,14 +40,12 @@ final public class InvarReadData
             @Override
             public boolean accept(File dir, String name)
             {
-                if (dir.getName().equals(".svn"))
-                    return false;
-                else if (dir.getName().equals(".git"))
-                    return false;
-                else if (name.endsWith(InvarReadData.suffix))
+                File f = new File(dir, name);
+                if (f.isDirectory() && !f.getName().startsWith("."))
                     return true;
-                else
-                    return false;
+                if (name.endsWith(InvarReadData.suffix))
+                    return true;
+                return false;
             }
         };
         List<File> files = new ArrayList<File>();
