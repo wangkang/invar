@@ -63,7 +63,7 @@ public class InvarType
 
     public InvarType getRedirect()
     {
-        return redirect;
+        return redirect == null ? this : redirect;
     }
 
     public void setRedirect(InvarType redirect)

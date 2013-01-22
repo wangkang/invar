@@ -1,5 +1,6 @@
 package invar;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -63,6 +64,19 @@ final public class InvarReadData
         }
     }
 
+    static public void parse(Object o, String xml) throws Exception
+    {
+        if (null == xml || 0 == xml.length())
+            return;
+        Document doc = DocumentBuilderFactory.newInstance()
+                                             .newDocumentBuilder()
+                                             .parse(new ByteArrayInputStream(xml.getBytes()));
+        if (!doc.hasChildNodes())
+            return;
+        Node nRoot = doc.getFirstChild();
+        new InvarReadData("").parsePart(o, nRoot);
+    }
+
     public InvarReadData(String path)
     {
         this.path = path;
@@ -71,6 +85,14 @@ final public class InvarReadData
     public void parse(Object o, Node n) throws Exception
     {
         parse(o, n, o.getClass().getName(), "");
+    }
+
+    private void parsePart(Object host, Node n) throws Exception
+    {
+        String key = n.getNodeName();
+        String rule = getRule(host.getClass(), key, n);
+        Object o = invokeGetter(key, host, n);
+        parse(o, n, rule, key);
     }
 
     private String path;

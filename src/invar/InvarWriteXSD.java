@@ -171,7 +171,18 @@ public class InvarWriteXSD
             String k = ruleLeft(R[0]);
             String v = ruleLeft(R[1]);
             TypeID id = typeBasic.get(k);
+            Boolean isSimpleKey = (id != null);
+            InvarType kType = findType(getContext(), k);
             if (id == null)
+            {
+                if (kType != null)
+                {
+                    id = kType.getId();
+                    isSimpleKey = (id == TypeID.ENUM);
+                    //System.out.println("InvarWriteXSD.codeByRule()" + k);
+                }
+            }
+            if (!isSimpleKey)
             {
                 code.append(brIndent3);
                 code.append("<xs:sequence minOccurs=\"0\" maxOccurs=\"2048\">");
@@ -185,14 +196,20 @@ public class InvarWriteXSD
                 code.append(brIndent3);
                 code.append("<xs:sequence>");
                 StringBuilder codeExt = null;
-                TypeStruct ts = findType(getContext(), v);
+                TypeStruct ts = null;
+                InvarType vType = findType(getContext(), v);
+                if (vType instanceof TypeStruct)
+                    ts = (TypeStruct)vType;
                 InvarField f = ts == null ? null : ts.getField(ATTR_MAP_KEY);
                 if (f == null)
                 {
+                    String typeName = id == TypeID.ENUM//
+                        ? nsKey + ":" + kType.fullName(TYPE_SPLIT) + "Attr"
+                        : typeXsd.get(id);
                     codeExt = new StringBuilder();
                     codeExt.append(brIndent3);
                     codeExt.append("<xs:attribute name=\"" + ATTR_MAP_KEY + "\" ");
-                    codeExt.append("type=\"" + typeXsd.get(id) + "\" ");
+                    codeExt.append("type=\"" + typeName + "\" ");
                     codeExt.append("use=\"required\" ");
                     codeExt.append("/>");
                 }
@@ -231,9 +248,8 @@ public class InvarWriteXSD
         return code;
     }
 
-    private TypeStruct findType(InvarContext ctx, String fullName)
+    private InvarType findType(InvarContext ctx, String fullName)
     {
-        InvarType type = null;
         int iEnd = fullName.lastIndexOf(TYPE_SPLIT);
         if (iEnd < 0)
             return null;
@@ -242,10 +258,7 @@ public class InvarWriteXSD
         InvarPackage pack = ctx.getPack(packName);
         if (pack == null)
             return null;
-        type = pack.getType(typeName);
-        if (type instanceof TypeStruct)
-            return (TypeStruct)type;
-        return null;
+        return pack.getType(typeName);
     }
 
     private void codeStructAttr(InvarField f, StringBuilder code)

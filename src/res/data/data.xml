@@ -36,19 +36,24 @@
 				<v-Gender value="10" />
 			</mapInfoG>
 			<mapInfoG>
-				<k-Info s="#&lt;one>" />
+				<k-Info s="#one" />
 				<v-Gender value="1" />
-				<k-Info s="#&lt;two>" />
+				<k-Info s="#two" />
 				<v-Gender value="2" />
-				<k-Info s="#&lt;ten>" />
+				<k-Info s="#ten" />
 				<v-Gender value="10" />
 			</mapInfoG>
+			<mapGenderInfo>
+				<Info key="1" />
+				<Info key="2" />
+			</mapGenderInfo>
 		</next>
 	</info>
 
 	<!-- complex data -->
 	<infox>
-		<conflict>
+		<conflict_x pi="3.1416" />
+		<conflict_a>
 			<bytes>
 				<int8 value="-128" />
 				<int8 value="127" />
@@ -57,7 +62,16 @@
 				<int8 value="108" />
 				<int8 value="120" />
 			</bytes>
-		</conflict>
+		</conflict_a>
+		<mConflict>
+			<Conflict key="1">
+				<bytes>
+					<int8 value="-128" />
+					<int8 value="127" />
+				</bytes>
+			</Conflict>
+			<Conflict key="2"></Conflict>
+		</mConflict>
 		<info2d>
 			<vec>
 				<Info bool="true" number07="4294967295" />

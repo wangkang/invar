@@ -499,7 +499,7 @@ final public class InvarReadRule
             {
                 StringBuilder s = new StringBuilder();
                 for (InvarType t : types)
-                    s.append("\n" + t.fullName("::"));
+                    s.append("\n" + t.fullName(SPLIT_PACK_TYPE));
                 onError(n, "Find " + types.size() + " types. You should select one." + s.toString());
             }
             else

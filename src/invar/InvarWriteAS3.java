@@ -41,7 +41,7 @@ final public class InvarWriteAS3 extends InvarWrite
         c.typeRedefine(TypeID.LIST, "__AS3__.vec", "Vector", ".<?>");
         c.typeRedefine(TypeID.MAP, "flash.utils", "Dictionary", "");
         exportFile("/res/invar/InvarReadData.as", "invar", "InvarReadData.as");
-        exportFile("/res/invar/InvarTestAS3.as", "invar", "InvarTestAS3.as");
+        //exportFile("/res/invar/InvarTestAS3.as", "invar", "InvarTestAS3.as");
         return true;
     }
 
@@ -56,7 +56,6 @@ final public class InvarWriteAS3 extends InvarWrite
         {
             f.setWidthTypeMax(20);
             f.makeTypeFormatted(getContext());
-            f.checkConflict(type.getPack());
             if (f.getTypeFormatted().length() > widthType)
                 widthType = f.getTypeFormatted().length();
             if (f.getKey().length() > widthKey)

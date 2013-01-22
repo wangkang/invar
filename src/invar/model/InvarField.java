@@ -50,18 +50,14 @@ public class InvarField
         return key;
     }
 
-    public void checkConflict(InvarPackage pack)
-    {
-        InvarType t = type.getRedirect() == null ? type : type.getRedirect();
-        if (t.getPack() != pack && pack.getType(t.getName()) != null)
-            typeFormatted = t.fullName(".");
-    }
-
     public String makeTypeFormatted(InvarContext ctx)
     {
-        InvarType t = type.getRedirect() == null ? type : type.getRedirect();
-        typeFormatted = t.getName() + evalGenerics(ctx, t);
-        return getTypeFormatted();
+        InvarType t = type.getRedirect();
+        String tName = t.getName();
+        if (ctx.findTypes(t.getName()).size() > 1)
+            tName = t.fullName(".");
+        typeFormatted = tName + evalGenerics(ctx, t);
+        return typeFormatted;
     }
 
     private String evalGenerics(InvarContext ctx, InvarType typeBasic)
@@ -71,8 +67,11 @@ public class InvarField
         String s = typeBasic.getGeneric();
         for (InvarType t : getGenerics())
         {
-            t = t.getRedirect() == null ? t : t.getRedirect();
-            s = s.replaceFirst("\\?", t.getName() + t.getGeneric());
+            t = t.getRedirect();
+            String tName = t.getName();
+            if (ctx.findTypes(t.getName()).size() > 1)
+                tName = t.fullName(".");
+            s = s.replaceFirst("\\?", tName + t.getGeneric());
         }
         return s;
     }
@@ -90,16 +89,13 @@ public class InvarField
 
     public String evalGenericsFull(InvarContext ctx, String split)
     {
-        InvarType typeBasic = type.getRedirect() == null//
-            ? type
-            : type.getRedirect();
-        //typeBasic = type;
+        InvarType typeBasic = type.getRedirect();
         if (getGenerics().size() == 0)
-            return "";
+            return typeBasic.fullName(split);
         String s = typeBasic.getGeneric();
         for (InvarType t : getGenerics())
         {
-            t = t.getRedirect() == null ? t : t.getRedirect();
+            t = t.getRedirect();
             s = s.replaceFirst("\\?", t.fullName(split) + t.getGeneric());
         }
         return typeBasic.fullName(split) + s;

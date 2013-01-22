@@ -77,7 +77,7 @@ abstract public class InvarWrite
         }
         else
         {
-            log("Export resource does not exist: " + resPath);
+            log("error ---------> Export resource does not exist: " + resPath);
         }
     }
 
@@ -309,5 +309,29 @@ abstract public class InvarWrite
         {
             throw new Exception(s + " is a reserved word.");
         }
+    }
+
+    final static private String GENERIC_LEFT  = "<";
+    final static private String GENERIC_RIGHT = ">";
+
+    final protected String ruleLeft(String rule)
+    {
+        String name = rule;
+        if (rule.indexOf(GENERIC_LEFT) >= 0)
+        {
+            name = rule.substring(0, rule.indexOf(GENERIC_LEFT));
+        }
+        return name;
+    }
+
+    final protected String ruleRight(String rule)
+    {
+        int iBegin = rule.indexOf(GENERIC_LEFT) + 1;
+        int iEnd = rule.lastIndexOf(GENERIC_RIGHT);
+        if (iBegin > 0 && iEnd > iBegin)
+        {
+            return rule.substring(iBegin, iEnd);
+        }
+        return null;
     }
 }

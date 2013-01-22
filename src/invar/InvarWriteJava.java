@@ -6,7 +6,10 @@ import invar.model.InvarType;
 import invar.model.InvarType.TypeID;
 import invar.model.TypeEnum;
 import invar.model.TypeStruct;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -17,12 +20,13 @@ final public class InvarWriteJava extends InvarWrite
         super(context, dirRootPath);
     }
 
-    final static private String indent    = "    ";
-    final static private String br        = "\n";
-    final static private String brIndent  = br + indent;
-    final static private String brIndent2 = br + indent + indent;
-    final static private String brIndent3 = br + indent + indent + indent;
-    final static private String brIndent4 = br + indent + indent + indent + indent;
+    final static private String mapKeyAttr = "key";
+    final static private String indent     = "    ";
+    final static private String br         = "\n";
+    final static private String brIndent   = br + indent;
+    final static private String brIndent2  = br + indent + indent;
+    final static private String brIndent3  = br + indent + indent + indent;
+    final static private String brIndent4  = br + indent + indent + indent + indent;
 
     @Override
     protected Boolean beforeWrite(final InvarContext c)
@@ -70,6 +74,8 @@ final public class InvarWriteJava extends InvarWrite
         StringBuilder setters = new StringBuilder();
         StringBuilder getters = new StringBuilder();
         TreeSet<String> imps = new TreeSet<String>();
+
+        List<InvarField> genericFields = new LinkedList<InvarField>();
         for (InvarField f : fs)
         {
             f.setWidthType(widthType);
@@ -78,18 +84,20 @@ final public class InvarWriteJava extends InvarWrite
             fields.append(codeStructField(f, type));
             setters.append(codeStructSetter(f, type.getName()));
             getters.append(codeStructGetter(f));
-            String ruleAnotation = "invar.InvarRule";
-            if (!imps.contains(ruleAnotation))
-            {
-                imps.add(ruleAnotation);
-            }
-            String key = "";
-            key = importTypeCheck(f.getType(), type.getPack());
-            imps.add(key);
+            impsCheckAdd(imps, f.getType().getRedirect());
             for (InvarType typeGene : f.getGenerics())
             {
-                key = importTypeCheck(typeGene, type.getPack());
-                imps.add(key);
+                impsCheckAdd(imps, typeGene.getRedirect());
+            }
+
+            imps.add("invar.InvarRule");
+            switch (f.getType().getId()){
+            case MAP:
+            case LIST:
+                genericFields.add(f);
+                break;
+            default:
+                break;
             }
         }
         StringBuilder body = new StringBuilder();
@@ -98,18 +106,238 @@ final public class InvarWriteJava extends InvarWrite
         body.append(setters);
         body.append(br);
         body.append(getters);
+        body.append(codeToXmlStruct(type));
+        for (InvarField f : genericFields)
+        {
+            StringBuilder code = new StringBuilder();
+            code.append("StringBuilder code = new StringBuilder(); ");
+            String rule = f.evalGenericsFull(getContext(), ".");
+            code.append(codeToXmlNode(0, rule, new StringBuilder(), f.getKey(), f.getKey(), "", ""));
+            code.append(brIndent2 + "return code;");
+            String mName = "public StringBuilder toXml" + upperHeadChar(f.getKey()) + "()";
+            body.append(br);
+            body.append(codeMethod(mName, code.toString()));
+        }
         return codeClassFile(type, body, codeStructImports(imps));
     }
 
-    private String importTypeCheck(InvarType type, InvarPackage packCurr)
+    private void impsCheckAdd(TreeSet<String> imps, InvarType t)
     {
-        String key = "";
-        if (type.getPack() != packCurr)
+        if (getContext().findTypes(t.getName()).size() > 1)
+            return;
+        String str = t.fullName(".");
+        imps.add(str);
+        if (t.getId() == TypeID.MAP)
+            imps.add("java.util.Iterator");
+    }
+
+    private StringBuilder codeToXmlStruct(TypeStruct type)
+    {
+        StringBuilder code = new StringBuilder();
+        code.append("StringBuilder code = new StringBuilder(); ");
+        List<InvarField> fs = type.listFields();
+        List<InvarField> structFields = new LinkedList<InvarField>();
+        LinkedHashMap<String,String> attrs = new LinkedHashMap<String,String>();
+        for (InvarField f : fs)
         {
-            type = type.getRedirect() == null ? type : type.getRedirect();
-            key = type.getPack().getName() + "." + type.getName();
+            switch (f.getType().getId()){
+            case MAP:
+            case LIST:
+            case STRUCT:
+                structFields.add(f);
+                break;
+            default:
+                String k = f.getKey();
+                String rule = f.evalGenericsFull(getContext(), ".");
+                InvarType t = findType(getContext(), ruleLeft(rule));
+                String s = "this." + k;
+                if (TypeID.ENUM == t.getId())
+                    s = s + ".value";
+                attrs.put(k, s);
+                break;
+            }
         }
-        return key;
+        codeToXmlNodeStart(code, "\" + nodeName + \"", attrs, structFields.size() > 0, 0);
+        if (structFields.size() > 0)
+        {
+            for (InvarField f : structFields)
+            {
+                String rule = f.evalGenericsFull(getContext(), ".");
+                code.append(codeToXmlNode(0, rule, new StringBuilder(), f.getKey(), f.getKey(), "", ""));
+            }
+            code.append(brIndent2 + "code.append(\"</\" + nodeName + \">\");");
+        }
+        code.append(brIndent2 + "return code.toString();");
+        return codeMethod("public String toXmlString(String nodeName)", code.toString());
+    }
+
+    private StringBuilder codeToXmlNode(int depth, String rule, StringBuilder code, String upRef, String strNode, String nodePrefix, String keyAttr)
+    {
+        if (code == null)
+            code = new StringBuilder();
+        if (rule == null)
+            return code;
+        String ind = brIndent2;
+        if (depth > 0)
+            ind = brIndent3;
+        String L = ruleLeft(rule);
+        String R = ruleRight(rule);
+        InvarType t = findType(getContext(), L);
+        if (strNode.equals(""))
+        {
+            strNode = getContext().findBuildInType(t.getId()).getName();
+        }
+        String nodeName = nodePrefix + strNode;
+        HashMap<String,String> attrs = new LinkedHashMap<String,String>();
+        if (keyAttr != "")
+        {
+            attrs.put(mapKeyAttr, keyAttr);
+        }
+        if (TypeID.LIST == t.getId())
+        {
+            code.append(ind + "if (" + upRef + ".size() > 0)");
+            code.append(ind + "{");
+            codeToXmlNodeStart(code, nodeName, attrs, true, depth);
+            codeToXmlVector(R, code, depth, upRef);
+            code.append(ind + "code.append(\"</" + nodeName + ">\");");
+            code.append(ind + "}");
+        }
+        else if (TypeID.MAP == t.getId())
+        {
+            code.append(ind + "if (" + upRef + ".size() > 0)");
+            code.append(ind + "{");
+            codeToXmlNodeStart(code, nodeName, attrs, true, depth);
+            codeToXmlMap(R, code, depth, upRef);
+            code.append(ind + "code.append(\"</" + nodeName + ">\");");
+            code.append(ind + "}");
+        }
+        else if (TypeID.STRUCT == t.getId())
+        {
+            if (depth == 0)
+            {
+                //nodeName = upRef;
+                code.append(ind + "if (" + strNode + " != null)");
+                code.append(ind);
+            }
+            if (keyAttr != "")
+            {
+                TypeStruct ts = (TypeStruct)t;
+                if (ts.getField(mapKeyAttr) == null)
+                {
+                    log("error ---------> This struct must have a field named 'key': " + t.fullName("::"));
+                }
+            }
+            String s = upRef;
+            s = upRef + ".toXmlString(\"" + nodeName + "\")";
+            code.append("code.append(" + s + ");");
+        }
+        else if (TypeID.ENUM == t.getId())
+        {
+            String s = upRef;
+            attrs.put("value", s + ".value");
+            codeToXmlNodeStart(code, nodeName, attrs, false, depth);
+        }
+        else
+        {
+            String s = upRef;
+            InvarType rawType = getContext().findBuildInType(t.getId());
+            nodeName = rawType.getName();
+            attrs.put("value", s);
+            codeToXmlNodeStart(code, nodeName, attrs, false, depth);
+        }
+        return code;
+    }
+
+    private void codeToXmlVector(String rule, StringBuilder code, int depth, String strO)
+    {
+        String ind = brIndent2;
+        if (depth > 0)
+            ind = brIndent3;
+        String ruleV = rule;
+        String vName = "n" + depth;
+        code.append(ind + "for (" + ruleV + " " + vName + " : " + strO + ")");
+        code.append(ind + "{");
+        depth++;
+        code.append(ind + codeToXmlNode(depth, rule, null, vName, codeToXmlNodeName(ruleV), "", ""));
+        code.append(ind + "}");
+    }
+
+    private void codeToXmlMap(String rule, StringBuilder code, int depth, String strO)
+    {
+        String ind = brIndent2;
+        if (depth > 0)
+            ind = brIndent3;
+        String[] R = rule.split(",");
+        String ruleK = R[0];
+        String ruleV = R[1];
+        String kName = "k" + depth;
+        String vName = "v" + depth;
+        code.append(ind + "for (Iterator<" + ruleK + "> i = " + strO + ".keySet().iterator(); i.hasNext();)");
+        code.append(ind + "{");
+        code.append(ind + ruleK + " " + kName + " = i.next();");
+        code.append(ind + ruleV + " " + vName + " = " + strO + ".get(" + kName + ");");
+        InvarType typeK = findType(getContext(), ruleLeft(ruleK));
+        TypeID id = typeK.getId();
+        depth++;
+        if (TypeID.MAP == id || TypeID.LIST == id || TypeID.STRUCT == id)
+        {
+            code.append(ind + codeToXmlNode(depth, ruleK, null, kName, codeToXmlNodeName(ruleK), "k-", ""));
+            code.append(ind + codeToXmlNode(depth, ruleV, null, vName, codeToXmlNodeName(ruleV), "v-", ""));
+        }
+        else
+        {
+            code.append(ind + codeToXmlNode(depth, ruleV, null, vName, codeToXmlNodeName(ruleV), "", kName));
+        }
+        code.append(ind + "}");
+    }
+
+    private StringBuilder codeToXmlNodeStart(StringBuilder code, String nodeName, HashMap<String,String> attrs, Boolean isOpen, int depth)
+    {
+        String ind = brIndent2;
+        if (depth > 0)
+            ind = brIndent3;
+        code.append(ind + "code.append(\"\\n\");");
+        code.append(ind + "code.append(\"<" + nodeName + "\");");
+        Iterator<String> i = attrs.keySet().iterator();
+        String kk = mapKeyAttr;
+        String v = attrs.get(kk);
+        if (v != null)
+            code.append(ind + "code.append(\" " + kk + "=\\\"\" + " + v + " + \"\\\"\");");
+        while (i.hasNext())
+        {
+            String k = i.next();
+            if (k.equals(kk))
+                continue;
+            v = attrs.get(k);
+            code.append(ind + "code.append(\" " + k + "=\\\"\" + " + v + " + \"\\\"\");");
+        }
+        code.append(ind + "code.append(\"" + (isOpen ? "" : " /") + ">" + "\");");
+        return code;
+    }
+
+    private String codeToXmlNodeName(String rule)
+    {
+        InvarType typeV = findType(getContext(), ruleLeft(rule));
+        String strNode = typeV.getName();
+        if (TypeID.MAP == typeV.getId() || TypeID.LIST == typeV.getId())
+        {
+            InvarType rawType = getContext().findBuildInType(typeV.getId());
+            strNode = rawType.getName();
+        }
+        return strNode;
+    }
+
+    private InvarType findType(InvarContext ctx, String fullName)
+    {
+        int iEnd = fullName.lastIndexOf(".");
+        if (iEnd < 0)
+            return ctx.findBuildInType(fullName);
+        String packName = fullName.substring(0, iEnd);
+        String typeName = fullName.substring(iEnd + 1);
+        InvarPackage pack = ctx.getPack(packName);
+        if (pack == null)
+            return null;
+        return pack.getType(typeName);
     }
 
     private StringBuilder codeStructImports(TreeSet<String> keys)
@@ -311,9 +539,18 @@ final public class InvarWriteJava extends InvarWrite
 
         StringBuilder meMain = new StringBuilder();
         StringBuilder meStart = new StringBuilder();
+        StringBuilder meParse = new StringBuilder();
+        StringBuilder meInit = new StringBuilder();
+
+        TypeStruct root = getContext().getStructRoot();
+        String rootTypeName = root == null ? "Object" : root.getName();
 
         String hMain = "static public void main(String[] args) throws Exception";
-        String hStart = "static public void start(Object o, String dir, String suffix, Boolean verbose) throws Exception";
+        String hStart3 = "static public void start(String dir, String suffix, Boolean verbose) throws Exception";
+        String hStart4 = "static public void start(Object o, String dir, String suffix, Boolean verbose) throws Exception";
+        String hParse = "static public void parse(Object o, String xml) throws Exception";
+        String hInit = "static private void init()";
+
         String hBasic = "static private HashMap<String,Class<?>> aliasBasic()";
         String hEnum = "static private HashMap<String,Class<?>> aliasEnums()";
         String hStruct = "static private HashMap<String,Class<?>> aliasStructs()";
@@ -336,30 +573,48 @@ final public class InvarWriteJava extends InvarWrite
         meMain.append(brIndent2 + "List<String> argP = mapArgs.get(\"-path\");");
         meMain.append(brIndent2 + "String suffix = argS != null && argS.size() > 0 ? argS.get(0) : \".xml\";");
         meMain.append(brIndent2 + "String path = argP != null && argP.size() > 0 ? argP.get(0) : \"data\";");
-
-        TypeStruct root = getContext().getStructRoot();
         meMain.append(root != null
             ? brIndent2 + "start(new " + root.getName() + "(), path, suffix, true);"
             : brIndent2 + "System.out.println(\"Please define a struct with alias '" + getContext().getStructRootAlias() + "'.\");");
 
-        meStart.append("InvarReadData.verbose = verbose;");
-        meStart.append(brIndent2 + "InvarReadData.aliasBasics = aliasBasic();");
-        meStart.append(brIndent2 + "InvarReadData.aliasEnums = aliasEnums();");
-        meStart.append(brIndent2 + "InvarReadData.aliasStructs = aliasStructs();");
+        meStart.append("init();");
+        meStart.append(brIndent2 + "InvarReadData.verbose = verbose;");
         meStart.append(brIndent2 + "InvarReadData.start(o, dir, suffix);");
 
+        meParse.append("init();");
+        meParse.append(brIndent2 + "InvarReadData.parse(o, xml);");
+
+        meInit.append("if (InvarReadData.aliasBasics != null)");
+        meInit.append(brIndent3 + "return;");
+        meInit.append(brIndent2 + "InvarReadData.aliasBasics = aliasBasic();");
+        meInit.append(brIndent2 + "InvarReadData.aliasEnums = aliasEnums();");
+        meInit.append(brIndent2 + "InvarReadData.aliasStructs = aliasStructs();");
+
         StringBuilder body = new StringBuilder();
-        body.append(codeMethod(hMain, meMain.toString()));
+
+        body.append(brIndent);
+        body.append("static public final ");
+        body.append(rootTypeName);
+        body.append(" root = new ");
+        body.append(rootTypeName);
+        body.append("();");
         body.append(br);
-        body.append(codeMethod(hStart, meStart.toString()));
+        body.append(codeMethod(hStart3, "start(root, dir, suffix, verbose);"));
+        body.append(br);
+        body.append(codeMethod(hStart4, meStart.toString()));
+        body.append(br);
+        body.append(codeMethod(hParse, meParse.toString()));
+        body.append(br);
+        body.append(codeMethod(hInit, meInit.toString()));
         body.append(br);
         body.append(codeMethod(hBasic, meBasic.toString()));
         body.append(br);
         body.append(codeMethod(hEnum, meEnums.toString()));
         body.append(br);
         body.append(codeMethod(hStruct, meStruct.toString()));
+        body.append(br);
+        body.append(codeMethod(hMain, meMain.toString()));
         imps.add("java.util.List");
-
         return codeClassFile(typeWrapper, body, codeStructImports(imps));
     }
 
@@ -397,7 +652,6 @@ final public class InvarWriteJava extends InvarWrite
         String deft = "";
         String deftF = f.getDefault();
         switch (f.getType().getId()){
-        case UINT64:
         case STRING:
             deft = "\"" + deftF + "\"";
             break;
@@ -411,8 +665,13 @@ final public class InvarWriteJava extends InvarWrite
             deft = deftF.equals("") ? "0" : deftF;
             break;
         case UINT32:
+            deft = deftF.equals("") ? "0L" : deftF + "L";
+            break;
         case INT64:
             deft = deftF.equals("") ? "-1L" : deftF + "L";
+            break;
+        case UINT64:
+            deft = deftF.equals("") ? "\"0\"" : "\"" + deftF + "\"";
             break;
         case FLOAT:
             deft = deftF.equals("") ? "0.00F" : deftF + "F";
@@ -434,7 +693,6 @@ final public class InvarWriteJava extends InvarWrite
             else
             {
                 deft = deftF;
-
             }
             break;
         default:
@@ -442,4 +700,5 @@ final public class InvarWriteJava extends InvarWrite
         }
         return deft;
     }
+
 }

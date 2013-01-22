@@ -2,7 +2,7 @@
 <schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:tns="invar.data" targetNamespace="invar.data">
 
-<xs:element name="root" type="tns:test.opq.ConfigRoot" />
+<xs:element name="root" type="tns:test.xyz.ConfigRoot" />
 
 <xs:complexType name="int8"><xs:attribute type="xs:byte" name="value" use="required"/></xs:complexType>
 <xs:complexType name="int16"><xs:attribute type="xs:short" name="value" use="required"/></xs:complexType>
@@ -17,9 +17,16 @@ xmlns:tns="invar.data" targetNamespace="invar.data">
 <xs:complexType name="bool"><xs:attribute type="xs:boolean" name="value" use="required"/></xs:complexType>
 <xs:complexType name="string"><xs:attribute type="xs:string" name="value" use="required"/></xs:complexType>
 
-<xs:complexType name="test.opq.InfoX">
+<xs:complexType name="test.xyz.InfoX">
   <xs:sequence>
-    <xs:element name="conflict" minOccurs="0" maxOccurs="2048" type="tns:test.abc.Conflict" />
+    <xs:element name="conflict_x" minOccurs="0" maxOccurs="2048" type="tns:test.xyz.Conflict" />
+    <xs:element name="conflict_a" minOccurs="0" maxOccurs="2048" type="tns:test.abc.Conflict" />
+    <xs:element name="mConflict" minOccurs="0" maxOccurs="2048" >
+      <xs:complexType>
+      <xs:sequence>
+      <xs:element name="Conflict" minOccurs="0" maxOccurs="2048" type="tns:test.abc.Conflict" />
+      </xs:sequence></xs:complexType>
+    </xs:element>
     <xs:element name="info2d" minOccurs="0" maxOccurs="2048" >
       <xs:complexType><xs:sequence>
       <xs:element name="vec" minOccurs="0" maxOccurs="2048" >
@@ -47,12 +54,7 @@ xmlns:tns="invar.data" targetNamespace="invar.data">
       <xs:element name="map" minOccurs="0" maxOccurs="2048" >
       <xs:complexType>
       <xs:sequence>
-      <xs:element name="Info" minOccurs="0" maxOccurs="2048" >
-      <xs:complexType><xs:complexContent>
-      <xs:extension base="tns:test.abc.Info">
-      <xs:attribute name="key" type="xs:short" use="required" />
-      </xs:extension></xs:complexContent></xs:complexType>
-      </xs:element>
+      <xs:element name="Info" minOccurs="0" maxOccurs="2048" type="tns:test.abc.Info" />
       </xs:sequence></xs:complexType>
       </xs:element>
       </xs:sequence></xs:complexType>
@@ -115,17 +117,17 @@ xmlns:tns="invar.data" targetNamespace="invar.data">
     </xs:element>
   </xs:sequence>
 </xs:complexType>
-<xs:complexType name="test.opq.Conflict">
+<xs:complexType name="test.xyz.Conflict">
   <xs:sequence>
     <xs:element name="pi" minOccurs="0" maxOccurs="2048" type="tns:double" />
   </xs:sequence>
   <xs:attribute name="pi" type="xs:double" />
 </xs:complexType>
-<xs:complexType name="test.opq.ConfigRoot">
+<xs:complexType name="test.xyz.ConfigRoot">
   <xs:sequence>
     <xs:element name="revision" minOccurs="0" maxOccurs="2048" type="tns:string" />
     <xs:element name="info" minOccurs="0" maxOccurs="2048" type="tns:test.abc.Info" />
-    <xs:element name="infox" minOccurs="0" maxOccurs="2048" type="tns:test.opq.InfoX" />
+    <xs:element name="infox" minOccurs="0" maxOccurs="2048" type="tns:test.xyz.InfoX" />
   </xs:sequence>
   <xs:attribute name="revision" type="xs:string" />
 </xs:complexType>
@@ -150,6 +152,7 @@ xmlns:tns="invar.data" targetNamespace="invar.data">
     <xs:element name="number10" minOccurs="0" maxOccurs="2048" type="tns:double" />
     <xs:element name="bool" minOccurs="0" maxOccurs="2048" type="tns:bool" />
     <xs:element name="s" minOccurs="0" maxOccurs="2048" type="tns:string" />
+    <xs:element name="key" minOccurs="0" maxOccurs="2048" type="tns:int32" />
     <xs:element name="gender" minOccurs="0" maxOccurs="2048" type="tns:test.abc.Gender" />
     <xs:element name="next" minOccurs="0" maxOccurs="2048" type="tns:test.abc.Info" />
     <xs:element name="infos" minOccurs="0" maxOccurs="2048" >
@@ -162,6 +165,23 @@ xmlns:tns="invar.data" targetNamespace="invar.data">
       <xs:sequence minOccurs="0" maxOccurs="2048">
       <xs:element name="k-Info" minOccurs="1" maxOccurs="1" type="tns:test.abc.Info" />
       <xs:element name="v-Gender" minOccurs="1" maxOccurs="1" type="tns:test.abc.Gender" />
+      </xs:sequence></xs:complexType>
+    </xs:element>
+    <xs:element name="mapGenderInfo" minOccurs="0" maxOccurs="2048" >
+      <xs:complexType>
+      <xs:sequence>
+      <xs:element name="Info" minOccurs="0" maxOccurs="2048" type="tns:test.abc.Info" />
+      </xs:sequence></xs:complexType>
+    </xs:element>
+    <xs:element name="mapDouble" minOccurs="0" maxOccurs="2048" >
+      <xs:complexType>
+      <xs:sequence>
+      <xs:element name="double" minOccurs="0" maxOccurs="2048" >
+      <xs:complexType><xs:complexContent>
+      <xs:extension base="tns:double">
+      <xs:attribute name="key" type="xs:string" use="required" />
+      </xs:extension></xs:complexContent></xs:complexType>
+      </xs:element>
       </xs:sequence></xs:complexType>
     </xs:element>
   </xs:sequence>
@@ -177,15 +197,20 @@ xmlns:tns="invar.data" targetNamespace="invar.data">
   <xs:attribute name="number10" type="xs:double" />
   <xs:attribute name="bool" type="xs:boolean" />
   <xs:attribute name="s" type="xs:string" />
+  <xs:attribute name="key" type="xs:int" />
   <xs:attribute name="gender" type="tns:test.abc.GenderAttr" />
 </xs:complexType>
 <xs:complexType name="test.abc.Conflict">
   <xs:sequence>
+    <xs:element name="text" minOccurs="0" maxOccurs="2048" type="tns:string" />
     <xs:element name="bytes" minOccurs="0" maxOccurs="2048" >
       <xs:complexType><xs:sequence>
       <xs:element name="int8" minOccurs="0" maxOccurs="2048" type="tns:int8" />
       </xs:sequence></xs:complexType>
     </xs:element>
+    <xs:element name="key" minOccurs="0" maxOccurs="2048" type="tns:test.abc.Gender" />
   </xs:sequence>
+  <xs:attribute name="text" type="xs:string" />
+  <xs:attribute name="key" type="tns:test.abc.GenderAttr" />
 </xs:complexType>
 </schema>
