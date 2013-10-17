@@ -34,7 +34,7 @@ final public class InvarReadData
 			onError(debug + ' is null.', n);
 		var L:String = ruleLeft(rule);
 		if (TYPE_VEC == L)
-			parseVec(Vector.<*>(o), n, rule, debug);
+			parseVec(o, n, rule, debug);
 		else if (TYPE_MAP == L)
 			parseMap(Dictionary(o), n, rule, debug);
 		else
@@ -93,7 +93,7 @@ final public class InvarReadData
 		}
 	}
 
-	private function parseVec(vec:Vector.<*>, n:XML, rule:String, debug:String):void
+	private function parseVec(vec:Object, n:XML, rule:String, debug:String):void
 	{
 		var R:String = ruleRight(rule);
 		if (R == null)

@@ -347,9 +347,7 @@ final public class InvarWriteAS3 extends InvarWrite
             break;
         case ENUM:
             Iterator<String> i = ((TypeEnum)f.getType()).getKeys().iterator();
-            deft = i.hasNext()
-                ? f.getType().getName() + "." + i.next()
-                : "new " + f.getType().getName() + "(-999999)";
+            deft = i.hasNext() ? f.getType().getName() + "." + i.next() : "new " + f.getType().getName() + "(-999999)";
             break;
         default:
             deft = ("new " + f.getTypeFormatted() + "()");

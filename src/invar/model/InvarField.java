@@ -9,6 +9,7 @@ public class InvarField
     private final LinkedList<InvarType> generics;
     private final String                key;
     private final String                comment;
+    private String                      shortName;
     private String                      typeFormatted;
     private String                      defaultVal;
     private Boolean                     encode;
@@ -174,6 +175,16 @@ public class InvarField
     public void setWidthTypeMax(int widthTypeMax)
     {
         this.widthTypeMax = widthTypeMax;
+    }
+
+    public String getShortName()
+    {
+        return shortName;
+    }
+
+    public void setShortName(String shortName)
+    {
+        this.shortName = shortName;
     }
 
 }

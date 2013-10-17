@@ -18,6 +18,7 @@ import org.w3c.dom.NodeList;
 
 final public class InvarReadData
 {
+    static public String                   charset      = "utf-16";
     static public Boolean                  verbose      = false;
     static public HashMap<String,Class<?>> aliasBasics  = null;
     static public HashMap<String,Class<?>> aliasEnums   = null;
@@ -53,14 +54,21 @@ final public class InvarReadData
         recursiveReadFile(files, file, filter);
         for (File f : files)
         {
-            Document doc = DocumentBuilderFactory.newInstance()
-                                                 .newDocumentBuilder()
-                                                 .parse(f);
+            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(f);
             if (!doc.hasChildNodes())
                 return;
             log("Read <- " + f.getAbsolutePath());
-            Node nRoot = doc.getFirstChild();
-            new InvarReadData(f.getAbsolutePath()).parse(root, nRoot);
+            NodeList children = doc.getChildNodes();
+            int len = children.getLength();
+            for (int i = 0; i < len; i++)
+            {
+                Node x = children.item(i);
+                if (Node.ELEMENT_NODE == x.getNodeType())
+                {
+                    new InvarReadData(f.getAbsolutePath()).parse(root, x);
+                    break;
+                }
+            }
         }
     }
 
@@ -70,11 +78,44 @@ final public class InvarReadData
             return;
         Document doc = DocumentBuilderFactory.newInstance()
                                              .newDocumentBuilder()
-                                             .parse(new ByteArrayInputStream(xml.getBytes()));
+                                             .parse(new ByteArrayInputStream(xml.getBytes(charset)));
         if (!doc.hasChildNodes())
             return;
-        Node nRoot = doc.getFirstChild();
-        new InvarReadData("").parsePart(o, nRoot);
+
+        NodeList children = doc.getChildNodes();
+        int len = children.getLength();
+        for (int i = 0; i < len; i++)
+        {
+            Node x = children.item(i);
+            if (Node.ELEMENT_NODE == x.getNodeType())
+            {
+                new InvarReadData("").parsePart(o, x);
+                break;
+            }
+        }
+    }
+
+    static public void parseFull(Object root, String xml) throws Exception
+    {
+        if (null == xml || 0 == xml.length())
+            return;
+        Document doc = DocumentBuilderFactory.newInstance()
+                                             .newDocumentBuilder()
+                                             .parse(new ByteArrayInputStream(xml.getBytes(charset)));
+        if (!doc.hasChildNodes())
+            return;
+
+        NodeList children = doc.getChildNodes();
+        int len = children.getLength();
+        for (int i = 0; i < len; i++)
+        {
+            Node x = children.item(i);
+            if (Node.ELEMENT_NODE == x.getNodeType())
+            {
+                new InvarReadData("NotFile").parse(root, x);
+                break;
+            }
+        }
     }
 
     public InvarReadData(String path)
@@ -117,6 +158,11 @@ final public class InvarReadData
         if (o.getClass().getName() != ClsO.getName())
             onError("Object does not matches this rule: " + rule, n);
         NamedNodeMap attrs = n.getAttributes();
+        if (attrs == null)
+        {
+            onError("Node unavailable: " + rule, n);
+            return;
+        }
         int attrsLen = attrs.getLength();
         for (int i = 0; i < attrsLen; i++)
         {
@@ -325,10 +371,14 @@ final public class InvarReadData
     private String getRule(Class<?> ClsO, String key, Node n) throws Exception
     {
         HashMap<String,Method> map = getGetters(ClsO);
-        String nameGetter = PREFIX_GETTER + upperHeadChar(key);
-        Method method = map.get(nameGetter);
-        if (method == null && key != ATTR_MAP_KEY)
-            onError("No getter named '" + nameGetter + "' in " + ClsO, n);
+        Method method = map.get(key);
+        if (method == null)
+        {
+            String nameGetter = PREFIX_GETTER + upperHeadChar(key);
+            method = map.get(nameGetter);
+            if (method == null && key != ATTR_MAP_KEY)
+                onError("No getter named '" + nameGetter + "' in " + ClsO, n);
+        }
         if (method == null)
             return null;
         String rule = method.getGenericReturnType().toString();
@@ -338,28 +388,38 @@ final public class InvarReadData
         return rule;
     }
 
-    private void invokeSetter(Object value, String key, Object o, Node n) throws Exception
-    {
-        HashMap<String,Method> mapSetters = getSetters(o.getClass());
-        String nameSetter = PREFIX_SETTER + upperHeadChar(key);
-        Method setter = mapSetters.get(nameSetter);
-        if (setter == null)
-        {
-            onError("No setter named \"" + nameSetter + "()\" in " + o.getClass(), n);
-        }
-        setter.invoke(o, value);
-    }
-
     private Object invokeGetter(String key, Object o, Node x) throws Exception
     {
-        HashMap<String,Method> mapGetters = getGetters(o.getClass());
-        String getterName = PREFIX_GETTER + upperHeadChar(key);
-        Method getter = mapGetters.get(getterName);
-        if (getter == null)
+        HashMap<String,Method> map = getGetters(o.getClass());
+        Method method = map.get(key);
+        if (method == null)
         {
-            onError("No getter named \"" + getterName + "\" in " + o.getClass(), x);
+            String nameGetter = PREFIX_GETTER + upperHeadChar(key);
+            method = map.get(nameGetter);
+            if (method == null)
+            {
+                onError("No getter named \"" + nameGetter + "\" in " + o.getClass(), x);
+                return null;
+            }
         }
-        return getter.invoke(o);
+        return method.invoke(o);
+    }
+
+    private void invokeSetter(Object value, String key, Object o, Node n) throws Exception
+    {
+        HashMap<String,Method> map = getSetters(o.getClass());
+        Method method = map.get(key);
+        if (method == null)
+        {
+            String nameSetter = PREFIX_SETTER + upperHeadChar(key);
+            method = map.get(nameSetter);
+            if (method == null)
+            {
+                onError("No setter named \"" + nameSetter + "()\" in " + o.getClass(), n);
+                return;
+            }
+        }
+        method.invoke(o, value);
     }
 
     private Class<?> loadGenericClass(String rule) throws Exception
@@ -420,7 +480,15 @@ final public class InvarReadData
             for (Method method : meths)
             {
                 if (method.getName().startsWith(PREFIX_SETTER))
+                {
                     methods.put(method.getName(), method);
+                    InvarRule anno = method.getAnnotation(InvarRule.class);
+                    if (anno != null)
+                    {
+                        String shortName = anno.S();
+                        methods.put(shortName, method);
+                    }
+                }
             }
             mapClassSetters.put(ClsO, methods);
         }
@@ -437,7 +505,15 @@ final public class InvarReadData
             for (Method method : meths)
             {
                 if (method.getName().startsWith(PREFIX_GETTER))
+                {
                     methods.put(method.getName(), method);
+                    InvarRule anno = method.getAnnotation(InvarRule.class);
+                    if (anno != null)
+                    {
+                        String shortName = anno.S();
+                        methods.put(shortName, method);
+                    }
+                }
             }
             mapClassGetters.put(ClsO, methods);
         }

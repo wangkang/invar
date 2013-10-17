@@ -12,6 +12,7 @@ public class TypeStruct extends InvarType
     private HashMap<String,InvarField> fields;
     private String                     charset;
     private String                     alias;
+    private String                     shortField;
 
     public TypeStruct(String name, InvarPackage pack, String comment)
     {
@@ -49,6 +50,8 @@ public class TypeStruct extends InvarType
     public TypeStruct addField(InvarField f) throws Exception
     {
         checkKey(f.getKey());
+        if (shortField != null)
+            f.setShortName(shortField + fields.size());
         fields.put(f.getKey(), f);
         return this;
     }
@@ -96,5 +99,15 @@ public class TypeStruct extends InvarType
     public void setAlias(String alias)
     {
         this.alias = alias;
+    }
+
+    public String getShortField()
+    {
+        return shortField;
+    }
+
+    public void setShortField(String shortField)
+    {
+        this.shortField = shortField;
     }
 }

@@ -15,6 +15,7 @@
 		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="required" />
 		<xs:attribute name="alias" type="xs:string" use="optional" />
+		<xs:attribute name="short" type="xs:string" use="optional" />
 		<xs:attribute name="doc" type="xs:string" use="optional" />
 	</xs:complexType>
 

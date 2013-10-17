@@ -50,9 +50,7 @@ final public class InvarReadRule
         List<InvarReadRule> xmls = new ArrayList<InvarReadRule>();
         for (File f : files)
         {
-            Document doc = DocumentBuilderFactory.newInstance()
-                                                 .newDocumentBuilder()
-                                                 .parse(f);
+            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(f);
             if (!doc.hasChildNodes())
                 return;
             log("Read <- " + f.getAbsolutePath());
@@ -95,6 +93,7 @@ final public class InvarReadRule
     static private final String ATTR_STRUCT_NAME    = "name";
     static private final String ATTR_STRUCT_CHARSET = "charset";
     static private final String ATTR_STRUCT_ALIAS   = "alias";
+    static private final String ATTR_STRUCT_SHORT   = "short";
     static private final String ATTR_FIELD_NAME     = "name";
     static private final String ATTR_FIELD_TYPE     = "type";
     static private final String ATTR_FIELD_DEFT     = "value";
@@ -206,6 +205,7 @@ final public class InvarReadRule
             String name = getAttr(n, ATTR_STRUCT_NAME);
             String comment = getAttrOptional(n, ATTR_COMMENT);
             String alias = getAttrOptional(n, ATTR_STRUCT_ALIAS);
+            String shortFd = getAttrOptional(n, ATTR_STRUCT_SHORT);
             if (!alias.equals("") && context.aliasGet(alias) != null)
                 onError(n, "Repeated alias: " + alias);
             if (nameNode.equals(EXT_STRUCT.toLowerCase()))
@@ -217,6 +217,10 @@ final public class InvarReadRule
                 {
                     t.setAlias(alias);
                     context.aliasAdd(t);
+                }
+                if (!shortFd.equals(""))
+                {
+                    t.setShortField(shortFd);
                 }
                 t.setCharset(getAttrOptional(n, ATTR_STRUCT_CHARSET));
             }
