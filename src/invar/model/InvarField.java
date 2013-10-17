@@ -31,27 +31,27 @@ public class InvarField
         this.setDefault("");
     }
 
-    public InvarType getType()
+    public InvarType getType ()
     {
         return type;
     }
 
-    public LinkedList<InvarType> getGenerics()
+    public LinkedList<InvarType> getGenerics ()
     {
         return generics;
     }
 
-    public String getTypeFormatted()
+    public String getTypeFormatted ()
     {
         return typeFormatted;
     }
 
-    public String getKey()
+    public String getKey ()
     {
         return key;
     }
 
-    public String makeTypeFormatted(InvarContext ctx)
+    public String makeTypeFormatted (InvarContext ctx)
     {
         InvarType t = type.getRedirect();
         String tName = t.getName();
@@ -61,7 +61,7 @@ public class InvarField
         return typeFormatted;
     }
 
-    private String evalGenerics(InvarContext ctx, InvarType typeBasic)
+    private String evalGenerics (InvarContext ctx, InvarType typeBasic)
     {
         if (getGenerics().size() == 0)
             return "";
@@ -77,7 +77,7 @@ public class InvarField
         return s;
     }
 
-    public String evalGenerics(InvarContext ctx, String split)
+    public String evalGenerics (InvarContext ctx, String split)
     {
         InvarType typeBasic = type;
         String s = typeBasic.getGeneric();
@@ -88,7 +88,7 @@ public class InvarField
         return typeBasic.fullName(split) + s;
     }
 
-    public String evalGenericsFull(InvarContext ctx, String split)
+    public String evalGenericsFull (InvarContext ctx, String split)
     {
         InvarType typeBasic = type.getRedirect();
         if (getGenerics().size() == 0)
@@ -102,87 +102,87 @@ public class InvarField
         return typeBasic.fullName(split) + s;
     }
 
-    public void setEncode(Boolean encode)
+    public void setEncode (Boolean encode)
     {
         this.encode = encode;
     }
 
-    public void setDecode(Boolean decode)
+    public void setDecode (Boolean decode)
     {
         this.decode = decode;
     }
 
-    public void setDefault(String defaultValue)
+    public void setDefault (String defaultValue)
     {
         this.defaultVal = defaultValue;
     }
 
-    public Boolean getEncode()
+    public Boolean getEncode ()
     {
         return encode;
     }
 
-    public Boolean getDecode()
+    public Boolean getDecode ()
     {
         return decode;
     }
 
-    public String getDefault()
+    public String getDefault ()
     {
         return defaultVal;
     }
 
-    public String getComment()
+    public String getComment ()
     {
         return comment;
     }
 
-    public int getWidthKey()
+    public int getWidthKey ()
     {
         return Math.min(widthKey, 20);
     }
 
-    public int getWidthType()
+    public int getWidthType ()
     {
         return Math.min(widthType, widthTypeMax);
     }
 
-    public int getWidthDefault()
+    public int getWidthDefault ()
     {
         return Math.min(widthDefault, 30);
     }
 
-    public void setWidthType(int widthType)
+    public void setWidthType (int widthType)
     {
         this.widthType = widthType;
     }
 
-    public void setWidthKey(int widthKey)
+    public void setWidthKey (int widthKey)
     {
         this.widthKey = widthKey;
     }
 
-    public void setWidthDefault(int widthDefault)
+    public void setWidthDefault (int widthDefault)
     {
         this.widthDefault = widthDefault;
     }
 
-    public int getWidthTypeMax()
+    public int getWidthTypeMax ()
     {
         return widthTypeMax;
     }
 
-    public void setWidthTypeMax(int widthTypeMax)
+    public void setWidthTypeMax (int widthTypeMax)
     {
         this.widthTypeMax = widthTypeMax;
     }
 
-    public String getShortName()
+    public String getShortName ()
     {
         return shortName;
     }
 
-    public void setShortName(String shortName)
+    public void setShortName (String shortName)
     {
         this.shortName = shortName;
     }

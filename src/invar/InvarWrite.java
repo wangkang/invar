@@ -20,13 +20,13 @@ import java.util.Iterator;
 abstract public class InvarWrite
 {
 
-    abstract protected Boolean beforeWrite(InvarContext ctx);
+    abstract protected Boolean beforeWrite (InvarContext ctx);
 
-    abstract protected String codeEnum(TypeEnum type);
+    abstract protected String codeEnum (TypeEnum type);
 
-    abstract protected String codeStruct(TypeStruct type);
+    abstract protected String codeStruct (TypeStruct type);
 
-    abstract protected String codeRuntime(InvarType type);
+    abstract protected String codeRuntime (InvarType type);
 
     final private InvarContext                context;
     final private File                        dirRoot;
@@ -42,7 +42,7 @@ abstract public class InvarWrite
         this.exportFiles = new HashMap<InputStream,String>();
     }
 
-    final public void write(String suffix) throws Throwable
+    final public void write (String suffix) throws Throwable
     {
         if (getContext() == null)
             return;
@@ -57,17 +57,17 @@ abstract public class InvarWrite
         }
     }
 
-    final protected InvarContext getContext()
+    final protected InvarContext getContext ()
     {
         return context;
     }
 
-    final protected void log(Object txt)
+    final protected void log (Object txt)
     {
         System.out.println(txt);
     }
 
-    final protected void exportFile(String resPath, String fileDir, String fileName)
+    final protected void exportFile (String resPath, String fileDir, String fileName)
     {
         InputStream res = getClass().getResourceAsStream(resPath);
         if (res != null)
@@ -81,14 +81,14 @@ abstract public class InvarWrite
         }
     }
 
-    private void makeDirs(String path)
+    private void makeDirs (String path)
     {
         File dir = new File(dirRoot, path);
         if (!dir.exists())
             dir.mkdirs();
     }
 
-    private HashMap<File,String> makeFiles(String suffix)
+    private HashMap<File,String> makeFiles (String suffix)
     {
         HashMap<File,String> files = new HashMap<File,String>();
         Iterator<String> i = getContext().getPackNames();
@@ -106,7 +106,7 @@ abstract public class InvarWrite
         return files;
     }
 
-    private void makeFile(HashMap<File,String> fs, InvarPackage pack, String tName, String suffix)
+    private void makeFile (HashMap<File,String> fs, InvarPackage pack, String tName, String suffix)
     {
         File codeDir = pack.getCodeDir();
         if (codeDir == null)
@@ -145,7 +145,7 @@ abstract public class InvarWrite
         }
     }
 
-    private HashMap<File,String> makeRuntimeFile(String suffix)
+    private HashMap<File,String> makeRuntimeFile (String suffix)
     {
         HashMap<File,String> files = new HashMap<File,String>();
         InvarType type = getContext().ghostAdd("invar", "InvarRuntime", "");
@@ -155,14 +155,14 @@ abstract public class InvarWrite
         return files;
     }
 
-    protected HashMap<File,String> makeProtocFile(String string)
+    protected HashMap<File,String> makeProtocFile (String string)
     {
         //TODO make a protocol interface code
         HashMap<File,String> files = new HashMap<File,String>();
         return files;
     }
 
-    private void makePackageDirs() throws Exception
+    private void makePackageDirs () throws Exception
     {
         Iterator<String> i = getContext().getPackNames();
         while (i.hasNext())
@@ -182,7 +182,7 @@ abstract public class InvarWrite
         }
     }
 
-    private void deleteDirs(String dir)
+    private void deleteDirs (String dir)
     {
         File delfolder = new File(dir);
         File oldFile[] = delfolder.listFiles();
@@ -197,7 +197,7 @@ abstract public class InvarWrite
         delfolder.delete();
     }
 
-    private void writeFiles(HashMap<File,String> files) throws IOException
+    private void writeFiles (HashMap<File,String> files) throws IOException
     {
         parseExportFiles(files);
         Iterator<File> i = files.keySet().iterator();
@@ -212,7 +212,7 @@ abstract public class InvarWrite
         }
     }
 
-    private void parseExportFiles(HashMap<File,String> files) throws IOException
+    private void parseExportFiles (HashMap<File,String> files) throws IOException
     {
         Iterator<InputStream> i = exportFiles.keySet().iterator();
         while (i.hasNext())
@@ -226,7 +226,7 @@ abstract public class InvarWrite
         }
     }
 
-    final protected StringBuilder dumpTypeAll()
+    final protected StringBuilder dumpTypeAll ()
     {
         StringBuilder s = new StringBuilder();
         Iterator<String> i = getContext().getPackNames();
@@ -259,12 +259,12 @@ abstract public class InvarWrite
         return s;
     }
 
-    static protected String upperHeadChar(String s)
+    static protected String upperHeadChar (String s)
     {
         return s.substring(0, 1).toUpperCase() + s.substring(1, s.length());
     }
 
-    static protected String fixedLen(String blank, Integer len, String str)
+    static protected String fixedLen (String blank, Integer len, String str)
     {
         int delta = len - str.length();
         if (delta > 0)
@@ -273,17 +273,17 @@ abstract public class InvarWrite
         return str;
     }
 
-    static protected String fixedLen(Integer len, String str)
+    static protected String fixedLen (Integer len, String str)
     {
         return fixedLen(" ", len, str);
     }
 
-    static protected String fixedLen(String blank, Integer len)
+    static protected String fixedLen (String blank, Integer len)
     {
         return fixedLen(blank, len, "");
     }
 
-    static protected char[] getChars(byte[] bytes)
+    static protected char[] getChars (byte[] bytes)
     {
         Charset cs = Charset.forName("UTF-8");
         ByteBuffer bb = ByteBuffer.allocate(bytes.length);
@@ -293,7 +293,7 @@ abstract public class InvarWrite
         return cb.array();
     }
 
-    static protected byte[] getBytes(char[] chars)
+    static protected byte[] getBytes (char[] chars)
     {
         Charset cs = Charset.forName("UTF-8");
         CharBuffer cb = CharBuffer.allocate(chars.length);
@@ -303,7 +303,7 @@ abstract public class InvarWrite
         return bb.array();
     }
 
-    static protected void checkKeywords(String s, String[] ks) throws Exception
+    static protected void checkKeywords (String s, String[] ks) throws Exception
     {
         if (Arrays.binarySearch(ks, s) >= 0)
         {
@@ -314,7 +314,7 @@ abstract public class InvarWrite
     final static private String GENERIC_LEFT  = "<";
     final static private String GENERIC_RIGHT = ">";
 
-    final protected String ruleLeft(String rule)
+    final protected String ruleLeft (String rule)
     {
         String name = rule;
         if (rule.indexOf(GENERIC_LEFT) >= 0)
@@ -324,7 +324,7 @@ abstract public class InvarWrite
         return name;
     }
 
-    final protected String ruleRight(String rule)
+    final protected String ruleRight (String rule)
     {
         int iBegin = rule.indexOf(GENERIC_LEFT) + 1;
         int iEnd = rule.lastIndexOf(GENERIC_RIGHT);

@@ -39,7 +39,7 @@ public class InvarWriteXSD
         typeBasic = new TreeMap<String,TypeID>();
     }
 
-    public void write(InvarContext c, TreeMap<TypeID,String> basics, String dirRootPath) throws IOException
+    public void write (InvarContext c, TreeMap<TypeID,String> basics, String dirRootPath) throws IOException
     {
         this.context = c;
         StringBuilder code = new StringBuilder();
@@ -104,12 +104,12 @@ public class InvarWriteXSD
         }
     }
 
-    private InvarContext getContext()
+    private InvarContext getContext ()
     {
         return context;
     }
 
-    private void codeStruct(TypeStruct type, StringBuilder code)
+    private void codeStruct (TypeStruct type, StringBuilder code)
     {
         code.append(br);
         code.append("<xs:complexType name=\"" + type.fullName(".") + "\">");
@@ -136,8 +136,12 @@ public class InvarWriteXSD
         code.append("</xs:complexType>");
     }
 
-    private StringBuilder codeByRule(String key, String rule, String indent,//
-                                     Integer minOccurs, Integer maxOccurs, StringBuilder ext)
+    private StringBuilder codeByRule (String key,
+                                      String rule,
+                                      String indent,
+                                      Integer minOccurs,
+                                      Integer maxOccurs,
+                                      StringBuilder ext)
     {
         StringBuilder code = new StringBuilder();
         String strL = ruleLeft(rule);
@@ -248,7 +252,7 @@ public class InvarWriteXSD
         return code;
     }
 
-    private InvarType findType(InvarContext ctx, String fullName)
+    private InvarType findType (InvarContext ctx, String fullName)
     {
         int iEnd = fullName.lastIndexOf(TYPE_SPLIT);
         if (iEnd < 0)
@@ -261,7 +265,7 @@ public class InvarWriteXSD
         return pack.getType(typeName);
     }
 
-    private void codeStructAttr(InvarField f, StringBuilder code)
+    private void codeStructAttr (InvarField f, StringBuilder code)
     {
         TypeID id = f.getType().getId();
         String tXSD = typeXsd.get(id);
@@ -287,7 +291,7 @@ public class InvarWriteXSD
         }
     }
 
-    private void codeBasics(TreeMap<TypeID,String> basics, StringBuilder code)
+    private void codeBasics (TreeMap<TypeID,String> basics, StringBuilder code)
     {
         Iterator<TypeID> i = typeXsd.keySet().iterator();
         while (i.hasNext())
@@ -305,7 +309,7 @@ public class InvarWriteXSD
         }
     }
 
-    private void codeEnum(TypeEnum type, StringBuilder code)
+    private void codeEnum (TypeEnum type, StringBuilder code)
     {
         String simpleName = type.fullName(".") + "Attr";
         code.append(br);
@@ -350,7 +354,7 @@ public class InvarWriteXSD
     final static private String TYPE_SPLIT    = ".";
     final static private String ATTR_MAP_KEY  = "key";
 
-    static private String simplifyTypeName(String key)
+    static private String simplifyTypeName (String key)
     {
         int iBegin = key.lastIndexOf(TYPE_SPLIT) + 1;
         if (iBegin >= 0)
@@ -359,7 +363,7 @@ public class InvarWriteXSD
             return key;
     }
 
-    static private String ruleLeft(String rule)
+    static private String ruleLeft (String rule)
     {
         String name = rule;
         if (rule.indexOf(GENERIC_LEFT) >= 0)
@@ -369,7 +373,7 @@ public class InvarWriteXSD
         return name;
     }
 
-    static private String ruleRight(String rule)
+    static private String ruleRight (String rule)
     {
         int iBegin = rule.indexOf(GENERIC_LEFT) + 1;
         int iEnd = rule.lastIndexOf(GENERIC_RIGHT);

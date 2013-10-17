@@ -19,17 +19,17 @@ public class InvarPackage
         this.typeMap = new HashMap<String,InvarType>();
     }
 
-    public void put(InvarType t)
+    public void put (InvarType t)
     {
         typeMap.put(t.getName(), t);
     }
 
-    public InvarType getType(String name)
+    public InvarType getType (String name)
     {
         return typeMap.get(name);
     }
 
-    public InvarType getType(TypeID id)
+    public InvarType getType (TypeID id)
     {
         InvarType type = null;
         Iterator<String> i = typeMap.keySet().iterator();
@@ -43,7 +43,7 @@ public class InvarPackage
         return type;
     }
 
-    public void clearGhostTypes()
+    public void clearGhostTypes ()
     {
         InvarType type = null;
         Iterator<String> i = typeMap.keySet().iterator();
@@ -56,33 +56,33 @@ public class InvarPackage
         }
     }
 
-    public Iterator<String> getTypeNames()
+    public Iterator<String> getTypeNames ()
     {
         return typeMap.keySet().iterator();
     }
 
-    public InvarPackage add(InvarType t)
+    public InvarPackage add (InvarType t)
     {
         typeMap.put(t.getName(), t);
         return this;
     }
 
-    public String getName()
+    public String getName ()
     {
         return name;
     }
 
-    public File getCodeDir()
+    public File getCodeDir ()
     {
         return codeDir;
     }
 
-    public void setCodeDir(File codeDir)
+    public void setCodeDir (File codeDir)
     {
         this.codeDir = codeDir;
     }
 
-    public Boolean getNeedWrite()
+    public Boolean getNeedWrite ()
     {
         return needWrite;
     }

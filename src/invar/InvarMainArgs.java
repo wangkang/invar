@@ -15,12 +15,12 @@ final public class InvarMainArgs
         defaultArgs = new HashMap<String,List<String>>();
     }
 
-    public Boolean has(String key)
+    public Boolean has (String key)
     {
         return userArgs.get(key) != null;
     }
 
-    public List<String> getAll(String key)
+    public List<String> getAll (String key)
     {
         List<String> list = userArgs.get(key);
         if (list == null || list.size() == 0)
@@ -28,13 +28,13 @@ final public class InvarMainArgs
         return list;
     }
 
-    public String get(String key)
+    public String get (String key)
     {
         List<String> list = getAll(key);
         return list == null ? null : list.get(0);
     }
 
-    public void addDefault(String key, String value)
+    public void addDefault (String key, String value)
     {
         List<String> list = defaultArgs.get(key);
         if (list == null)
@@ -45,7 +45,7 @@ final public class InvarMainArgs
         list.add(value);
     }
 
-    public void parseArguments(String[] args)
+    public void parseArguments (String[] args)
     {
         userArgs = new HashMap<String,List<String>>();
         List<String> listCurrent = null;

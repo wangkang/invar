@@ -16,7 +16,7 @@ public class TypeEnum extends InvarType
         optionComments = new LinkedHashMap<String,String>();
     }
 
-    public TypeEnum addOption(String key, Integer value, String comment) throws Exception
+    public TypeEnum addOption (String key, Integer value, String comment) throws Exception
     {
         if (options.containsKey(key))
         {
@@ -33,27 +33,27 @@ public class TypeEnum extends InvarType
         return this;
     }
 
-    public Set<String> getKeys()
+    public Set<String> getKeys ()
     {
         return options.keySet();
     }
 
-    public String getComment(String key)
+    public String getComment (String key)
     {
         return optionComments.get(key);
     }
 
-    public Integer getValue(String key)
+    public Integer getValue (String key)
     {
         return options.get(key);
     }
 
-    public String getAlias()
+    public String getAlias ()
     {
         return alias;
     }
 
-    public void setAlias(String alias)
+    public void setAlias (String alias)
     {
         this.alias = alias;
     }

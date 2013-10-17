@@ -29,7 +29,7 @@ final public class InvarContext
         packAll.put(packBuildIn.getName(), packBuildIn);
     }
 
-    public InvarPackage addBuildInTypes(TreeMap<TypeID,String> map)
+    public InvarPackage addBuildInTypes (TreeMap<TypeID,String> map)
     {
         InvarPackage pack = packBuildIn;
         Set<TypeID> keys = map.keySet();
@@ -49,7 +49,7 @@ final public class InvarContext
         return pack;
     }
 
-    public InvarContext typeRedefine(TypeID id, String namePack, String nameType, String generic)
+    public InvarContext typeRedefine (TypeID id, String namePack, String nameType, String generic)
     {
         if (TypeID.ENUM == id || TypeID.STRUCT == id || TypeID.PROTOCOL == id)
         {
@@ -69,7 +69,7 @@ final public class InvarContext
         return this;
     }
 
-    public InvarType ghostAdd(String namePack, String nameType, String generic)
+    public InvarType ghostAdd (String namePack, String nameType, String generic)
     {
         InvarPackage pack = packAll.get(namePack);
         if (pack == null)
@@ -82,7 +82,7 @@ final public class InvarContext
         return t;
     }
 
-    public void ghostClear()
+    public void ghostClear ()
     {
         Iterator<String> i = packAll.keySet().iterator();
         while (i.hasNext())
@@ -92,7 +92,7 @@ final public class InvarContext
         }
     }
 
-    public InvarPackage findOrCreatePack(String name)
+    public InvarPackage findOrCreatePack (String name)
     {
         InvarPackage info = packAll.get(name);
         if (info == null)
@@ -103,17 +103,17 @@ final public class InvarContext
         return info;
     }
 
-    public InvarPackage getPack(String name)
+    public InvarPackage getPack (String name)
     {
         return packAll.get(name);
     }
 
-    public Iterator<String> getPackNames()
+    public Iterator<String> getPackNames ()
     {
         return packAll.keySet().iterator();
     }
 
-    public List<InvarType> findTypes(String typeName)
+    public List<InvarType> findTypes (String typeName)
     {
         Iterator<String> i = packAll.keySet().iterator();
         InvarType type = null;
@@ -128,49 +128,49 @@ final public class InvarContext
         return types;
     }
 
-    public InvarType findBuildInType(String typeName)
+    public InvarType findBuildInType (String typeName)
     {
         return packBuildIn.getType(typeName.toLowerCase());
     }
 
-    public InvarType findBuildInType(TypeID id)
+    public InvarType findBuildInType (TypeID id)
     {
         return packBuildIn.getType(id);
     }
 
-    public boolean isBuildInPack(InvarPackage pack)
+    public boolean isBuildInPack (InvarPackage pack)
     {
         return pack == packBuildIn;
     }
 
-    public void aliasAdd(TypeEnum type)
+    public void aliasAdd (TypeEnum type)
     {
         typeWithAlias.put(type.getAlias(), type);
     }
 
-    public void aliasAdd(TypeStruct type)
+    public void aliasAdd (TypeStruct type)
     {
         typeWithAlias.put(type.getAlias(), type);
         if (type.getAlias().equals(structRootAlias))
             structRoot = type;
     }
 
-    public InvarType aliasGet(String alias)
+    public InvarType aliasGet (String alias)
     {
         return typeWithAlias.get(alias);
     }
 
-    public Iterator<String> aliasNames()
+    public Iterator<String> aliasNames ()
     {
         return typeWithAlias.keySet().iterator();
     }
 
-    public TypeStruct getStructRoot()
+    public TypeStruct getStructRoot ()
     {
         return structRoot;
     }
 
-    public String getStructRootAlias()
+    public String getStructRootAlias ()
     {
         return structRootAlias;
     }
