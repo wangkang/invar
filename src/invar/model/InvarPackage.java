@@ -24,6 +24,11 @@ public class InvarPackage
         typeMap.put(t.getName(), t);
     }
 
+    public int size ()
+    {
+        return typeMap.size();
+    }
+
     public InvarType getType (String name)
     {
         return typeMap.get(name);
@@ -52,7 +57,7 @@ public class InvarPackage
             String key = i.next();
             type = typeMap.get(key);
             if (type.getId() == TypeID.GHOST)
-                typeMap.remove(key);
+                i.remove();
         }
     }
 

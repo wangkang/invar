@@ -15,7 +15,7 @@ final public class Invar
     static final String ARG_RULE_PATH  = "-rule";
     static final String ARG_JAVA_PATH  = "-java";
     static final String ARG_FLASH_PATH = "-flash";
-    static final String ARG_UNITY_PATH = "-csharp";
+    static final String ARG_CSHARP_PATH = "-csharp";
     static final String ARG_XSD_PATH   = "-xsd";
 
     static public void main (String[] args)
@@ -25,7 +25,7 @@ final public class Invar
         a.addDefault(ARG_XSD_PATH, "data/");
         a.addDefault(ARG_JAVA_PATH, "code/java/");
         a.addDefault(ARG_FLASH_PATH, "code/flash/");
-        a.addDefault(ARG_UNITY_PATH, "code/csharp/");
+        a.addDefault(ARG_CSHARP_PATH, "code/csharp/");
         a.parseArguments(args);
 
         if (a.has(ARG_HELP))
@@ -37,29 +37,36 @@ final public class Invar
         TreeMap<TypeID,String> basics = InvarReadRule.makeTypeIdMap();
         try
         {
+            long startMS = new Date().getTime();
             log("Invar start: " + new Date().toString());
-
             InvarContext ctx = new InvarContext();
             ctx.addBuildInTypes(basics);
 
-            if (a.has(ARG_UNITY_PATH))
-            {
-                ctx.ghostAdd("UnityEngine", "MonoBehaviour", "");
-            }
-
+            log("");
             InvarReadRule.start(a.get(ARG_RULE_PATH), ".xml", ctx);
 
-            if (a.has(ARG_JAVA_PATH))
-                new InvarWriteJava(ctx, a.get(ARG_JAVA_PATH)).write(".java");
-            if (a.has(ARG_FLASH_PATH))
-                new InvarWriteAS3(ctx, a.get(ARG_FLASH_PATH)).write(".as");
-            if (a.has(ARG_XSD_PATH))
-                new InvarWriteXSD().write(ctx, basics, a.get(ARG_XSD_PATH));
-            if (a.has(ARG_UNITY_PATH))
+            if (a.has(ARG_CSHARP_PATH))
             {
-                new InvarWriteUnity(ctx, a.get(ARG_UNITY_PATH)).write(".cs");
+                log("");
+                new InvarWriteUnity(ctx, a.get(ARG_CSHARP_PATH)).write(".cs");
             }
-            log("Invar end: " + new Date().toString());
+            if (a.has(ARG_JAVA_PATH))
+            {
+                log("");
+                new InvarWriteJava(ctx, a.get(ARG_JAVA_PATH)).write(".java");
+            }
+            if (a.has(ARG_FLASH_PATH))
+            {
+                log("");
+                new InvarWriteAS3(ctx, a.get(ARG_FLASH_PATH)).write(".as");
+            }
+            if (a.has(ARG_XSD_PATH))
+            {
+                log("");
+                new InvarWriteXSD().write(ctx, basics, a.get(ARG_XSD_PATH));
+            }
+
+            log("\nInvar end: " + (new Date().getTime() - startMS) + "ms");
         }
         catch (Throwable e)
         {

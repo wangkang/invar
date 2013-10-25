@@ -140,6 +140,7 @@ xmlns:tns="invar.data" targetNamespace="invar.data">
   </xs:restriction></xs:simpleType>
 <xs:complexType name="test.abc.Info">
   <xs:sequence>
+    <xs:element name="key" minOccurs="0" maxOccurs="2048" type="tns:int32" />
     <xs:element name="number01" minOccurs="0" maxOccurs="2048" type="tns:int8" />
     <xs:element name="number02" minOccurs="0" maxOccurs="2048" type="tns:int16" />
     <xs:element name="number03" minOccurs="0" maxOccurs="2048" type="tns:int32" />
@@ -150,9 +151,8 @@ xmlns:tns="invar.data" targetNamespace="invar.data">
     <xs:element name="number08" minOccurs="0" maxOccurs="2048" type="tns:uint64" />
     <xs:element name="number09" minOccurs="0" maxOccurs="2048" type="tns:float" />
     <xs:element name="number10" minOccurs="0" maxOccurs="2048" type="tns:double" />
-    <xs:element name="bool" minOccurs="0" maxOccurs="2048" type="tns:bool" />
+    <xs:element name="isReal" minOccurs="0" maxOccurs="2048" type="tns:bool" />
     <xs:element name="s" minOccurs="0" maxOccurs="2048" type="tns:string" />
-    <xs:element name="key" minOccurs="0" maxOccurs="2048" type="tns:int32" />
     <xs:element name="gender" minOccurs="0" maxOccurs="2048" type="tns:test.abc.Gender" />
     <xs:element name="next" minOccurs="0" maxOccurs="2048" type="tns:test.abc.Info" />
     <xs:element name="infos" minOccurs="0" maxOccurs="2048" >
@@ -185,6 +185,7 @@ xmlns:tns="invar.data" targetNamespace="invar.data">
       </xs:sequence></xs:complexType>
     </xs:element>
   </xs:sequence>
+  <xs:attribute name="key" type="xs:int" />
   <xs:attribute name="number01" type="xs:byte" />
   <xs:attribute name="number02" type="xs:short" />
   <xs:attribute name="number03" type="xs:int" />
@@ -195,9 +196,8 @@ xmlns:tns="invar.data" targetNamespace="invar.data">
   <xs:attribute name="number08" type="xs:unsignedLong" />
   <xs:attribute name="number09" type="xs:float" />
   <xs:attribute name="number10" type="xs:double" />
-  <xs:attribute name="bool" type="xs:boolean" />
+  <xs:attribute name="isReal" type="xs:boolean" />
   <xs:attribute name="s" type="xs:string" />
-  <xs:attribute name="key" type="xs:int" />
   <xs:attribute name="gender" type="tns:test.abc.GenderAttr" />
 </xs:complexType>
 <xs:complexType name="test.abc.Conflict">

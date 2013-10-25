@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tns:package name="test.abc"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<tns:package name="test.abc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="invar.rule rule.xsd" xmlns:tns="invar.rule">
 
 	<enum name="Gender" doc="">
@@ -15,8 +14,7 @@
 		<field name="key" type="Gender" doc="" />
 	</struct>
 
-
-	<struct name="Info" short="f" doc="" super="UnityEngine::MonoBehaviour">
+	<struct name="Info" short="f" doc="">
 		<field name="key" type="Int32" doc="" />
 		<field name="number01" type="Int8" doc="" />
 		<field name="number02" type="Int16" doc="" />

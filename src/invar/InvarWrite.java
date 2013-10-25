@@ -233,18 +233,17 @@ abstract public class InvarWrite
         while (i.hasNext())
         {
             InvarPackage pack = getContext().getPack(i.next());
-            s.append(pack.getName());
-            s.append("\n");
             Iterator<String> iTypeName = pack.getTypeNames();
             while (iTypeName.hasNext())
             {
                 String typeName = iTypeName.next();
                 InvarType type = pack.getType(typeName);
-                s.append(fixedLen(" ", 21, pack.getName() + "." + typeName));
+                s.append(TypeID.GHOST == type.getId() ? " # " : "   ");
+                s.append(fixedLen(" ", 32, pack.getName() + "." + typeName));
                 if (type.getRedirect() != null)
                 {
                     InvarType typeR = type.getRedirect();
-                    s.append("--->  ");
+                    s.append(" --->  ");
                     String namePack = typeR.getPack().getName();
                     if (!namePack.equals(""))
                         s.append(namePack + ".");

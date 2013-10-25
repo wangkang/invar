@@ -33,7 +33,6 @@ public class InvarWriteUnity extends InvarWrite
     protected Boolean beforeWrite (final InvarContext c)
     {
         c.ghostClear();
-
         c.typeRedefine(TypeID.INT8, "System", "SByte", "");
         c.typeRedefine(TypeID.INT16, "System", "Int16", "");
         c.typeRedefine(TypeID.INT32, "System", "Int32", "");
@@ -48,10 +47,9 @@ public class InvarWriteUnity extends InvarWrite
         c.typeRedefine(TypeID.BOOL, "System", "Boolean", "");
         c.typeRedefine(TypeID.MAP, "System.Collections.Generic", "Dictionary", "<?,?>");
         c.typeRedefine(TypeID.LIST, "System.Collections.Generic", "List", "<?>");
-
+        //log(dumpTypeAll());
         //exportFile("InvarRule.java", "invar", "InvarRule.java");
         //exportFile("InvarReadData.java", "invar", "InvarReadData.java");
-
         return true;
     }
 

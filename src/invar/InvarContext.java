@@ -56,17 +56,10 @@ final public class InvarContext
         {
             return this;
         }
-        InvarPackage pack = packAll.get(namePack);
-        if (pack == null)
-        {
-            pack = new InvarPackage(namePack, false);
-            packAll.put(namePack, pack);
-        }
         InvarType type = packBuildIn.getType(id);
-        InvarType typeRedi = new InvarType(id, nameType, pack, "").setGeneric(generic);
-        type.setRedirect(typeRedi);
-        typeWithAlias.put(type.getName(), typeRedi);
-        pack.put(typeRedi);
+        InvarType typeGhost = ghostAdd(namePack, nameType, generic);
+        type.setRedirect(typeGhost);
+        typeWithAlias.put(type.getName(), typeGhost);
         return this;
     }
 
@@ -90,6 +83,8 @@ final public class InvarContext
         {
             InvarPackage pack = packAll.get(i.next());
             pack.clearGhostTypes();
+            if (pack.size() == 0)
+                i.remove();
         }
     }
 
