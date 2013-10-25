@@ -12,6 +12,7 @@ public class InvarField
     private String                      shortName;
     private String                      typeFormatted;
     private String                      defaultVal;
+    private String                      scope;
     private Boolean                     encode;
     private Boolean                     decode;
     private int                         widthTypeMax = 32;
@@ -26,6 +27,7 @@ public class InvarField
         this.generics = new LinkedList<InvarType>();
         this.key = key;
         this.comment = comment;
+        this.scope = "";
         this.setEncode(true);
         this.setDecode(true);
         this.setDefault("");
@@ -177,6 +179,16 @@ public class InvarField
         this.widthTypeMax = widthTypeMax;
     }
 
+    public String getScope ()
+    {
+        return scope;
+    }
+
+    public void setScope (String scope)
+    {
+        this.scope = scope;
+    }
+
     public String getShortName ()
     {
         return shortName;
@@ -185,6 +197,7 @@ public class InvarField
     public void setShortName (String shortName)
     {
         this.shortName = shortName;
+
     }
 
 }

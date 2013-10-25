@@ -27,6 +27,7 @@ final public class InvarContext
         packBuildIn = new InvarPackage("", false);
         packAll = new HashMap<String,InvarPackage>();
         packAll.put(packBuildIn.getName(), packBuildIn);
+
     }
 
     public InvarPackage addBuildInTypes (TreeMap<TypeID,String> map)

@@ -29,7 +29,7 @@ final public class InvarReadRule
     {
         InvarReadRule.suffix = suffix;
         File file = new File(path);
-        log("Path: " + file.getAbsolutePath());
+        log("Rule Path: " + file.getAbsolutePath());
         if (!file.exists())
             return;
         FilenameFilter filter = new FilenameFilter()
@@ -93,6 +93,7 @@ final public class InvarReadRule
     static private final String ATTR_STRUCT_NAME    = "name";
     static private final String ATTR_STRUCT_CHARSET = "charset";
     static private final String ATTR_STRUCT_ALIAS   = "alias";
+    static private final String ATTR_STRUCT_SUPER   = "super";
     static private final String ATTR_STRUCT_SHORT   = "short";
     static private final String ATTR_FIELD_NAME     = "name";
     static private final String ATTR_FIELD_TYPE     = "type";
@@ -201,11 +202,14 @@ final public class InvarReadRule
             Node n = nodes.item(i);
             if (Node.ELEMENT_NODE != n.getNodeType())
                 continue;
+
             String nameNode = n.getNodeName().toLowerCase();
             String name = getAttr(n, ATTR_STRUCT_NAME);
             String comment = getAttrOptional(n, ATTR_COMMENT);
             String alias = getAttrOptional(n, ATTR_STRUCT_ALIAS);
+            String superName = getAttrOptional(n, ATTR_STRUCT_SUPER);
             String shortFd = getAttrOptional(n, ATTR_STRUCT_SHORT);
+
             if (!alias.equals("") && context.aliasGet(alias) != null)
                 onError(n, "Repeated alias: " + alias);
             if (nameNode.equals(EXT_STRUCT.toLowerCase()))
@@ -223,6 +227,10 @@ final public class InvarReadRule
                     t.setShortField(shortFd);
                 }
                 t.setCharset(getAttrOptional(n, ATTR_STRUCT_CHARSET));
+                if (!superName.equals(""))
+                {
+                    t.setSuperType(searchType(superName, n));
+                }
             }
             else if (nameNode.equals(EXT_ENUM.toLowerCase()))
             {
