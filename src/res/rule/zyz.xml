@@ -2,7 +2,7 @@
 <tns:package name="test.xyz" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="invar.rule rule.xsd"
 	xmlns:tns="invar.rule">
 
-	<struct name="ConfigRoot" alias="root" doc="">
+	<struct name="ConfigRoot" alias="root" short="f" doc="">
 		<field name="revision" type="String" doc="" />
 		<field name="info" type="Info" doc="" />
 		<field name="infox" type="InfoX" doc="" />

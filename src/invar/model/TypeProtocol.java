@@ -16,34 +16,34 @@ public class TypeProtocol extends InvarType
         noServer = true;
     }
 
-    public TypeStruct getClient()
+    public TypeStruct getClient ()
     {
         return client;
     }
 
-    public TypeStruct getServer()
+    public TypeStruct getServer ()
     {
         return server;
     }
 
-    public TypeProtocol setNoClient(Boolean bool)
+    public TypeProtocol setNoClient (Boolean bool)
     {
         noClient = bool;
         return this;
     }
 
-    public TypeProtocol setNoServer(Boolean bool)
+    public TypeProtocol setNoServer (Boolean bool)
     {
         noServer = bool;
         return this;
     }
 
-    public Boolean hasClient()
+    public Boolean hasClient ()
     {
         return !noClient;
     }
 
-    public Boolean hasServer()
+    public Boolean hasServer ()
     {
         return !noServer;
     }

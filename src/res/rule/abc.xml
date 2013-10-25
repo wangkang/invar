@@ -14,7 +14,7 @@
 		<field name="key" type="Gender" doc="" />
 	</struct>
 
-	<struct name="Info" doc="">
+	<struct name="Info" short="f" doc="">
 		<field name="number01" type="Int8" doc="" />
 		<field name="number02" type="Int16" doc="" />
 		<field name="number03" type="Int32" doc="" />

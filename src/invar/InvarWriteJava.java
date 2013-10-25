@@ -29,7 +29,7 @@ final public class InvarWriteJava extends InvarWrite
     final static private String brIndent4  = br + indent + indent + indent + indent;
 
     @Override
-    protected Boolean beforeWrite(final InvarContext c)
+    protected Boolean beforeWrite (final InvarContext c)
     {
         c.ghostClear();
         c.typeRedefine(TypeID.INT8, "java.lang", "Byte", "");
@@ -52,7 +52,7 @@ final public class InvarWriteJava extends InvarWrite
     }
 
     @Override
-    protected String codeStruct(TypeStruct type)
+    protected String codeStruct (TypeStruct type)
     {
         List<InvarField> fs = type.listFields();
         int widthType = 1;
@@ -91,7 +91,7 @@ final public class InvarWriteJava extends InvarWrite
             }
 
             imps.add("invar.InvarRule");
-            switch (f.getType().getId()){
+            switch (f.getType().getId()) {
             case MAP:
             case LIST:
                 genericFields.add(f);
@@ -121,7 +121,7 @@ final public class InvarWriteJava extends InvarWrite
         return codeClassFile(type, body, codeStructImports(imps));
     }
 
-    private void impsCheckAdd(TreeSet<String> imps, InvarType t)
+    private void impsCheckAdd (TreeSet<String> imps, InvarType t)
     {
         if (getContext().findTypes(t.getName()).size() > 1)
             return;
@@ -131,7 +131,7 @@ final public class InvarWriteJava extends InvarWrite
             imps.add("java.util.Iterator");
     }
 
-    private StringBuilder codeToXmlStruct(TypeStruct type)
+    private StringBuilder codeToXmlStruct (TypeStruct type)
     {
         StringBuilder code = new StringBuilder();
         code.append("StringBuilder code = new StringBuilder(); ");
@@ -140,7 +140,7 @@ final public class InvarWriteJava extends InvarWrite
         LinkedHashMap<String,String> attrs = new LinkedHashMap<String,String>();
         for (InvarField f : fs)
         {
-            switch (f.getType().getId()){
+            switch (f.getType().getId()) {
             case MAP:
             case LIST:
             case STRUCT:
@@ -153,7 +153,7 @@ final public class InvarWriteJava extends InvarWrite
                 String s = "this." + k;
                 if (TypeID.ENUM == t.getId())
                     s = s + ".value";
-                attrs.put(k, s);
+                attrs.put(shortNameField(f), s);
                 break;
             }
         }
@@ -163,7 +163,7 @@ final public class InvarWriteJava extends InvarWrite
             for (InvarField f : structFields)
             {
                 String rule = f.evalGenericsFull(getContext(), ".");
-                code.append(codeToXmlNode(0, rule, new StringBuilder(), f.getKey(), f.getKey(), "", ""));
+                code.append(codeToXmlNode(0, rule, new StringBuilder(), f.getKey(), shortNameField(f), "", ""));
             }
             code.append(brIndent2 + "code.append(\"</\" + nodeName + \">\");");
         }
@@ -171,7 +171,22 @@ final public class InvarWriteJava extends InvarWrite
         return codeMethod("public String toXmlString(String nodeName)", code.toString());
     }
 
-    private StringBuilder codeToXmlNode(int depth, String rule, StringBuilder code, String upRef, String strNode, String nodePrefix, String keyAttr)
+    private String shortNameField (InvarField f)
+    {
+        String k = f.getKey();
+        if (k.equals(mapKeyAttr))
+            return k;
+        String shortKey = f.getShortName() != null ? f.getShortName() : k;
+        return shortKey;
+    }
+
+    private StringBuilder codeToXmlNode (int depth,
+                                         String rule,
+                                         StringBuilder code,
+                                         String upRef,
+                                         String strNode,
+                                         String nodePrefix,
+                                         String keyAttr)
     {
         if (code == null)
             code = new StringBuilder();
@@ -216,7 +231,7 @@ final public class InvarWriteJava extends InvarWrite
             if (depth == 0)
             {
                 //nodeName = upRef;
-                code.append(ind + "if (" + strNode + " != null)");
+                code.append(ind + "if (" + upRef + " != null)");
                 code.append(ind);
             }
             if (keyAttr != "")
@@ -240,15 +255,15 @@ final public class InvarWriteJava extends InvarWrite
         else
         {
             String s = upRef;
-            InvarType rawType = getContext().findBuildInType(t.getId());
-            nodeName = rawType.getName();
+            //InvarType rawType = getContext().findBuildInType(t.getId());
+            //nodeName = rawType.getName();
             attrs.put("value", s);
             codeToXmlNodeStart(code, nodeName, attrs, false, depth);
         }
         return code;
     }
 
-    private void codeToXmlVector(String rule, StringBuilder code, int depth, String strO)
+    private void codeToXmlVector (String rule, StringBuilder code, int depth, String strO)
     {
         String ind = brIndent2;
         if (depth > 0)
@@ -262,7 +277,7 @@ final public class InvarWriteJava extends InvarWrite
         code.append(ind + "}");
     }
 
-    private void codeToXmlMap(String rule, StringBuilder code, int depth, String strO)
+    private void codeToXmlMap (String rule, StringBuilder code, int depth, String strO)
     {
         String ind = brIndent2;
         if (depth > 0)
@@ -291,7 +306,11 @@ final public class InvarWriteJava extends InvarWrite
         code.append(ind + "}");
     }
 
-    private StringBuilder codeToXmlNodeStart(StringBuilder code, String nodeName, HashMap<String,String> attrs, Boolean isOpen, int depth)
+    private StringBuilder codeToXmlNodeStart (StringBuilder code,
+                                              String nodeName,
+                                              HashMap<String,String> attrs,
+                                              Boolean isOpen,
+                                              int depth)
     {
         String ind = brIndent2;
         if (depth > 0)
@@ -315,19 +334,22 @@ final public class InvarWriteJava extends InvarWrite
         return code;
     }
 
-    private String codeToXmlNodeName(String rule)
+    private String codeToXmlNodeName (String rule)
     {
-        InvarType typeV = findType(getContext(), ruleLeft(rule));
-        String strNode = typeV.getName();
-        if (TypeID.MAP == typeV.getId() || TypeID.LIST == typeV.getId())
-        {
-            InvarType rawType = getContext().findBuildInType(typeV.getId());
-            strNode = rawType.getName();
-        }
-        return strNode;
+        //  return "x" for smaller size
+        return "x";
+        //
+        //        InvarType typeV = findType(getContext(), ruleLeft(rule));
+        //        String strNode = typeV.getName();
+        //        if (TypeID.MAP == typeV.getId() || TypeID.LIST == typeV.getId())
+        //        {
+        //            InvarType rawType = getContext().findBuildInType(typeV.getId());
+        //            strNode = rawType.getName();
+        //        }
+        //        return strNode;
     }
 
-    private InvarType findType(InvarContext ctx, String fullName)
+    private InvarType findType (InvarContext ctx, String fullName)
     {
         int iEnd = fullName.lastIndexOf(".");
         if (iEnd < 0)
@@ -340,7 +362,7 @@ final public class InvarWriteJava extends InvarWrite
         return pack.getType(typeName);
     }
 
-    private StringBuilder codeStructImports(TreeSet<String> keys)
+    private StringBuilder codeStructImports (TreeSet<String> keys)
     {
         StringBuilder code = new StringBuilder();
         code.append(br);
@@ -356,7 +378,7 @@ final public class InvarWriteJava extends InvarWrite
         return code;
     }
 
-    private StringBuilder codeStructField(InvarField f, TypeStruct s)
+    private StringBuilder codeStructField (InvarField f, TypeStruct s)
     {
         StringBuilder code = new StringBuilder();
         code.append(brIndent);
@@ -373,7 +395,7 @@ final public class InvarWriteJava extends InvarWrite
         return code;
     }
 
-    private String codeStructSetter(InvarField f, String nameType)
+    private String codeStructSetter (InvarField f, String nameType)
     {
         if (TypeID.LIST == f.getType().getId())
             return "";
@@ -386,6 +408,7 @@ final public class InvarWriteJava extends InvarWrite
             code.append("/** @param value " + f.getComment() + " */");
         }
         String key = upperHeadChar(f.getKey());
+        codeFieldAnno(code, f);
         code.append(brIndent);
         code.append("public " + nameType);
         code.append(" set" + key);
@@ -400,7 +423,7 @@ final public class InvarWriteJava extends InvarWrite
         return code.toString();
     }
 
-    private Object codeStructGetter(InvarField f)
+    private Object codeStructGetter (InvarField f)
     {
         StringBuilder code = new StringBuilder();
         if (!f.getComment().equals(""))
@@ -408,12 +431,7 @@ final public class InvarWriteJava extends InvarWrite
             code.append(brIndent);
             code.append("/** " + f.getComment() + " */");
         }
-        String meta = f.evalGenerics(getContext(), ".");
-        if (!meta.equals(""))
-        {
-            code.append(brIndent);
-            code.append("@InvarRule(T=\"" + meta + "\")");
-        }
+        codeFieldAnno(code, f);
         code.append(brIndent);
         code.append("public ");
         code.append(f.getTypeFormatted());
@@ -425,8 +443,19 @@ final public class InvarWriteJava extends InvarWrite
         return code;
     }
 
+    private void codeFieldAnno (StringBuilder code, InvarField f)
+    {
+        String meta = f.evalGenerics(getContext(), ".");
+        String shortName = f.getShortName() == null ? "" : f.getShortName();
+        if (!meta.equals(""))
+        {
+            code.append(brIndent);
+            code.append("@InvarRule(T=\"" + meta + "\", S=\"" + shortName + "\")");
+        }
+    }
+
     @Override
-    protected String codeEnum(TypeEnum type)
+    protected String codeEnum (TypeEnum type)
     {
         StringBuilder code = new StringBuilder();
         Iterator<String> i = type.getKeys().iterator();
@@ -481,7 +510,8 @@ final public class InvarWriteJava extends InvarWrite
         code.append(codeMethod("public " + type.getName() + "(Integer value)", "this.value = value;"));
         code.append(br);
         code.append(codeMethod("@Override" + brIndent + "public String toString()",//
-                               "return \"" + tName + "(\" + value + \")\";"));
+                               "return value.toString();"));
+        code.append(br);
         code.append(brIndent);
         code.append("public final Integer value;");
         code.append(brIndent);
@@ -490,10 +520,11 @@ final public class InvarWriteJava extends InvarWrite
         imports.append(br);
         imports.append(br);
         imports.append("import java.util.HashMap;");
+
         return codeClassFile(type, code, imports);
     }
 
-    private StringBuilder codeMethod(String head, String body)
+    private StringBuilder codeMethod (String head, String body)
     {
         StringBuilder code = new StringBuilder();
         code.append(brIndent);
@@ -508,7 +539,7 @@ final public class InvarWriteJava extends InvarWrite
     }
 
     @Override
-    protected String codeRuntime(InvarType typeWrapper)
+    protected String codeRuntime (InvarType typeWrapper)
     {
         StringBuilder meBasic = new StringBuilder();
         StringBuilder meEnums = new StringBuilder();
@@ -540,6 +571,7 @@ final public class InvarWriteJava extends InvarWrite
         StringBuilder meMain = new StringBuilder();
         StringBuilder meStart = new StringBuilder();
         StringBuilder meParse = new StringBuilder();
+        StringBuilder meParseFull = new StringBuilder();
         StringBuilder meInit = new StringBuilder();
 
         TypeStruct root = getContext().getStructRoot();
@@ -549,6 +581,7 @@ final public class InvarWriteJava extends InvarWrite
         String hStart3 = "static public void start(String dir, String suffix, Boolean verbose) throws Exception";
         String hStart4 = "static public void start(Object o, String dir, String suffix, Boolean verbose) throws Exception";
         String hParse = "static public void parse(Object o, String xml) throws Exception";
+        String hParseFull = "static public void parseFull(Object o, String xml) throws Exception";
         String hInit = "static private void init()";
 
         String hBasic = "static private HashMap<String,Class<?>> aliasBasic()";
@@ -577,12 +610,17 @@ final public class InvarWriteJava extends InvarWrite
             ? brIndent2 + "start(new " + root.getName() + "(), path, suffix, true);"
             : brIndent2 + "System.out.println(\"Please define a struct with alias '" + getContext().getStructRootAlias() + "'.\");");
 
+        //meMain.append(brIndent2 + "System.out.println(new Info().toXmlString(\"ss\"));");
+
         meStart.append("init();");
         meStart.append(brIndent2 + "InvarReadData.verbose = verbose;");
         meStart.append(brIndent2 + "InvarReadData.start(o, dir, suffix);");
 
         meParse.append("init();");
         meParse.append(brIndent2 + "InvarReadData.parse(o, xml);");
+
+        meParseFull.append("init();");
+        meParseFull.append(brIndent2 + "InvarReadData.parseFull(o, xml);");
 
         meInit.append("if (InvarReadData.aliasBasics != null)");
         meInit.append(brIndent3 + "return;");
@@ -605,6 +643,8 @@ final public class InvarWriteJava extends InvarWrite
         body.append(br);
         body.append(codeMethod(hParse, meParse.toString()));
         body.append(br);
+        body.append(codeMethod(hParseFull, meParseFull.toString()));
+        body.append(br);
         body.append(codeMethod(hInit, meInit.toString()));
         body.append(br);
         body.append(codeMethod(hBasic, meBasic.toString()));
@@ -618,7 +658,7 @@ final public class InvarWriteJava extends InvarWrite
         return codeClassFile(typeWrapper, body, codeStructImports(imps));
     }
 
-    private String codeClassFile(InvarType type, StringBuilder body, StringBuilder imports)
+    private String codeClassFile (InvarType type, StringBuilder body, StringBuilder imports)
     {
         StringBuilder code = new StringBuilder();
         code.append("// THIS FILE IS GENERATED BY INVAR. DO NOT EDIT !!!");
@@ -647,11 +687,11 @@ final public class InvarWriteJava extends InvarWrite
         return code.toString();
     }
 
-    private String evalFieldDefault(InvarField f)
+    private String evalFieldDefault (InvarField f)
     {
         String deft = "";
         String deftF = f.getDefault();
-        switch (f.getType().getId()){
+        switch (f.getType().getId()) {
         case STRING:
             deft = "\"" + deftF + "\"";
             break;

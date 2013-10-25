@@ -16,7 +16,7 @@ final public class Invar
     static final String ARG_FLASH_PATH = "-flash";
     static final String ARG_XSD_PATH   = "-xsd";
 
-    static public void main(String[] args)
+    static public void main (String[] args)
     {
         InvarMainArgs a = new InvarMainArgs();
         a.addDefault(ARG_RULE_PATH, "rule/");
@@ -53,7 +53,7 @@ final public class Invar
         }
     }
 
-    static void showHelp()
+    static void showHelp ()
     {
         StringBuilder s = new StringBuilder();
         s.append("\n");
@@ -73,7 +73,7 @@ final public class Invar
         log(s);
     }
 
-    static void log(Object txt)
+    static void log (Object txt)
     {
         System.out.println(txt);
     }
