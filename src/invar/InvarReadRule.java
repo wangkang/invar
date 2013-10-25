@@ -25,17 +25,17 @@ final public class InvarReadRule
 {
     static private String suffix;
 
-    static public void start(String path, String suffix, InvarContext ctx) throws Throwable
+    static public void start (String path, String suffix, InvarContext ctx) throws Throwable
     {
         InvarReadRule.suffix = suffix;
         File file = new File(path);
-        log("Path: " + file.getAbsolutePath());
+        log("Rule Path: " + file.getAbsolutePath());
         if (!file.exists())
             return;
         FilenameFilter filter = new FilenameFilter()
         {
             @Override
-            public boolean accept(File dir, String name)
+            public boolean accept (File dir, String name)
             {
                 File f = new File(dir, name);
                 if (f.isDirectory() && !f.getName().startsWith("."))
@@ -50,9 +50,7 @@ final public class InvarReadRule
         List<InvarReadRule> xmls = new ArrayList<InvarReadRule>();
         for (File f : files)
         {
-            Document doc = DocumentBuilderFactory.newInstance()
-                                                 .newDocumentBuilder()
-                                                 .parse(f);
+            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(f);
             if (!doc.hasChildNodes())
                 return;
             log("Read <- " + f.getAbsolutePath());
@@ -66,7 +64,7 @@ final public class InvarReadRule
         }
     }
 
-    static private void recursiveReadFile(List<File> all, File file, FilenameFilter filter)
+    static private void recursiveReadFile (List<File> all, File file, FilenameFilter filter)
     {
         if (all.size() > 1024)
             return;
@@ -83,7 +81,7 @@ final public class InvarReadRule
         }
     }
 
-    static private void log(Object txt)
+    static private void log (Object txt)
     {
         System.out.println(txt);
     }
@@ -95,6 +93,7 @@ final public class InvarReadRule
     static private final String ATTR_STRUCT_NAME    = "name";
     static private final String ATTR_STRUCT_CHARSET = "charset";
     static private final String ATTR_STRUCT_ALIAS   = "alias";
+    static private final String ATTR_STRUCT_SUPER   = "super";
     static private final String ATTR_FIELD_NAME     = "name";
     static private final String ATTR_FIELD_TYPE     = "type";
     static private final String ATTR_FIELD_DEFT     = "value";
@@ -123,7 +122,7 @@ final public class InvarReadRule
     static private final String EXT_STRUCT          = "Struct";
     static private final String EXT_PROTOCOL        = "Protoc";
 
-    static public TreeMap<TypeID,String> makeTypeIdMap()
+    static public TreeMap<TypeID,String> makeTypeIdMap ()
     {
         TreeMap<TypeID,String> map = new TreeMap<TypeID,String>();
         map.put(TypeID.INT8, BI_INT8);
@@ -143,7 +142,7 @@ final public class InvarReadRule
         return map;
     }
 
-    static public String makeTestXmlString(String prefix)
+    static public String makeTestXmlString (String prefix)
     {
         StringBuilder code = new StringBuilder();
         TreeMap<TypeID,String> map = makeTypeIdMap();
@@ -189,7 +188,7 @@ final public class InvarReadRule
         protocNodes = new LinkedHashMap<TypeProtocol,Node>();
     }
 
-    private void build(Document doc) throws Exception
+    private void build (Document doc) throws Exception
     {
         if (!doc.hasChildNodes())
             return;
@@ -202,10 +201,13 @@ final public class InvarReadRule
             Node n = nodes.item(i);
             if (Node.ELEMENT_NODE != n.getNodeType())
                 continue;
+
             String nameNode = n.getNodeName().toLowerCase();
             String name = getAttr(n, ATTR_STRUCT_NAME);
             String comment = getAttrOptional(n, ATTR_COMMENT);
             String alias = getAttrOptional(n, ATTR_STRUCT_ALIAS);
+            String superName = getAttrOptional(n, ATTR_STRUCT_SUPER);
+
             if (!alias.equals("") && context.aliasGet(alias) != null)
                 onError(n, "Repeated alias: " + alias);
             if (nameNode.equals(EXT_STRUCT.toLowerCase()))
@@ -219,6 +221,10 @@ final public class InvarReadRule
                     context.aliasAdd(t);
                 }
                 t.setCharset(getAttrOptional(n, ATTR_STRUCT_CHARSET));
+                if (!superName.equals(""))
+                {
+                    t.setSuperType(searchType(superName, n));
+                }
             }
             else if (nameNode.equals(EXT_ENUM.toLowerCase()))
             {
@@ -245,7 +251,7 @@ final public class InvarReadRule
         }
     }
 
-    private void parse() throws Exception
+    private void parse () throws Exception
     {
         if (pack == null)
             return;
@@ -272,7 +278,7 @@ final public class InvarReadRule
         }
     }
 
-    private void decEnum(Node node, TypeEnum type) throws Exception
+    private void decEnum (Node node, TypeEnum type) throws Exception
     {
         NodeList nodes = node.getChildNodes();
         for (int i = 0; i < nodes.getLength(); i++)
@@ -295,7 +301,7 @@ final public class InvarReadRule
         }
     }
 
-    private void decStruct(Node node, TypeStruct type) throws Exception
+    private void decStruct (Node node, TypeStruct type) throws Exception
     {
         NodeList nodes = node.getChildNodes();
         for (int i = 0; i < nodes.getLength(); i++)
@@ -307,7 +313,7 @@ final public class InvarReadRule
         }
     }
 
-    private void decProtocol(Node node, TypeProtocol type) throws Exception
+    private void decProtocol (Node node, TypeProtocol type) throws Exception
     {
         NodeList nodes = node.getChildNodes();
         Node nClient = null;
@@ -349,7 +355,7 @@ final public class InvarReadRule
         }
     }
 
-    private void decStructField(Node n, TypeStruct type) throws Exception
+    private void decStructField (Node n, TypeStruct type) throws Exception
     {
         String nodeName = getAttr(n, ATTR_FIELD_TYPE);
         String[] nameTypes = nodeName.split(SPLIT_GNERICS);
@@ -366,7 +372,7 @@ final public class InvarReadRule
         String key = getAttr(n, ATTR_FIELD_NAME);
         String comment = getAttrOptional(n, ATTR_COMMENT);
         InvarField field = null;
-        switch (typeBasic.getId()){
+        switch (typeBasic.getId()) {
         case ENUM:
             field = new InvarField(typeBasic, key, comment);
             break;
@@ -382,7 +388,7 @@ final public class InvarReadRule
         type.addField(field);
     }
 
-    private void parseGenerics(LinkedList<InvarType> generics, List<String> nameTypes, int i, Node n) throws Exception
+    private void parseGenerics (LinkedList<InvarType> generics, List<String> nameTypes, int i, Node n) throws Exception
     {
         int len = nameTypes.size();
         if (i >= len)
@@ -393,7 +399,7 @@ final public class InvarReadRule
         parseGenerics(generics, nameTypes, ++i, n);
     }
 
-    private void setFieldCommonAttrs(Node node, InvarField field)
+    private void setFieldCommonAttrs (Node node, InvarField field)
     {
         String str = "";
         str = getAttrOptional(node, ATTR_FIELD_DEFT);
@@ -407,7 +413,7 @@ final public class InvarReadRule
             field.setDecode(Boolean.parseBoolean(str));
     }
 
-    private String getAttrOptional(Node node, String name)
+    private String getAttrOptional (Node node, String name)
     {
         Node n = node.getAttributes().getNamedItem(name);
         String v = "";
@@ -416,7 +422,7 @@ final public class InvarReadRule
         return v;
     }
 
-    private String getAttr(Node node, String name) throws Exception
+    private String getAttr (Node node, String name) throws Exception
     {
         String v = getAttrOptional(node, name);
         if (v.equals(""))
@@ -426,7 +432,7 @@ final public class InvarReadRule
         return v;
     }
 
-    private List<String> fixNameTypes(final String[] nameTypes, Node n) throws Exception
+    private List<String> fixNameTypes (final String[] nameTypes, Node n) throws Exception
     {
         List<String> names = new LinkedList<String>();
         int len = nameTypes.length;
@@ -459,7 +465,7 @@ final public class InvarReadRule
         return names;
     }
 
-    private InvarType searchType(final String name, final Node n) throws Exception
+    private InvarType searchType (final String name, final Node n) throws Exception
     {
         String[] names = name.split(SPLIT_PACK_TYPE);
         String typeName = null;
@@ -513,7 +519,7 @@ final public class InvarReadRule
         return fieldType;
     }
 
-    private void addToPack(InvarType t, Node n) throws Exception
+    private void addToPack (InvarType t, Node n) throws Exception
     {
         if (pack.getType(t.getName()) != null)
         {
@@ -522,12 +528,12 @@ final public class InvarReadRule
         pack.add(t);
     }
 
-    private void onError(Node n, String hint) throws Exception
+    private void onError (Node n, String hint) throws Exception
     {
         throw new Exception(hint + "\n" + formatXmlNode(n) + "\n" + pathXml);
     }
 
-    private String formatXmlNode(Node n)
+    private String formatXmlNode (Node n)
     {
         NamedNodeMap attrs = n.getAttributes();
         StringBuilder code = new StringBuilder();

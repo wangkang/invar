@@ -25,48 +25,48 @@ public class InvarType
         this.generic = "";
     }
 
-    final public InvarType setGeneric(String template)
+    final public InvarType setGeneric (String template)
     {
         this.generic = template;
         return this;
     }
 
-    final public String fullName(String splitter)
+    final public String fullName (String splitter)
     {
         return (pack.getName() != "") ? pack.getName() + splitter + name : name;
     }
 
-    final public TypeID getId()
+    final public TypeID getId ()
     {
         return id;
     }
 
-    final public InvarPackage getPack()
+    final public InvarPackage getPack ()
     {
         return pack;
     }
 
-    final public String getName()
+    final public String getName ()
     {
         return name;
     }
 
-    final public String getComment()
+    final public String getComment ()
     {
         return comment;
     }
 
-    final public String getGeneric()
+    final public String getGeneric ()
     {
         return generic;
     }
 
-    public InvarType getRedirect()
+    public InvarType getRedirect ()
     {
         return redirect == null ? this : redirect;
     }
 
-    public void setRedirect(InvarType redirect)
+    public void setRedirect (InvarType redirect)
     {
         this.redirect = redirect;
     }

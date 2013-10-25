@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tns:package name="test.abc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="invar.rule rule.xsd"
-	xmlns:tns="invar.rule">
+<tns:package name="test.abc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="invar.rule rule.xsd" xmlns:tns="invar.rule">
 
 	<enum name="Gender" doc="">
 		<option name="MALE" value="1" doc="Enum male" />
@@ -14,7 +15,8 @@
 		<field name="key" type="Gender" doc="" />
 	</struct>
 
-	<struct name="Info" doc="">
+	<struct name="Info" super="UnityEngine::MonoBehaviour" doc="">
+		<field name="key" type="Int32" doc="" />
 		<field name="number01" type="Int8" doc="" />
 		<field name="number02" type="Int16" doc="" />
 		<field name="number03" type="Int32" doc="" />
@@ -25,9 +27,8 @@
 		<field name="number08" type="Uint64" doc="" />
 		<field name="number09" type="Float" doc="" />
 		<field name="number10" type="Double" doc="" />
-		<field name="bool" type="Bool" doc="" />
-		<field name="s" type="String" doc="" />
-		<field name="key" type="Int32" doc="" />
+		<field name="isReal" type="Bool" doc="" />
+		<field name="s" type="String" scope="public" doc="a string" />
 		<field name="gender" type="Gender" doc="" />
 		<field name="next" type="Info" doc="" />
 		<field name="infos" type="Vec-Info" doc="" />

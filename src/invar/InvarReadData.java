@@ -24,7 +24,7 @@ final public class InvarReadData
     static public HashMap<String,Class<?>> aliasStructs = null;
     static private String                  suffix;
 
-    static public void start(Object root, String path, String suffix) throws Exception
+    static public void start (Object root, String path, String suffix) throws Exception
     {
         InvarReadData.suffix = suffix;
         File file = new File(path);
@@ -39,7 +39,7 @@ final public class InvarReadData
         FilenameFilter filter = new FilenameFilter()
         {
             @Override
-            public boolean accept(File dir, String name)
+            public boolean accept (File dir, String name)
             {
                 File f = new File(dir, name);
                 if (f.isDirectory() && !f.getName().startsWith("."))
@@ -53,9 +53,7 @@ final public class InvarReadData
         recursiveReadFile(files, file, filter);
         for (File f : files)
         {
-            Document doc = DocumentBuilderFactory.newInstance()
-                                                 .newDocumentBuilder()
-                                                 .parse(f);
+            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(f);
             if (!doc.hasChildNodes())
                 return;
             log("Read <- " + f.getAbsolutePath());
@@ -64,7 +62,7 @@ final public class InvarReadData
         }
     }
 
-    static public void parse(Object o, String xml) throws Exception
+    static public void parse (Object o, String xml) throws Exception
     {
         if (null == xml || 0 == xml.length())
             return;
@@ -82,12 +80,12 @@ final public class InvarReadData
         this.path = path;
     }
 
-    public void parse(Object o, Node n) throws Exception
+    public void parse (Object o, Node n) throws Exception
     {
         parse(o, n, o.getClass().getName(), "");
     }
 
-    private void parsePart(Object host, Node n) throws Exception
+    private void parsePart (Object host, Node n) throws Exception
     {
         String key = n.getNodeName();
         String rule = getRule(host.getClass(), key, n);
@@ -97,8 +95,8 @@ final public class InvarReadData
 
     private String path;
 
-    @SuppressWarnings ("unchecked")
-    private void parse(Object o, Node n, String rule, String debug) throws Exception
+    @SuppressWarnings("unchecked")
+    private void parse (Object o, Node n, String rule, String debug) throws Exception
     {
         if (o == null)
             onError(debug + " is null.", n);
@@ -111,7 +109,7 @@ final public class InvarReadData
             parseStruct(o, n, rule, debug);
     }
 
-    private void parseStruct(Object o, Node n, String rule, String debug) throws Exception
+    private void parseStruct (Object o, Node n, String rule, String debug) throws Exception
     {
         Class<?> ClsO = loadGenericClass(rule);
         if (o.getClass().getName() != ClsO.getName())
@@ -165,7 +163,7 @@ final public class InvarReadData
         }
     }
 
-    private void parseVec(LinkedList<Object> list, Node n, String rule, String debug) throws Exception
+    private void parseVec (LinkedList<Object> list, Node n, String rule, String debug) throws Exception
     {
         String R = ruleRight(rule);
         if (R == null)
@@ -183,7 +181,7 @@ final public class InvarReadData
         }
     }
 
-    private void parseMap(HashMap<Object,Object> map, Node n, String rule, String debug) throws Exception
+    private void parseMap (HashMap<Object,Object> map, Node n, String rule, String debug) throws Exception
     {
         String R = ruleRight(rule);
         if (R == null)
@@ -221,7 +219,7 @@ final public class InvarReadData
         }
     }
 
-    private Object parseGenericChild(Node cn, Class<?> Cls, String rule, String debug) throws Exception
+    private Object parseGenericChild (Node cn, Class<?> Cls, String rule, String debug) throws Exception
     {
         if (isSimpleType(Cls))
             return parseSimple(Cls, getAttr(cn, ATTR_VALUE), rule, debug, cn);
@@ -233,7 +231,7 @@ final public class InvarReadData
         }
     }
 
-    private Object parseSimple(Class<?> vType, String s, String rule, String debug, Node x) throws Exception
+    private Object parseSimple (Class<?> vType, String s, String rule, String debug, Node x) throws Exception
     {
         if (rule.equals("int8"))
             checkNumber(s, -0x80L, 0x7FL, debug, x);
@@ -290,7 +288,7 @@ final public class InvarReadData
         return arg;
     }
 
-    private void checkNumber(String s, Long min, Long max, String debug, Node x) throws Exception
+    private void checkNumber (String s, Long min, Long max, String debug, Node x) throws Exception
     {
         Long v = Long.decode(s);
         if (v < min || v > max)
@@ -299,7 +297,7 @@ final public class InvarReadData
         }
     }
 
-    private static Object parseEnumObject(Class<?> type, String s) throws Exception
+    private static Object parseEnumObject (Class<?> type, String s) throws Exception
     {
         Integer v = Integer.parseInt(s);
         Object o = null;
@@ -314,7 +312,7 @@ final public class InvarReadData
         return o;
     }
 
-    private String getAttr(Node n, String name) throws Exception
+    private String getAttr (Node n, String name) throws Exception
     {
         String v = getAttrOptional(n, name);
         if (v.equals(""))
@@ -322,7 +320,7 @@ final public class InvarReadData
         return v;
     }
 
-    private String getRule(Class<?> ClsO, String key, Node n) throws Exception
+    private String getRule (Class<?> ClsO, String key, Node n) throws Exception
     {
         HashMap<String,Method> map = getGetters(ClsO);
         String nameGetter = PREFIX_GETTER + upperHeadChar(key);
@@ -338,7 +336,7 @@ final public class InvarReadData
         return rule;
     }
 
-    private void invokeSetter(Object value, String key, Object o, Node n) throws Exception
+    private void invokeSetter (Object value, String key, Object o, Node n) throws Exception
     {
         HashMap<String,Method> mapSetters = getSetters(o.getClass());
         String nameSetter = PREFIX_SETTER + upperHeadChar(key);
@@ -350,7 +348,7 @@ final public class InvarReadData
         setter.invoke(o, value);
     }
 
-    private Object invokeGetter(String key, Object o, Node x) throws Exception
+    private Object invokeGetter (String key, Object o, Node x) throws Exception
     {
         HashMap<String,Method> mapGetters = getGetters(o.getClass());
         String getterName = PREFIX_GETTER + upperHeadChar(key);
@@ -362,7 +360,7 @@ final public class InvarReadData
         return getter.invoke(o);
     }
 
-    private Class<?> loadGenericClass(String rule) throws Exception
+    private Class<?> loadGenericClass (String rule) throws Exception
     {
         String name = ruleLeft(rule);
         Class<?> Cls = getClassByAlias(name);
@@ -373,7 +371,7 @@ final public class InvarReadData
         return Cls;
     }
 
-    private void onError(String hint, Node n) throws Exception
+    private void onError (String hint, Node n) throws Exception
     {
         throw new Exception("\n" + hint + "\n" + formatXmlNode(n) + "\n" + path);
     }
@@ -386,7 +384,7 @@ final public class InvarReadData
     static private final String ATTR_MAP_KEY  = "key";
     static private final String ATTR_VALUE    = "value";
 
-    static private boolean isSimpleType(Class<?> vType)
+    static private boolean isSimpleType (Class<?> vType)
     {
         if (String.class == vType)
             return true;
@@ -410,7 +408,7 @@ final public class InvarReadData
             return false;
     }
 
-    static private HashMap<String,Method> getSetters(Class<?> ClsO)
+    static private HashMap<String,Method> getSetters (Class<?> ClsO)
     {
         HashMap<String,Method> methods = mapClassSetters.get(ClsO);
         if (methods == null)
@@ -427,7 +425,7 @@ final public class InvarReadData
         return methods;
     }
 
-    static private HashMap<String,Method> getGetters(Class<?> ClsO)
+    static private HashMap<String,Method> getGetters (Class<?> ClsO)
     {
         HashMap<String,Method> methods = mapClassGetters.get(ClsO);
         if (methods == null)
@@ -444,7 +442,7 @@ final public class InvarReadData
         return methods;
     }
 
-    static private String ruleLeft(String rule)
+    static private String ruleLeft (String rule)
     {
         String name = rule;
         if (rule.indexOf(GENERIC_LEFT) >= 0)
@@ -454,7 +452,7 @@ final public class InvarReadData
         return name;
     }
 
-    static private String ruleRight(String rule)
+    static private String ruleRight (String rule)
     {
         int iBegin = rule.indexOf(GENERIC_LEFT) + 1;
         int iEnd = rule.lastIndexOf(GENERIC_RIGHT);
@@ -465,7 +463,7 @@ final public class InvarReadData
         return null;
     }
 
-    static private Class<?> getClassByAlias(String name)
+    static private Class<?> getClassByAlias (String name)
     {
         Class<?> ClsN = aliasBasics.get(name);
         if (ClsN == null)
@@ -475,7 +473,7 @@ final public class InvarReadData
         return ClsN;
     }
 
-    static private String getAttrOptional(Node node, String name)
+    static private String getAttrOptional (Node node, String name)
     {
         String v = "";
         NamedNodeMap attrs = node.getAttributes();
@@ -487,7 +485,7 @@ final public class InvarReadData
         return v;
     }
 
-    static private List<Node> elementNodes(Node n)
+    static private List<Node> elementNodes (Node n)
     {
         List<Node> nodes = new ArrayList<Node>();
         NodeList children = n.getChildNodes();
@@ -502,7 +500,7 @@ final public class InvarReadData
         return nodes;
     }
 
-    static private String formatXmlNode(Node n)
+    static private String formatXmlNode (Node n)
     {
         NamedNodeMap attrs = n.getAttributes();
         StringBuilder code = new StringBuilder();
@@ -517,12 +515,12 @@ final public class InvarReadData
         return code.toString();
     }
 
-    static private String upperHeadChar(String s)
+    static private String upperHeadChar (String s)
     {
         return s.substring(0, 1).toUpperCase() + s.substring(1, s.length());
     }
 
-    static private String fixedLen(Integer len, String str)
+    static private String fixedLen (Integer len, String str)
     {
         String blank = " ";
         int delta = len - str.length();
@@ -532,12 +530,12 @@ final public class InvarReadData
         return str;
     }
 
-    static private void log(Object txt)
+    static private void log (Object txt)
     {
         System.out.println(txt);
     }
 
-    static private void recursiveReadFile(List<File> all, File file, FilenameFilter filter)
+    static private void recursiveReadFile (List<File> all, File file, FilenameFilter filter)
     {
         if (all.size() > 1024)
             return;

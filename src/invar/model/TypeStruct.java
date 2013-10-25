@@ -9,6 +9,7 @@ import java.util.Set;
 
 public class TypeStruct extends InvarType
 {
+    private InvarType                  superType;
     private HashMap<String,InvarField> fields;
     private String                     charset;
     private String                     alias;
@@ -21,7 +22,7 @@ public class TypeStruct extends InvarType
         setAlias("");
     }
 
-    public List<InvarField> listFields()
+    public List<InvarField> listFields ()
     {
         List<InvarField> list = new ArrayList<InvarField>();
         Iterator<String> i = fields.keySet().iterator();
@@ -33,7 +34,7 @@ public class TypeStruct extends InvarType
         return list;
     }
 
-    public int maxLenKeys()
+    public int maxLenKeys ()
     {
         int len = 1;
         Iterator<String> i = fields.keySet().iterator();
@@ -46,29 +47,29 @@ public class TypeStruct extends InvarType
         return len;
     }
 
-    public TypeStruct addField(InvarField f) throws Exception
+    public TypeStruct addField (InvarField f) throws Exception
     {
         checkKey(f.getKey());
         fields.put(f.getKey(), f);
         return this;
     }
 
-    public Set<String> getKeys()
+    public Set<String> getKeys ()
     {
         return fields.keySet();
     }
 
-    public InvarField getField(String key)
+    public InvarField getField (String key)
     {
         return fields.get(key);
     }
 
-    public TypeID getFieldType(String key)
+    public TypeID getFieldType (String key)
     {
         return fields.get(key).getType().getId();
     }
 
-    private void checkKey(String key) throws Exception
+    private void checkKey (String key) throws Exception
     {
         if (fields.containsKey(key))
         {
@@ -77,24 +78,35 @@ public class TypeStruct extends InvarType
         }
     }
 
-    public String getCharset()
+    public String getCharset ()
     {
         return charset;
     }
 
-    public TypeStruct setCharset(String charset)
+    public TypeStruct setCharset (String charset)
     {
         this.charset = charset;
         return this;
     }
 
-    public String getAlias()
+    public String getAlias ()
     {
         return alias;
     }
 
-    public void setAlias(String alias)
+    public void setAlias (String alias)
     {
         this.alias = alias;
     }
+
+    public InvarType getSuperType ()
+    {
+        return superType;
+    }
+
+    public void setSuperType (InvarType superType)
+    {
+        this.superType = superType;
+    }
+
 }
