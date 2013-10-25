@@ -9,9 +9,7 @@
 	<target name="javac">
 		<delete dir="${invar.dir.class}" />
 		<mkdir dir="${invar.dir.class}" />
-		<javac srcdir="${invar.dir.java}" destdir="${invar.dir.class}"
-			debug="true" optimize="true" debuglevel="lines,vars,source"
-			deprecation="true" failonerror="true" includeantruntime="on">
+		<javac srcdir="${invar.dir.java}" destdir="${invar.dir.class}" debug="true" optimize="true" debuglevel="lines,vars,source" deprecation="true" failonerror="true" includeantruntime="on">
 		</javac>
 	</target>
 

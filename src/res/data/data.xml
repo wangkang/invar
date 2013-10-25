@@ -1,10 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- abc -->
 <tns:root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="invar.data data.xsd"
 	xmlns:tns="invar.data">
 
 	<revision value="1.0.2" />
 	<revision value="1.0.3" />
 	<revision value="1.0.4" />
+
+
+<!-- 
+
+Info info = new Info();
+info.getMapDouble().put("a", 1.0);
+info.getMapDouble().put("b", 2.0);
+System.out.println(info.toXmlString("ss"));
+
+ -->
+
+	<f1 f0="88" f1="-1" f2="-1" f3="-1" f4="0" f5="0" f6="0" f7="0" f8="0.0" f9="0.0" f10="false" f11="" f12="-1" f13="1">
+		<f18>
+			<x key="0" value="0" />
+			<x key="0" value="0" />
+		</f18>
+	</f1>
 
 	<info gender="2">
 		<next number01="-128" number02="-32768">

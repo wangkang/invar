@@ -9,6 +9,7 @@ public class InvarField
     private final LinkedList<InvarType> generics;
     private final String                key;
     private final String                comment;
+    private String                      shortName;
     private String                      typeFormatted;
     private String                      defaultVal;
     private String                      scope;
@@ -186,6 +187,17 @@ public class InvarField
     public void setScope (String scope)
     {
         this.scope = scope;
+    }
+
+    public String getShortName ()
+    {
+        return shortName;
+    }
+
+    public void setShortName (String shortName)
+    {
+        this.shortName = shortName;
+
     }
 
 }

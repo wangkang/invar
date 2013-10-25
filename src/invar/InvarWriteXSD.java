@@ -136,7 +136,9 @@ public class InvarWriteXSD
         code.append("</xs:complexType>");
     }
 
-    private StringBuilder codeByRule (String key, String rule, String indent,//
+    private StringBuilder codeByRule (String key,
+                                      String rule,
+                                      String indent,
                                       Integer minOccurs,
                                       Integer maxOccurs,
                                       StringBuilder ext)

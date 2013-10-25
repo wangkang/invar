@@ -10,4 +10,6 @@ import java.lang.annotation.Target;
 public @interface InvarRule
 {
     String T();
+
+    String S();
 }
