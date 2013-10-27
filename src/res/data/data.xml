@@ -6,25 +6,25 @@
 	<revision value="1.0.2" />
 	<revision value="1.0.3" />
 	<revision value="1.0.4" />
+	
 
 
 <!-- 
-
 Info info = new Info();
 info.getMapDouble().put("a", 1.0);
 info.getMapDouble().put("b", 2.0);
 System.out.println(info.toXmlString("ss"));
-
- -->
-
-	<f1 f0="88" f1="-1" f2="-1" f3="-1" f4="0" f5="0" f6="0" f7="0" f8="0.0" f9="0.0" f10="false" f11="" f12="-1" f13="1">
-		<f18>
-			<x key="0" value="0" />
-			<x key="0" value="0" />
-		</f18>
-	</f1>
-
-	<info gender="2">
+-->
+<!--
+<f1 f0="88" f1="-1" f2="-1" f3="-1" f4="0" f5="0" f6="0" f7="0" f8="0.0" f9="0.0" f10="false" f11="" f12="-1" f13="1">
+<f18>
+	<x key="0" value="0" />
+	<x key="0" value="0" />
+</f18>
+</f1>
+-->
+	<info gender="2" isReal="true">
+		<number02 value="2" />
 		<next number01="-128" number02="-32768">
 			<number01 value="127" />
 			<number02 value="32767" />
@@ -37,7 +37,7 @@ System.out.println(info.toXmlString("ss"));
 			<number08 value="18223372036854775807" />
 			<number09 value="98.7654321" />
 			<number10 value="987654321.123456789" />
-			<bool value="true" />
+			<isReal value="true" />
 			<s value="China" />
 			<gender value="10" />
 			<infos>
@@ -92,8 +92,8 @@ System.out.println(info.toXmlString("ss"));
 		</mConflict>
 		<info2d>
 			<vec>
-				<Info bool="true" number07="4294967295" />
-				<Info bool="false" number07="02" />
+				<Info isReal="true" number07="4294967295" />
+				<Info isReal="false" number07="02" />
 			</vec>
 			<vec>
 				<Info s="AAAAA" />
@@ -133,12 +133,12 @@ System.out.println(info.toXmlString("ss"));
 		</info3d>
 		<infovm>
 			<map>
-				<Info key="666" bool="true" />
-				<Info key="888" bool="true" />
+				<Info key="666" isReal="true" />
+				<Info key="888" isReal="true" />
 			</map>
 			<map>
-				<Info key="777" bool="true" />
-				<Info key="999" bool="true" />
+				<Info key="777" isReal="true" />
+				<Info key="999" isReal="true" />
 			</map>
 		</infovm>
 		<mvei>
