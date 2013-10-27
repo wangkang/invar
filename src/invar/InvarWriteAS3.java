@@ -54,7 +54,6 @@ final public class InvarWriteAS3 extends InvarWrite
         int widthDefault = 1;
         for (InvarField f : fs)
         {
-            f.setWidthTypeMax(20);
             f.makeTypeFormatted(getContext());
             if (f.getTypeFormatted().length() > widthType)
                 widthType = f.getTypeFormatted().length();

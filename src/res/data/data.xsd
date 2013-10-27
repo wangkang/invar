@@ -155,6 +155,7 @@ xmlns:tns="invar.data" targetNamespace="invar.data">
     <xs:element name="s" minOccurs="0" maxOccurs="2048" type="tns:string" />
     <xs:element name="gender" minOccurs="0" maxOccurs="2048" type="tns:test.abc.Gender" />
     <xs:element name="next" minOccurs="0" maxOccurs="2048" type="tns:test.abc.Info" />
+    <xs:element name="conflict" minOccurs="0" maxOccurs="2048" type="tns:test.xyz.Conflict" />
     <xs:element name="infos" minOccurs="0" maxOccurs="2048" >
       <xs:complexType><xs:sequence>
       <xs:element name="Info" minOccurs="0" maxOccurs="2048" type="tns:test.abc.Info" />

@@ -10,24 +10,22 @@ public class InvarField
     private final String                key;
     private final String                comment;
     private String                      shortName;
-    private String                      typeFormatted;
     private String                      defaultVal;
-    private String                      scope;
     private Boolean                     encode;
     private Boolean                     decode;
-    private int                         widthTypeMax = 32;
-    private int                         widthType    = 1;
-    private int                         widthKey     = 1;
-    private int                         widthDefault = 1;
+
+    private String                      typeFormatted = "";
+    private String                      deftFormatted = "";
+    private int                         widthType     = 1;
+    private int                         widthKey      = 1;
+    private int                         widthDefault  = 1;
 
     public InvarField(InvarType type, String key, String comment)
     {
         this.type = type;
-        this.typeFormatted = "";
         this.generics = new LinkedList<InvarType>();
         this.key = key;
         this.comment = comment;
-        this.scope = "";
         this.setEncode(true);
         this.setDecode(true);
         this.setDefault("");
@@ -46,6 +44,11 @@ public class InvarField
     public String getTypeFormatted ()
     {
         return typeFormatted;
+    }
+
+    public String getDeftFormatted ()
+    {
+        return deftFormatted;
     }
 
     public String getKey ()
@@ -141,17 +144,17 @@ public class InvarField
 
     public int getWidthKey ()
     {
-        return Math.min(widthKey, 20);
+        return Math.min(widthKey, 24);
     }
 
     public int getWidthType ()
     {
-        return Math.min(widthType, widthTypeMax);
+        return Math.min(widthType, 48);
     }
 
     public int getWidthDefault ()
     {
-        return Math.min(widthDefault, 30);
+        return Math.min(widthDefault, 48);
     }
 
     public void setWidthType (int widthType)
@@ -169,35 +172,20 @@ public class InvarField
         this.widthDefault = widthDefault;
     }
 
-    public int getWidthTypeMax ()
-    {
-        return widthTypeMax;
-    }
-
-    public void setWidthTypeMax (int widthTypeMax)
-    {
-        this.widthTypeMax = widthTypeMax;
-    }
-
-    public String getScope ()
-    {
-        return scope;
-    }
-
-    public void setScope (String scope)
-    {
-        this.scope = scope;
-    }
-
     public String getShortName ()
     {
-        return shortName;
+        return shortName == null ? "" : shortName;
     }
 
     public void setShortName (String shortName)
     {
         this.shortName = shortName;
 
+    }
+
+    public void setDeftFormatted (String deftFormatted)
+    {
+        this.deftFormatted = deftFormatted;
     }
 
 }

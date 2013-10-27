@@ -11,10 +11,11 @@ public class InvarType
 
     private final TypeID       id;
     private final InvarPackage pack;
+    private InvarType          redirect;
     private final String       name;
     private final String       comment;
     private String             generic;
-    private InvarType          redirect;
+    private String             construct;
 
     public InvarType(TypeID id, String name, InvarPackage pack, String comment)
     {
@@ -69,5 +70,15 @@ public class InvarType
     public void setRedirect (InvarType redirect)
     {
         this.redirect = redirect;
+    }
+
+    public String getConstruct ()
+    {
+        return construct;
+    }
+
+    public void setConstruct (String construct)
+    {
+        this.construct = construct;
     }
 }

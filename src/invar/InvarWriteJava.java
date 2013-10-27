@@ -60,7 +60,6 @@ final public class InvarWriteJava extends InvarWrite
         int widthDefault = 1;
         for (InvarField f : fs)
         {
-            f.setWidthTypeMax(35);
             f.makeTypeFormatted(getContext());
             if (f.getTypeFormatted().length() > widthType)
                 widthType = f.getTypeFormatted().length();

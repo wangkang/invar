@@ -1,17 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	xmlns:tns="invar.rule" targetNamespace="invar.rule">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="invar.rule"
+	targetNamespace="invar.rule">
 
-	<xs:element name="package" type="tns:rule.package" />
+	<xs:element name="package" type="tns:rule.package">
+		<xs:annotation>
+			<xs:documentation>Define a package</xs:documentation>
+			<xs:appinfo>Application Information</xs:appinfo>
+		</xs:annotation>
+	</xs:element>
 
 	<xs:complexType name="rule.package">
-		<xs:sequence>
-			<xs:element name="enum" type="tns:rule.enum" minOccurs="0"
-				maxOccurs="unbounded" />
-			<xs:element name="struct" type="tns:rule.struct" minOccurs="0"
-				maxOccurs="unbounded" />
-			<xs:element name="protoc" type="tns:rule.protoc" minOccurs="0"
-				maxOccurs="unbounded" />
+		<xs:sequence minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="enum" type="tns:rule.enum" minOccurs="0" maxOccurs="unbounded" />
+			<xs:element name="struct" type="tns:rule.struct" minOccurs="0" maxOccurs="unbounded" />
+			<xs:element name="protoc" type="tns:rule.protoc" minOccurs="0" maxOccurs="unbounded" />
 		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="required" />
 		<xs:attribute name="alias" type="xs:string" use="optional" />
@@ -23,16 +25,14 @@
 			<xs:element name="client" minOccurs="0">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="field" type="tns:rule.struct.field"
-							minOccurs="0" maxOccurs="unbounded" />
+						<xs:element name="field" type="tns:rule.struct.field" minOccurs="0" maxOccurs="unbounded" />
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
 			<xs:element name="server" minOccurs="0">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="field" type="tns:rule.struct.field"
-							minOccurs="0" maxOccurs="unbounded" />
+						<xs:element name="field" type="tns:rule.struct.field" minOccurs="0" maxOccurs="unbounded" />
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
@@ -59,8 +59,7 @@
 
 	<xs:complexType name="rule.struct">
 		<xs:sequence>
-			<xs:element name="field" type="tns:rule.struct.field" minOccurs="0"
-				maxOccurs="unbounded" />
+			<xs:element name="field" type="tns:rule.struct.field" minOccurs="0" maxOccurs="unbounded" />
 		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="required" />
 		<xs:attribute name="doc" type="xs:string" use="required" />
@@ -147,14 +146,12 @@
 			</xs:simpleType>
 			<xs:simpleType>
 				<xs:restriction base="xs:string">
-					<xs:pattern
-						value="(Vec\-)+(Map)+((\-[A-Za-z]+[A-Za-z0-9_.:]*)|(\-(Vec\-)+[A-Za-z_]+[A-Za-z0-9_.:]*)){1,2}" />
+					<xs:pattern value="(Vec\-)+(Map)+((\-[A-Za-z]+[A-Za-z0-9_.:]*)|(\-(Vec\-)+[A-Za-z_]+[A-Za-z0-9_.:]*)){1,2}" />
 				</xs:restriction>
 			</xs:simpleType>
 			<xs:simpleType>
 				<xs:restriction base="xs:string">
-					<xs:pattern
-						value="(Map)+((\-[A-Za-z_]+[A-Za-z0-9_.:]*)|(\-(Vec\-)+[A-Za-z_]+[A-Za-z0-9_.:]*)){1,2}" />
+					<xs:pattern value="(Map)+((\-[A-Za-z_]+[A-Za-z0-9_.:]*)|(\-(Vec\-)+[A-Za-z_]+[A-Za-z0-9_.:]*)){1,2}" />
 				</xs:restriction>
 			</xs:simpleType>
 		</xs:union>

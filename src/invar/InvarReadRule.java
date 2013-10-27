@@ -25,10 +25,10 @@ final public class InvarReadRule
 {
     static private String suffix;
 
-    static public void start (String path, String suffix, InvarContext ctx) throws Throwable
+    static public void start (InvarContext ctx, String suffix) throws Throwable
     {
         InvarReadRule.suffix = suffix;
-        File file = new File(path);
+        File file = new File(ctx.getRuleDir());
         log("Rule Path: " + file.getAbsolutePath());
         if (!file.exists())
             return;
@@ -38,7 +38,11 @@ final public class InvarReadRule
             public boolean accept (File dir, String name)
             {
                 File f = new File(dir, name);
-                if (f.isDirectory() && !f.getName().startsWith("."))
+                if (f.getName().startsWith("."))
+                    return false;
+                if (f.getName().startsWith("_"))
+                    return false;
+                if (f.isDirectory())
                     return true;
                 if (name.endsWith(InvarReadRule.suffix))
                     return true;

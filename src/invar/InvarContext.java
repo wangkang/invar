@@ -20,6 +20,7 @@ final public class InvarContext
     private final HashMap<String,InvarType>    typeWithAlias;
     private String                             structRootAlias = "root";
     private TypeStruct                         structRoot;
+    private String                             ruleDir;
 
     public InvarContext() throws Exception
     {
@@ -52,6 +53,11 @@ final public class InvarContext
 
     public InvarContext typeRedefine (TypeID id, String namePack, String nameType, String generic)
     {
+        return typeRedefine(id, namePack, nameType, generic, "");
+    }
+
+    public InvarContext typeRedefine (TypeID id, String namePack, String nameType, String generic, String construct)
+    {
         if (TypeID.ENUM == id || TypeID.STRUCT == id || TypeID.PROTOCOL == id)
         {
             return this;
@@ -59,6 +65,7 @@ final public class InvarContext
         InvarType type = packBuildIn.getType(id);
         InvarType typeGhost = ghostAdd(namePack, nameType, generic);
         type.setRedirect(typeGhost);
+        type.setConstruct(construct);
         typeWithAlias.put(type.getName(), typeGhost);
         return this;
     }
@@ -169,6 +176,16 @@ final public class InvarContext
     public String getStructRootAlias ()
     {
         return structRootAlias;
+    }
+
+    public void setRuleDir (String path)
+    {
+        ruleDir = path;
+    }
+
+    public String getRuleDir ()
+    {
+        return ruleDir;
     }
 
 }

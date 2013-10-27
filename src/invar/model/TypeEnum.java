@@ -1,5 +1,6 @@
 package invar.model;
 
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
@@ -31,6 +32,17 @@ public class TypeEnum extends InvarType
         options.put(key, value);
         optionComments.put(key, comment);
         return this;
+    }
+
+    public String firstOptionKey ()
+    {
+        Iterator<String> i = options.keySet().iterator();
+        while (i.hasNext())
+        {
+            String key = i.next();
+            return key;
+        }
+        return "";
     }
 
     public Set<String> getKeys ()

@@ -226,7 +226,7 @@ abstract public class InvarWrite
         }
     }
 
-    final protected StringBuilder dumpTypeAll ()
+    final public StringBuilder dumpTypeAll ()
     {
         StringBuilder s = new StringBuilder();
         Iterator<String> i = getContext().getPackNames();
@@ -261,6 +261,15 @@ abstract public class InvarWrite
     static protected String upperHeadChar (String s)
     {
         return s.substring(0, 1).toUpperCase() + s.substring(1, s.length());
+    }
+
+    static protected String fixedLenBackward (String blank, Integer len, String str)
+    {
+        int delta = len - str.length();
+        if (delta > 0)
+            for (int i = 0; i < delta; i++)
+                str = blank + str;
+        return str;
     }
 
     static protected String fixedLen (String blank, Integer len, String str)
