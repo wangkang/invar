@@ -1,15 +1,11 @@
 import invar.InvarContext;
 import invar.InvarMainArgs;
 import invar.InvarReadRule;
-import invar.InvarWriteAS3;
 import invar.InvarWriteCode;
 import invar.InvarWriteXSD;
 import invar.model.InvarType.TypeID;
-import java.io.File;
 import java.util.Date;
 import java.util.TreeMap;
-import javax.xml.parsers.DocumentBuilderFactory;
-import org.w3c.dom.Document;
 
 final public class Invar
 {
@@ -51,13 +47,13 @@ final public class Invar
             if (a.has(ARG_CSHARP_PATH))
             {
                 log("");
-                new InvarWriteCode(ctx, getTemplateDoc(ARG_CSHARP_PATH, ctx), a.get(ARG_CSHARP_PATH)).write(".cs");
+                new InvarWriteCode(ctx, ARG_CSHARP_PATH, a.get(ARG_CSHARP_PATH)).write(".cs");
             }
             if (a.has(ARG_JAVA_PATH))
             {
                 log("");
-                //new InvarWriteJava(ctx, a.get(ARG_JAVA_PATH)).write(".java");
-                new InvarWriteCode(ctx, getTemplateDoc(ARG_JAVA_PATH, ctx), a.get(ARG_JAVA_PATH)).write(".java");
+                new InvarWriteJava(ctx, a.get(ARG_JAVA_PATH)).write(".java");
+                //new InvarWriteCode(ctx, getSnippetDoc(ARG_JAVA_PATH, ctx), a.get(ARG_JAVA_PATH)).write(".java");
             }
             if (a.has(ARG_FLASH_PATH))
             {
@@ -76,21 +72,6 @@ final public class Invar
         {
             e.printStackTrace();
         }
-    }
-
-    private static Document getTemplateDoc (String langName, InvarContext ctx) throws Exception
-    {
-        String templateFileName = "_" + langName + ".xml";
-        File file = new File(ctx.getRuleDir() + "/" + templateFileName);
-        if (file.exists())
-        {
-            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file);
-            if (!doc.hasChildNodes())
-                return null;
-            log("Read <- " + file.getAbsolutePath());
-            return doc;
-        }
-        return null;
     }
 
     static void showHelp ()

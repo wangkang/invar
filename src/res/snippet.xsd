@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:tns="invar.template" targetNamespace="invar.template">
+
+	<xs:element name="root" type="tns:root">
+		<xs:annotation>
+			<xs:documentation>...</xs:documentation>
+			<xs:appinfo>...</xs:appinfo>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:complexType name="root">
+		<xs:sequence minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="redefine" type="tns:redefine" minOccurs="0"
+				maxOccurs="unbounded"/>
+			<xs:element name="template" type="tns:template" minOccurs="0"
+				maxOccurs="unbounded"/>
+			<xs:element name="export" type="tns:export" minOccurs="0"
+				maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="language" type="xs:string" use="required"/>
+	</xs:complexType>
+
+	<xs:complexType name="redefine">
+		<xs:sequence>
+			<xs:element name="int8" type="tns:redefine.item"/>
+			<xs:element name="int16" type="tns:redefine.item"/>
+			<xs:element name="int32" type="tns:redefine.item"/>
+			<xs:element name="int64" type="tns:redefine.item"/>
+			<xs:element name="uint8" type="tns:redefine.item"/>
+			<xs:element name="uint16" type="tns:redefine.item"/>
+			<xs:element name="uint32" type="tns:redefine.item"/>
+			<xs:element name="uint64" type="tns:redefine.item"/>
+			<xs:element name="float" type="tns:redefine.item"/>
+			<xs:element name="double" type="tns:redefine.item"/>
+			<xs:element name="string" type="tns:redefine.item"/>
+			<xs:element name="bool" type="tns:redefine.item"/>
+			<xs:element name="vec" type="tns:redefine.item"/>
+			<xs:element name="map" type="tns:redefine.item"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="redefine.item">
+		<xs:attribute name="pack" type="xs:string" use="required"/>
+		<xs:attribute name="type" type="xs:string" use="required"/>
+		<xs:attribute name="initValue" type="xs:string" use="required"/>
+		<xs:attribute name="initSuffix" type="xs:string" use="optional"/>
+		<xs:attribute name="initPrefix" type="xs:string" use="optional"/>
+		<xs:attribute name="generic" type="xs:string" use="optional"/>
+	</xs:complexType>
+
+	<xs:complexType name="export">
+		<xs:attribute name="resPath" type="xs:string" use="required"/>
+		<xs:attribute name="destDir" type="xs:string" use="required"/>
+		<xs:attribute name="destName" type="xs:string" use="required"/>
+	</xs:complexType>
+
+	<xs:complexType name="template">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="key" type="xs:string" use="required"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+</schema>

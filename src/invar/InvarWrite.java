@@ -16,6 +16,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 
 abstract public class InvarWrite
 {
@@ -26,11 +27,11 @@ abstract public class InvarWrite
 
     abstract protected String codeStruct (TypeStruct type);
 
-    abstract protected String codeRuntime (InvarType type);
+    abstract protected void codeRuntime (String suffix);
 
-    final private InvarContext                context;
-    final private File                        dirRoot;
-    final private HashMap<InputStream,String> exportFiles;
+    final private InvarContext           context;
+    final private File                   dirRoot;
+    final private HashMap<String,String> exports;
 
     public InvarWrite(InvarContext context, String dirRootPath)
     {
@@ -39,7 +40,7 @@ abstract public class InvarWrite
             deleteDirs(dirRootPath);
         this.dirRoot = file;
         this.context = context;
-        this.exportFiles = new HashMap<InputStream,String>();
+        this.exports = new HashMap<String,String>();
     }
 
     final public void write (String suffix) throws Throwable
@@ -67,30 +68,44 @@ abstract public class InvarWrite
         System.out.println(txt);
     }
 
+    final protected void logErr (Object txt)
+    {
+        System.out.println("error ---------> " + txt);
+    }
+
+    final protected void addExportFile (String packName, String fileName, String content)
+    {
+        String path = makeDirs(packName);
+        exports.put(path + "/" + fileName, content);
+    }
+
     final protected void exportFile (String resPath, String fileDir, String fileName)
     {
         InputStream res = getClass().getResourceAsStream(resPath);
         if (res != null)
         {
-            makeDirs(fileDir);
-            exportFiles.put(res, fileDir + "/" + fileName);
+            byte[] bs;
+            try
+            {
+                bs = new byte[res.available()];
+                res.read(bs);
+                char[] chars = getChars(bs);
+                addExportFile(fileDir, fileName, String.copyValueOf(chars));
+            }
+            catch (IOException e)
+            {
+                logErr(e.getMessage());
+            }
         }
         else
         {
-            log("error ---------> Export resource does not exist: " + resPath);
+            logErr("Export resource does not exist: " + resPath);
         }
-    }
-
-    private void makeDirs (String path)
-    {
-        File dir = new File(dirRoot, path);
-        if (!dir.exists())
-            dir.mkdirs();
     }
 
     private HashMap<File,String> makeFiles (String suffix)
     {
-        HashMap<File,String> files = new HashMap<File,String>();
+        HashMap<File,String> files = new LinkedHashMap<File,String>();
         Iterator<String> i = getContext().getPackNames();
         while (i.hasNext())
         {
@@ -102,7 +117,7 @@ abstract public class InvarWrite
                 makeFile(files, pack, typeName, suffix);
             }
         }
-        files.putAll(makeRuntimeFile(suffix));
+        codeRuntime(suffix);
         return files;
     }
 
@@ -145,16 +160,6 @@ abstract public class InvarWrite
         }
     }
 
-    private HashMap<File,String> makeRuntimeFile (String suffix)
-    {
-        HashMap<File,String> files = new HashMap<File,String>();
-        InvarType type = getContext().ghostAdd("invar", "InvarRuntime", "");
-        makeDirs("invar");
-        File codeFile = new File(dirRoot, "invar/" + type.getName() + suffix);
-        files.put(codeFile, codeRuntime(type));
-        return files;
-    }
-
     protected HashMap<File,String> makeProtocFile (String string)
     {
         //TODO make a protocol interface code
@@ -170,16 +175,27 @@ abstract public class InvarWrite
             InvarPackage pack = getContext().getPack(i.next());
             if (!pack.getNeedWrite())
                 continue;
-            String path = pack.getName().replace('.', '/') + '/';
-            makeDirs(path);
-            File packDir = new File(dirRoot, path);
+            File packDir = new File(dirRoot, makeDirs(pack.getName()));
             if (!packDir.exists())
             {
                 throw new Exception("Dir do not exist: " + packDir.getAbsolutePath());
             }
             pack.setCodeDir(packDir);
-            log("mkdir -> " + packDir.getAbsolutePath());
         }
+    }
+
+    private String makeDirs (String packName)
+    {
+        String path = packName.replace('.', '/') + '/';
+        File dir = new File(dirRoot, path);
+        if (!dir.exists())
+        {
+            dir.mkdirs();
+            File packDir = new File(dirRoot, path);
+            log("mkdir -> " + packDir.getAbsolutePath());
+            return path;
+        }
+        return path;
     }
 
     private void deleteDirs (String dir)
@@ -214,15 +230,12 @@ abstract public class InvarWrite
 
     private void parseExportFiles (HashMap<File,String> files) throws IOException
     {
-        Iterator<InputStream> i = exportFiles.keySet().iterator();
+        Iterator<String> i = exports.keySet().iterator();
         while (i.hasNext())
         {
-            InputStream res = i.next();
-            File file = new File(dirRoot, exportFiles.get(res));
-            byte[] bs = new byte[res.available()];
-            res.read(bs);
-            char[] chars = getChars(bs);
-            files.put(file, String.copyValueOf(chars));
+            String path = i.next();
+            File file = new File(dirRoot, path);
+            files.put(file, exports.get(path));
         }
     }
 

@@ -53,24 +53,37 @@ final public class InvarContext
 
     public InvarContext typeRedefine (TypeID id, String namePack, String nameType, String generic)
     {
-        return typeRedefine(id, namePack, nameType, generic, "");
+        return typeRedefine(id, namePack, nameType, generic, "", "", "");
     }
 
-    public InvarContext typeRedefine (TypeID id, String namePack, String nameType, String generic, String construct)
+    public InvarContext typeRedefine (TypeID id,
+                                      String namePack,
+                                      String nameType,
+                                      String generic,
+                                      String initValue,
+                                      String initPrefix,
+                                      String initSuffix)
     {
         if (TypeID.ENUM == id || TypeID.STRUCT == id || TypeID.PROTOCOL == id)
         {
             return this;
         }
         InvarType type = packBuildIn.getType(id);
-        InvarType typeGhost = ghostAdd(namePack, nameType, generic);
+        InvarType typeGhost = ghostAdd(namePack, nameType, generic, id);
         type.setRedirect(typeGhost);
-        type.setConstruct(construct);
+        type.setInitValue(initValue);
+        type.setInitSuffix(initSuffix);
+        type.setInitPrefix(initPrefix);
         typeWithAlias.put(type.getName(), typeGhost);
         return this;
     }
 
     public InvarType ghostAdd (String namePack, String nameType, String generic)
+    {
+        return ghostAdd(namePack, nameType, generic, TypeID.STRUCT);
+    }
+
+    public InvarType ghostAdd (String namePack, String nameType, String generic, TypeID realId)
     {
         InvarPackage pack = packAll.get(namePack);
         if (pack == null)
@@ -78,7 +91,9 @@ final public class InvarContext
             pack = new InvarPackage(namePack, false);
             packAll.put(namePack, pack);
         }
-        InvarType t = new InvarType(TypeID.GHOST, nameType, pack, "").setGeneric(generic);
+        InvarType t = new InvarType(TypeID.GHOST, nameType, pack, "");
+        t.setGeneric(generic);
+        t.setRealId(realId);
         pack.put(t);
         return t;
     }

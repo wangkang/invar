@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- abc -->
+<tns:root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="invar.data data.xsd"
+	xmlns:tns="invar.data">
+
+	<revision value="1.0.2" />
+	<revision value="1.0.3" />
+	<revision value="1.0.4" />
+	
+
+
+<!-- 
+Info info = new Info();
+info.getMapDouble().put("a", 1.0);
+info.getMapDouble().put("b", 2.0);
+System.out.println(info.toXmlString("ss"));
+-->
+<!--
+<f1 f0="88" f1="-1" f2="-1" f3="-1" f4="0" f5="0" f6="0" f7="0" f8="0.0" f9="0.0" f10="false" f11="" f12="-1" f13="1">
+<f18>
+	<x key="0" value="0" />
+	<x key="0" value="0" />
+</f18>
+</f1>
+-->
+	<info gender="2" isReal="true">
+		<number02 value="2" />
+		<next number01="-128" number02="-32768">
+			<number01 value="127" />
+			<number02 value="32767" />
+			<number03 value="2147483647" />
+			<number04 value="-9223372036854775808" />
+			<number04 value="9223372036854775807" />
+			<number05 value="255" />
+			<number06 value="65535" />
+			<number07 value="4294967295" />
+			<number08 value="18223372036854775807" />
+			<number09 value="98.7654321" />
+			<number10 value="987654321.123456789" />
+			<isReal value="true" />
+			<s value="China" />
+			<gender value="10" />
+			<infos>
+				<Info s="A" number02="32767" />
+				<Info s="B" number08="28" />
+				<Info s="C" number08="38" />
+			</infos>
+			<mapInfoG>
+				<k-Info s="one" />
+				<v-Gender value="1" />
+				<k-Info s="two" />
+				<v-Gender value="2" />
+				<k-Info s="ten" />
+				<v-Gender value="10" />
+			</mapInfoG>
+			<mapInfoG>
+				<k-Info s="#one" />
+				<v-Gender value="1" />
+				<k-Info s="#two" />
+				<v-Gender value="2" />
+				<k-Info s="#ten" />
+				<v-Gender value="10" />
+			</mapInfoG>
+			<mapGenderInfo>
+				<Info key="1" />
+				<Info key="2" />
+			</mapGenderInfo>
+		</next>
+	</info>
+
+	<!-- complex data -->
+	<infox>
+		<conflict_x pi="3.1416" />
+		<conflict_a>
+			<bytes>
+				<int8 value="-128" />
+				<int8 value="127" />
+				<int8 value="100" />
+				<int8 value="101" />
+				<int8 value="108" />
+				<int8 value="120" />
+			</bytes>
+		</conflict_a>
+		<mConflict>
+			<Conflict key="1">
+				<bytes>
+					<int8 value="-128" />
+					<int8 value="127" />
+				</bytes>
+			</Conflict>
+			<Conflict key="2"></Conflict>
+		</mConflict>
+		<info2d>
+			<vec>
+				<Info isReal="true" number07="4294967295" />
+				<Info isReal="false" number07="02" />
+			</vec>
+			<vec>
+				<Info s="AAAAA" />
+				<Info s="BBBBB" />
+			</vec>
+		</info2d>
+		<info3d>
+			<vec>
+				<vec>
+					<Info s="000" />
+					<Info s="001" />
+					<Info s="002" />
+				</vec>
+				<vec>
+					<Info s="010" />
+					<Info s="011" />
+					<Info s="012" />
+				</vec>
+				<vec>
+					<Info s="020" />
+					<Info s="021" />
+					<Info s="022" />
+				</vec>
+			</vec>
+			<vec>
+				<vec>
+					<Info s="100" />
+					<Info s="101" />
+					<Info s="102" />
+				</vec>
+				<vec>
+					<Info s="110" />
+					<Info s="111" />
+					<Info s="112" />
+				</vec>
+			</vec>
+		</info3d>
+		<infovm>
+			<map>
+				<Info key="666" isReal="true" />
+				<Info key="888" isReal="true" />
+			</map>
+			<map>
+				<Info key="777" isReal="true" />
+				<Info key="999" isReal="true" />
+			</map>
+		</infovm>
+		<mvei>
+			<k-vec>
+				<Gender value="1" />
+				<Gender value="10" />
+			</k-vec>
+			<v-Info s="mvei001" number09=".64" />
+			<k-vec>
+				<Gender value="10" />
+				<Gender value="2" />
+			</k-vec>
+			<v-Info s="mvei002">
+				<number10 value=".2" />
+			</v-Info>
+		</mvei>
+
+		<mive>
+			<k-Info s="mive.0" />
+			<v-vec>
+				<Gender value="1" />
+				<Gender value="2" />
+			</v-vec>
+			<k-Info s="mive.1" />
+			<v-vec>
+				<Gender value="1" />
+				<Gender value="2" />
+			</v-vec>
+			<k-Info s="mive.2" />
+			<v-vec>
+				<Gender value="1" />
+				<Gender value="2" />
+			</v-vec>
+		</mive>
+		<mive>
+			<k-Info s="mive.100" />
+			<v-vec>
+				<Gender value="1" />
+				<Gender value="2" />
+			</v-vec>
+			<k-Info s="mive.101" />
+			<v-vec>
+				<Gender value="1" />
+				<Gender value="2" />
+			</v-vec>
+			<k-Info s="mive.102" />
+			<v-vec>
+				<Gender value="1" />
+				<Gender value="2" />
+			</v-vec>
+		</mive>
+
+		<mvive>
+			<k-vec>
+				<Info s="mvive" />
+				<Info s="mvive" />
+				<Info s="mvive" />
+			</k-vec>
+			<v-vec>
+				<Gender value="1" />
+				<Gender value="2" />
+			</v-vec>
+		</mvive>
+
+		<vmvive>
+			<map>
+				<k-vec>
+					<Info s="vmvive.a" />
+					<Info s="vmvive.a" />
+					<Info s="vmvive.a" />
+				</k-vec>
+				<v-vec>
+					<Gender value="1" />
+				</v-vec>
+				<k-vec>
+					<Info s="vmvive.a" />
+					<Info s="vmvive.a" />
+					<Info s="vmvive.a" />
+				</k-vec>
+				<v-vec>
+					<Gender value="1" />
+				</v-vec>
+			</map>
+			<map>
+				<k-vec>
+					<Info s="vmvive.b" />
+					<Info s="vmvive.b" />
+				</k-vec>
+				<v-vec>
+					<Gender value="2" />
+					<Gender value="10" />
+				</v-vec>
+				<k-vec>
+					<Info s="vmvive.b" />
+					<Info s="vmvive.b" />
+				</k-vec>
+				<v-vec>
+					<Gender value="2" />
+					<Gender value="10" />
+				</v-vec>
+			</map>
+		</vmvive>
+	</infox>
+
+</tns:root>

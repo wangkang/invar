@@ -11,11 +11,14 @@ public class InvarType
 
     private final TypeID       id;
     private final InvarPackage pack;
-    private InvarType          redirect;
     private final String       name;
     private final String       comment;
+    private TypeID             realId;
+    private InvarType          redirect;
     private String             generic;
-    private String             construct;
+    private String             initValue;
+    private String             initSuffix;
+    private String             initPrefix;
 
     public InvarType(TypeID id, String name, InvarPackage pack, String comment)
     {
@@ -24,12 +27,9 @@ public class InvarType
         this.comment = comment;
         this.pack = pack;
         this.generic = "";
-    }
-
-    final public InvarType setGeneric (String template)
-    {
-        this.generic = template;
-        return this;
+        this.initPrefix = "";
+        this.initSuffix = "";
+        this.initValue = "";
     }
 
     final public String fullName (String splitter)
@@ -67,18 +67,53 @@ public class InvarType
         return redirect == null ? this : redirect;
     }
 
+    final public void setGeneric (String template)
+    {
+        this.generic = template;
+    }
+
     public void setRedirect (InvarType redirect)
     {
         this.redirect = redirect;
     }
 
-    public String getConstruct ()
+    public String getInitValue ()
     {
-        return construct;
+        return initValue;
     }
 
-    public void setConstruct (String construct)
+    public void setInitValue (String construct)
     {
-        this.construct = construct;
+        this.initValue = construct;
+    }
+
+    public TypeID getRealId ()
+    {
+        return realId != null ? realId : id;
+    }
+
+    public void setRealId (TypeID realId)
+    {
+        this.realId = realId;
+    }
+
+    public String getInitSuffix ()
+    {
+        return initSuffix;
+    }
+
+    public void setInitSuffix (String initSuffix)
+    {
+        this.initSuffix = initSuffix;
+    }
+
+    public String getInitPrefix ()
+    {
+        return initPrefix;
+    }
+
+    public void setInitPrefix (String initPrefix)
+    {
+        this.initPrefix = initPrefix;
     }
 }

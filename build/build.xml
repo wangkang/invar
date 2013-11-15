@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<project name="invar.build" default="jar">
+<project name="build.invar.jar" default="jar">
 
 	<property name="invar.version" value="1" />
 	<property name="invar.dir.class" value="${basedir}/classes" />
@@ -29,11 +29,15 @@
 			</manifest>
 		</jar>
 		<jar jarfile="${invar.file.jar}" compress="true" basedir="${invar.dir.java}" update="true">
+			<include name="**/*.xsd" />
+			<include name="**/*.xml" />
+			<include name="**/*.txt" />
 			<include name="**/*.java" />
 			<include name="**/*.as" />
-			<include name="**/*.txt" />
-			<include name="**/*.xml" />
-			<include name="**/*.xsd" />
+			<include name="**/*.cs" />
+			<include name="**/*.js" />
+			<include name="**/*.c" />
+			<include name="**/*.cpp" />
 		</jar>
 	</target>
 

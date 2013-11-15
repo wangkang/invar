@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:package name="test.xyz" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="invar.rule rule.xsd"
+	xmlns:tns="invar.rule">
+
+	<struct name="ConfigRoot" alias="root" short="f" doc="">
+		<field name="revision" type="String" doc="" />
+		<field name="info" type="Info" doc="" />
+		<field name="infox" type="InfoX" doc="" />
+	</struct>
+
+	<struct name="Conflict" doc="">
+		<field name="pi" type="Double" value="3.1415926" doc="" />
+	</struct>
+
+	<struct name="InfoX" doc="Complex data structure">
+		<field name="conflict_x" type="test.xyz::Conflict" doc="Two types with the same name." />
+		<field name="conflict_a" type="test.abc::Conflict" doc="Two types with the same name." />
+		<field name="mConflict" type="Map-test.abc::Conflict" doc="" />
+		<field name="info2d" type="Vec-Vec-Info" doc="2 dimension list" />
+		<field name="info3d" type="Vec-Vec-Vec-Info" doc="3 dimension list" />
+		<field name="infovm" type="Vec-Map-Int16-Info" doc="" />
+		<field name="mvei" type="Map-Vec-Gender-Info" doc="" />
+		<field name="mive" type="Map-Info-Vec-Gender" doc="" />
+		<field name="mvive" type="Map-Vec-Info-Vec-Gender" doc="" />
+		<field name="vmvive" type="Vec-Map-Vec-Info-Vec-Gender" doc="" />
+	</struct>
+
+</tns:package>

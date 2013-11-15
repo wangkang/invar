@@ -6,24 +6,25 @@ import invar.model.InvarType;
 import invar.model.InvarType.TypeID;
 import invar.model.TypeEnum;
 import invar.model.TypeStruct;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class InvarWriteCode extends InvarWrite
 {
-
     @Override
     protected Boolean beforeWrite (InvarContext c)
     {
         buildSnippetMap(c);
-        log(dumpTypeAll());
         return true;
     }
 
@@ -32,8 +33,9 @@ public class InvarWriteCode extends InvarWrite
     {
         String block = makeEnumBlock(type);
         String s = snippetGet(Key.ENUM);
-        s = s.replaceAll(tokenName, type.getName());
-        s = s.replaceFirst(tokenBlock, block);
+        s = replace(s, tokenName, type.getName());
+        s = replace(s, tokenBlock, block);
+        s = replace(s, tokenDoc, makeDoc(type.getComment()));
         return makePack(type.getPack(), s);
     }
 
@@ -43,16 +45,24 @@ public class InvarWriteCode extends InvarWrite
         TreeSet<String> imps = new TreeSet<String>();
         String block = makeStructBlock(type, imps);
         String s = snippetGet(Key.STRUCT);
-        s = s.replaceAll(tokenName, type.getName());
-        s = s.replaceFirst(tokenBlock, block);
-        return makePack(type.getPack(), s, imps);
+        s = replace(s, tokenName, type.getName());
+        s = replace(s, tokenBlock, block);
+        s = replace(s, tokenDoc, makeDoc(type.getComment()));
+        return makePack(type.getPack().getName(), s, imps);
     }
 
     @Override
-    protected String codeRuntime (InvarType type)
+    protected void codeRuntime (String suffix)
     {
-        // TODO Auto-generated method stub
-        return null;
+        String fileDir = snippetGet(Key.RUNTIME_PACK);
+        String typeName = snippetGet(Key.RUNTIME_NAME);
+        TreeSet<String> imps = new TreeSet<String>();
+        String block = makeRuntimeBlock(imps);
+        String s = snippetGet(Key.STRUCT);
+        s = replace(s, tokenName, typeName);
+        s = replace(s, tokenBlock, block);
+        s = replace(s, tokenDoc, empty);
+        addExportFile(fileDir, typeName + suffix, makePack(fileDir, s, imps));
     }
 
     final static protected String empty          = "";
@@ -60,7 +70,6 @@ public class InvarWriteCode extends InvarWrite
     final static protected String br             = "\n";
     final static protected String indent         = whiteSpace + whiteSpace + whiteSpace + whiteSpace;
 
-    // RegExp Common Metacharacters: ^[.${*(\+)|?<> 
     final static protected String tokenPrefix    = "\\(#";
     final static protected String tokenSuffix    = "\\)";
     final static protected String tokenBr        = tokenPrefix + "brk" + tokenSuffix;
@@ -80,66 +89,38 @@ public class InvarWriteCode extends InvarWrite
 
     final protected class Key
     {
-        final static public String DOC           = "doc";
-        final static public String DOC_LINE      = "doc.line";
-        final static public String IMPORT        = "import";
-        final static public String INIT_STRUCT   = "init.struct";
-        final static public String INIT_ENUM     = "init.enum";
+        final static public String DOC                 = "doc";
+        final static public String DOC_LINE            = "doc.line";
+        final static public String IMPORT              = "import";
+        final static public String INIT_STRUCT         = "init.struct";
+        final static public String INIT_ENUM           = "init.enum";
 
-        final static public String PACK          = "pack";
-        final static public String ENUM          = "enum";
-        final static public String ENUM_FIELD    = "enum.field";
-        final static public String STRUCT        = "struct";
-        final static public String STRUCT_META   = "struct.meta";
-        final static public String STRUCT_FIELD  = "struct.field";
-        final static public String STRUCT_GETTER = "struct.getter";
-        final static public String STRUCT_SETTER = "struct.setter";
+        final static public String RUNTIME_PACK        = "runtime.pack";
+        final static public String RUNTIME_NAME        = "runtime.name";
+        final static public String RUNTIME_BODY        = "runtime.body";
+        final static public String RUNTIME_ALIAS       = "runtime.alias";
+        final static public String RUNTIME_ALIAS_BASIC = "runtime.alias.basic";
+        final static public String RUNTIME_ALIAS_VEC   = "runtime.alias.list";
+        final static public String RUNTIME_ALIAS_MAP   = "runtime.alias.map";
+
+        final static public String PACK                = "pack";
+        final static public String ENUM                = "enum";
+        final static public String ENUM_FIELD          = "enum.field";
+        final static public String STRUCT              = "struct";
+        final static public String STRUCT_META         = "struct.meta";
+        final static public String STRUCT_FIELD        = "struct.field";
+        final static public String STRUCT_GETTER       = "struct.getter";
+        final static public String STRUCT_SETTER       = "struct.setter";
     }
 
     final private Document               snippetDoc;
     final private HashMap<String,String> snippetMap;
 
-    public InvarWriteCode(InvarContext ctx, Document templateDoc, String dirRootPath)
+    public InvarWriteCode(InvarContext ctx, String langName, String dirRootPath) throws Exception
     {
         super(ctx, dirRootPath);
-        this.snippetDoc = templateDoc;
+        this.snippetDoc = getSnippetDoc(langName, ctx);
         this.snippetMap = new LinkedHashMap<String,String>();
-    }
-
-    protected void snippetAdd (String key, String s)
-    {
-        String[] lines = s.split("\n|\r\n");
-        StringBuilder code = new StringBuilder();
-        int len = lines.length;
-        for (int i = 0; i < len; i++)
-        {
-            String line = lines[i];
-            line = line.replaceAll("(^\\s*|\\s*$)", empty);
-            line = line.replaceAll("(\\s*)(" + tokenIndent //
-                    + "|" + tokenBlank//
-                    + "|" + tokenBlock//
-                    + ")(\\s*)", "$2");
-            if (!line.equals(empty))
-            {
-                line = line.replaceAll(tokenBr, br);
-                line = line.replaceAll(tokenIndent, indent);
-                line = line.replaceAll(tokenBlank, empty);
-                code.append(line + (i != len - 1 ? br : empty));
-            }
-        }
-        snippetMap.put(key, code.toString());
-        //System.out.println("================================================= " + key);
-        //System.out.println(snippetMap.get(key));
-    }
-
-    protected String snippetGet (String key)
-    {
-        if (!snippetMap.containsKey(key))
-        {
-            log("Can't find snippet by key: " + key);
-            return empty;
-        }
-        return snippetMap.get(key);
     }
 
     protected String makeDocLine (String comment)
@@ -147,7 +128,7 @@ public class InvarWriteCode extends InvarWrite
         if (comment == null || comment.equals(empty))
             return empty;
         String s = snippetGet(Key.DOC_LINE);
-        s = s.replaceAll(tokenDoc, comment);
+        s = replace(s, tokenDoc, comment);
         return s;
     }
 
@@ -156,23 +137,23 @@ public class InvarWriteCode extends InvarWrite
         if (comment == null || comment.equals(empty))
             return empty;
         String s = snippetGet(Key.DOC);
-        s = s.replaceAll(tokenDoc, comment);
+        s = replace(s, tokenDoc, comment);
         return s;
     }
 
     protected String makePack (InvarPackage pack, String blockCode)
     {
-        return makePack(pack, blockCode, null);
+        return makePack(pack.getName(), blockCode, null);
     }
 
-    protected String makePack (InvarPackage pack, String blockCode, TreeSet<String> imps)
+    protected String makePack (String packName, String blockCode, TreeSet<String> imps)
     {
         String s = snippetGet(Key.PACK);
-        s = s.replaceAll(tokenName, pack.getName());
-        s = s.replaceFirst(tokenBlock, blockCode);
+        s = replace(s, tokenName, packName);
+        s = replace(s, tokenBlock, blockCode);
         if (imps == null || imps.size() == 0)
         {
-            s = s.replaceFirst(tokenImport, empty);
+            s = replace(s, tokenImport, empty);
         }
         else
         {
@@ -183,7 +164,7 @@ public class InvarWriteCode extends InvarWrite
                     continue;
                 code.append(key);
             }
-            s = s.replaceFirst(tokenImport, br + code.toString());
+            s = replace(s, tokenImport, code.toString());
         }
         return s;
     }
@@ -210,10 +191,10 @@ public class InvarWriteCode extends InvarWrite
         {
             String key = i.next();
             String s = snippetGet(Key.ENUM_FIELD);
-            s = s.replaceAll(tokenDoc, makeDoc(fixedLen(lenDoc, type.getComment(key))));
-            s = s.replaceFirst(tokenName, fixedLen(lenKey, key));
-            s = s.replaceAll(tokenName, key);
-            s = s.replaceAll(tokenValue, fixedLenBackward(whiteSpace, lenVal, type.getValue(key).toString()));
+            s = replace(s, tokenName, fixedLen(lenKey, key));
+            s = replace(s, tokenName, key);
+            s = replace(s, tokenValue, fixedLenBackward(whiteSpace, lenVal, type.getValue(key).toString()));
+            s = replace(s, tokenDoc, makeDoc(type.getComment(key)));
             code.append(s);
         }
         return code.toString();
@@ -289,24 +270,24 @@ public class InvarWriteCode extends InvarWrite
         return body.toString();
     }
 
-    protected StringBuilder makeStructField (InvarField f, TypeStruct struct)
-    {
-        StringBuilder code = new StringBuilder();
-        String s = snippetGet(Key.STRUCT_FIELD);
-        s = s.replaceAll(tokenName, fixedLen(f.getWidthKey(), f.getKey()));
-        s = s.replaceAll(tokenType, fixedLen(f.getWidthType(), f.getTypeFormatted()));
-        s = s.replaceAll(tokenValue, fixedLen(f.getWidthDefault(), f.getDeftFormatted()));
-        s = s.replaceAll(tokenDoc, makeDocLine(f.getComment()));
-        code.append(s);
-        return code;
-    }
-
     private StringBuilder makeStructMeta (InvarField f)
     {
         StringBuilder code = new StringBuilder();
         String s = snippetGet(Key.STRUCT_META);
-        s = s.replaceAll(tokenType, f.evalGenerics(getContext(), "."));
-        s = s.replaceAll(tokenName, f.getShortName());
+        s = replace(s, tokenType, f.evalGenerics(getContext(), "."));
+        s = replace(s, tokenName, f.getShortName());
+        code.append(s);
+        return code;
+    }
+
+    protected StringBuilder makeStructField (InvarField f, TypeStruct struct)
+    {
+        StringBuilder code = new StringBuilder();
+        String s = snippetGet(Key.STRUCT_FIELD);
+        s = replace(s, tokenName, fixedLen(f.getWidthKey(), f.getKey()));
+        s = replace(s, tokenType, fixedLen(f.getWidthType(), f.getTypeFormatted()));
+        s = replace(s, tokenValue, fixedLen(f.getWidthDefault(), f.getDeftFormatted()));
+        s = replace(s, tokenDoc, makeDocLine(f.getComment()));
         code.append(s);
         return code;
     }
@@ -319,12 +300,12 @@ public class InvarWriteCode extends InvarWrite
         if (TypeID.MAP == f.getType().getId())
             return code;
         String s = snippetGet(Key.STRUCT_SETTER);
-        s = s.replaceAll(tokenTypeHost, struct.getName());
-        s = s.replaceAll(tokenDoc, makeDocLine(f.getComment()));
-        s = s.replaceAll(tokenMeta, makeStructMeta(f).toString());
-        s = s.replaceAll(tokenType, f.getTypeFormatted());
-        s = s.replaceAll(tokenName, f.getKey());
-        s = s.replaceAll(tokenNameUpper, upperHeadChar(f.getKey()));
+        s = replace(s, tokenTypeHost, struct.getName());
+        s = replace(s, tokenMeta, makeStructMeta(f).toString());
+        s = replace(s, tokenType, f.getTypeFormatted());
+        s = replace(s, tokenName, f.getKey());
+        s = replace(s, tokenNameUpper, upperHeadChar(f.getKey()));
+        s = replace(s, tokenDoc, makeDoc(f.getComment()));
         code.append(s);
         return code;
     }
@@ -333,11 +314,11 @@ public class InvarWriteCode extends InvarWrite
     {
         StringBuilder code = new StringBuilder();
         String s = snippetGet(Key.STRUCT_GETTER);
-        s = s.replaceAll(tokenDoc, makeDocLine(f.getComment()));
-        s = s.replaceAll(tokenMeta, makeStructMeta(f).toString());
-        s = s.replaceAll(tokenType, f.getTypeFormatted());
-        s = s.replaceAll(tokenName, f.getKey());
-        s = s.replaceAll(tokenNameUpper, upperHeadChar(f.getKey()));
+        s = replace(s, tokenMeta, makeStructMeta(f).toString());
+        s = replace(s, tokenType, f.getTypeFormatted());
+        s = replace(s, tokenName, f.getKey());
+        s = replace(s, tokenNameUpper, upperHeadChar(f.getKey()));
+        s = replace(s, tokenDoc, makeDoc(f.getComment()));
         code.append(s);
         return code;
     }
@@ -347,26 +328,84 @@ public class InvarWriteCode extends InvarWrite
         if (f.getType() == struct)
             return "null";
         String deft = f.getDefault();
-        if (deft != null && !deft.equals(empty))
-            return deft;
         InvarType type = f.getType();
-        if (type.getConstruct() != null && !type.getConstruct().equals(empty))
-            return type.getConstruct();
-        if (TypeID.ENUM == type.getId())
+        if (deft != null && !deft.equals(empty))
         {
-            TypeEnum tEnum = (TypeEnum)type;
-            String s = snippetGet(Key.INIT_ENUM);
-            s = s.replaceAll(tokenType, tEnum.getName());
-            s = s.replaceAll(tokenName, tEnum.firstOptionKey());
-            return s;
+            return type.getInitPrefix() + deft + type.getInitSuffix();
         }
-        else
-        {
+        String s = null;
+        switch (type.getRealId()) {
+        case STRUCT:
+        case LIST:
+        case MAP:
             String t = f.getTypeFormatted();
-            String s = snippetGet(Key.INIT_STRUCT);
-            s = s.replaceAll(tokenType, t);
+            s = snippetGet(Key.INIT_STRUCT);
+            s = replace(s, tokenType, t);
             return s;
+        case ENUM:
+            TypeEnum tEnum = (TypeEnum)type;
+            s = snippetGet(Key.INIT_ENUM);
+            s = replace(s, tokenType, tEnum.getName());
+            s = replace(s, tokenName, tEnum.firstOptionKey());
+            return s;
+        default:
+            return type.getInitPrefix() + type.getInitValue() + type.getInitSuffix();
         }
+
+    }
+
+    private String makeRuntimeBlock (TreeSet<String> imps)
+    {
+        String s = snippetGet(Key.RUNTIME_BODY);
+        String block = makeRuntimeAliasBlock(imps);
+        s = replace(s, tokenBlock, block);
+        return s;
+    }
+
+    private String makeRuntimeAliasBlock (TreeSet<String> imps)
+    {
+        StringBuilder meBasic = new StringBuilder();
+        StringBuilder meEnums = new StringBuilder();
+        StringBuilder meStruct = new StringBuilder();
+        Iterator<String> i = getContext().aliasNames();
+        while (i.hasNext())
+        {
+            String alias = i.next();
+            InvarType type = getContext().aliasGet(alias);
+            impsCheckAdd(imps, type);
+
+            String key = null;
+            if (TypeID.LIST == type.getRealId())
+                key = Key.RUNTIME_ALIAS_VEC;
+            else if (TypeID.MAP == type.getRealId())
+                key = Key.RUNTIME_ALIAS_MAP;
+            else
+                key = Key.RUNTIME_ALIAS_BASIC;
+
+            String s = snippetGet(key);
+            s = replace(s, tokenName, alias);
+            s = replace(s, tokenType, type.getName());
+
+            if (type instanceof TypeStruct)
+                meStruct.append(s);
+            else if (type instanceof TypeEnum)
+                meEnums.append(s);
+            else
+                meBasic.append(s);
+        }
+        StringBuilder body = new StringBuilder();
+        body.append(makeRuntimeAliasFunc("aliasBasic", meBasic.toString()));
+        body.append(makeRuntimeAliasFunc("aliasEnum", meEnums.toString()));
+        body.append(makeRuntimeAliasFunc("aliasStruct", meStruct.toString()));
+        return body.toString();
+    }
+
+    private String makeRuntimeAliasFunc (String name, String block)
+    {
+        String s = snippetGet(Key.RUNTIME_ALIAS);
+        s = replace(s, tokenName, name);
+        s = replace(s, tokenBlock, block);
+        return s;
     }
 
     protected void impsCheckAdd (TreeSet<String> imps, InvarType t)
@@ -374,10 +413,10 @@ public class InvarWriteCode extends InvarWrite
         if (getContext().findTypes(t.getName()).size() > 1)
             return;
         String s = snippetGet(Key.IMPORT);
-        s = s.replaceAll(tokenName, t.getName());
-        s = s.replaceAll(tokenPack, t.getPack().getName());
-        if (t.getName().endsWith(" "))
-            log("Gocha");
+        s = replace(s, tokenName, t.getName());
+        s = replace(s, tokenPack, t.getPack().getName());
+        //if (t.getName().endsWith(" "))
+        //log("Gocha");
         imps.add(s);
     }
 
@@ -401,6 +440,10 @@ public class InvarWriteCode extends InvarWrite
             else if (nameNode.equals("template"))
             {
                 buildTemplates(n);
+            }
+            else if (nameNode.equals("export"))
+            {
+                buildExport(n);
             }
             else
             {
@@ -437,11 +480,21 @@ public class InvarWriteCode extends InvarWrite
             String type = getAttrOptional(n, "type");
             String pack = getAttrOptional(n, "pack");
             String generic = getAttrOptional(n, "generic");
-            String construct = getAttrOptional(n, "construct");
+            String initValue = getAttrOptional(n, "initValue");
+            String initSuffix = getAttrOptional(n, "initSuffix");
+            String initPrefix = getAttrOptional(n, "initPrefix");
             type = type.trim();
             pack = pack.trim();
-            c.typeRedefine(id, pack, type, generic, construct);
+            c.typeRedefine(id, pack, type, generic, initValue, initPrefix, initSuffix);
         }
+    }
+
+    private void buildExport (Node n)
+    {
+        String resPath = getAttrOptional(n, "resPath");
+        String destDir = getAttrOptional(n, "destDir");
+        String destName = getAttrOptional(n, "destName");
+        exportFile(resPath, destDir, destName);
     }
 
     private String getAttrOptional (Node node, String name)
@@ -451,6 +504,66 @@ public class InvarWriteCode extends InvarWrite
         if (n != null)
             v = n.getNodeValue();
         return v;
+    }
+
+    private void snippetAdd (String key, String s)
+    {
+        String[] lines = s.split("\n|\r\n");
+        StringBuilder code = new StringBuilder();
+        int len = lines.length;
+        for (int i = 0; i < len; i++)
+        {
+            String line = lines[i];
+            line = line.replaceAll("(^\\s*|\\s*$)", empty);
+            line = line.replaceAll("(\\s*)(" + tokenIndent //
+                    + "|" + tokenBlank//
+                    + "|" + tokenBlock//
+                    + ")(\\s*)", "$2");
+            if (!line.equals(empty))
+            {
+                line = line.replaceAll(tokenBr, br);
+                line = line.replaceAll(tokenIndent, indent);
+                line = line.replaceAll(tokenBlank, empty);
+                code.append(line + (i != len - 1 ? br : empty));
+            }
+        }
+        snippetMap.put(key, code.toString());
+        //System.out.println("================================================= " + key);
+        //System.out.println(snippetMap.get(key));
+    }
+
+    private String snippetGet (String key)
+    {
+        if (!snippetMap.containsKey(key))
+        {
+            logErr("Can't find snippet by key: " + key);
+            return empty;
+        }
+        return snippetMap.get(key);
+    }
+
+    private Document getSnippetDoc (String langName, InvarContext ctx) throws Exception
+    {
+        String path = "/res/" + langName + "/snippet.xml";
+        InputStream res = getClass().getResourceAsStream(path);
+        if (res != null)
+        {
+            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(res);
+            if (!doc.hasChildNodes())
+                return null;
+            log("Read <- " + path);
+            return doc;
+        }
+        else
+        {
+            throw new Exception("File doesn't exist: " + path);
+        }
+    }
+
+    private String replace (String s, String token, String replacement)
+    {
+        // RegExp Common Metacharacters: ^[.${*(\+)|?<> 
+        return s.replaceAll(token, Matcher.quoteReplacement(replacement));
     }
 
 }
