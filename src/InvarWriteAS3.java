@@ -255,7 +255,7 @@ final public class InvarWriteAS3 extends InvarWrite
         InvarContext c = getContext();
         c.typeRedefine(TypeID.LIST, "__AS3__.vec", "Vector", "<?>");
         c.typeRedefine(TypeID.MAP, "flash.utils", "Dictionary", "<?,?>");
-        String s = f.evalGenerics(c, ".");
+        String s = f.createAliasRule(c, ".");
         c.typeRedefine(TypeID.MAP, "flash.utils", "Dictionary", "");
         c.typeRedefine(TypeID.LIST, "__AS3__.vec", "Vector", ".<?>");
         return s;

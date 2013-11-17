@@ -4,15 +4,30 @@ public class InvarType
 {
     static public enum TypeID
     {
-        STRUCT, ENUM, PROTOCOL, //
-        INT8, INT16, INT32, INT64, UINT8, UINT16, UINT32, UINT64, //
-        FLOAT, DOUBLE, BOOL, STRING, LIST, MAP, GHOST//
+        STRUCT("struct"), ENUM("enum"), PROTOCOL("protoc"), //
+        INT8("int8"), INT16("int16"), INT32("int32"), INT64("int64"), //
+        UINT8("uint8"), UINT16("uint16"), UINT32("uint32"), UINT64("uint64"), //
+        FLOAT("float"), DOUBLE("double"), BOOL("bool"), //
+        STRING("string"), LIST("vec"), MAP("map"), GHOST("");//
+
+        public String getName ()
+        {
+            return name;
+        }
+
+        private TypeID(String name)
+        {
+            this.name = name;
+        }
+
+        private String name;
     };
 
     private final TypeID       id;
     private final InvarPackage pack;
     private final String       name;
     private final String       comment;
+    private Boolean            isConflict;
     private TypeID             realId;
     private InvarType          redirect;
     private String             generic;
@@ -30,6 +45,12 @@ public class InvarType
         this.initPrefix = "";
         this.initSuffix = "";
         this.initValue = "";
+        this.isConflict = false;
+    }
+
+    final public String fullName ()
+    {
+        return (pack.getName() != "") ? pack.getName() + "." + name : name;
     }
 
     final public String fullName (String splitter)
@@ -115,5 +136,15 @@ public class InvarType
     public void setInitPrefix (String initPrefix)
     {
         this.initPrefix = initPrefix;
+    }
+
+    public Boolean getIsConflict ()
+    {
+        return isConflict;
+    }
+
+    public void setIsConflict (Boolean isConflict)
+    {
+        this.isConflict = isConflict;
     }
 }

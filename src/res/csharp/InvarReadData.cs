@@ -31,7 +31,7 @@ public class InvarReadData
             throw new IOException ("Directory doesn't exist: " + dir);
         List<String> files = new List<String> (20);
         RecursiveReadFile (files, new DirectoryInfo (dir));
-        InvarReadData dataParser = new InvarReadData ();
+        //InvarReadData dataParser = new InvarReadData ();
         foreach (String file in files) {
             ReadFromFilePath (o, file, Encoding.UTF8);
         }

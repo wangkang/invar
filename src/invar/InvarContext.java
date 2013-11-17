@@ -28,7 +28,6 @@ final public class InvarContext
         packBuildIn = new InvarPackage("", false);
         packAll = new HashMap<String,InvarPackage>();
         packAll.put(packBuildIn.getName(), packBuildIn);
-
     }
 
     public InvarPackage addBuildInTypes (TreeMap<TypeID,String> map)
@@ -148,6 +147,21 @@ final public class InvarContext
 
     public InvarType findBuildInType (String typeName)
     {
+        Iterator<String> i = packBuildIn.getTypeNames();
+        while (i.hasNext())
+        {
+            String name = i.next();
+            InvarType type = packBuildIn.getType(name);
+            if (name.equals(typeName))
+            {
+                return type;
+            }
+            InvarType typeRedi = type.getRedirect();
+            if (typeRedi != null && typeRedi.getName().equals(typeName))
+            {
+                return typeRedi;
+            }
+        }
         return packBuildIn.getType(typeName.toLowerCase());
     }
 

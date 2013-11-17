@@ -29,9 +29,10 @@ abstract public class InvarWrite
 
     abstract protected void codeRuntime (String suffix);
 
-    final private InvarContext           context;
-    final private File                   dirRoot;
-    final private HashMap<String,String> exports;
+    final private InvarContext              context;
+    final private File                      dirRoot;
+    final private HashMap<String,String>    exports;
+    final private HashMap<String,InvarType> typeForShort;
 
     public InvarWrite(InvarContext context, String dirRootPath)
     {
@@ -41,6 +42,7 @@ abstract public class InvarWrite
         this.dirRoot = file;
         this.context = context;
         this.exports = new HashMap<String,String>();
+        this.typeForShort = new HashMap<String,InvarType>();
     }
 
     final public void write (String suffix) throws Throwable
@@ -50,6 +52,7 @@ abstract public class InvarWrite
         if (dirRoot == null)
             return;
         Boolean bool = beforeWrite(getContext());
+        typeForShortReset(context);
         if (bool)
         {
             makePackageDirs();
@@ -354,5 +357,41 @@ abstract public class InvarWrite
             return rule.substring(iBegin, iEnd);
         }
         return null;
+    }
+
+    final protected InvarType findType (InvarContext ctx, String fullName)
+    {
+        int iEnd = fullName.lastIndexOf(".");
+        if (iEnd < 0)
+            return ctx.findBuildInType(fullName);
+        String packName = fullName.substring(0, iEnd);
+        String typeName = fullName.substring(iEnd + 1);
+        InvarPackage pack = ctx.getPack(packName);
+        if (pack == null)
+            return null;
+        return pack.getType(typeName);
+    }
+
+    private void typeForShortReset (InvarContext context)
+    {
+        typeForShort.clear();
+        Iterator<String> i = context.getPackNames();
+        while (i.hasNext())
+        {
+            InvarPackage pack = context.getPack(i.next());
+            Iterator<String> iTypeName = pack.getTypeNames();
+            while (iTypeName.hasNext())
+            {
+                String typeName = iTypeName.next();
+                InvarType type = pack.getType(typeName);
+                typeForShort.put(type.fullName(), type);
+                typeForShort.put(type.getName(), type);
+            }
+        }
+    }
+
+    final protected InvarType getTypeByShort (String key)
+    {
+        return typeForShort.get(key);
     }
 }

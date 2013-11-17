@@ -1,7 +1,6 @@
 import invar.InvarContext;
 import invar.InvarWrite;
 import invar.model.InvarField;
-import invar.model.InvarPackage;
 import invar.model.InvarType;
 import invar.model.InvarType.TypeID;
 import invar.model.TypeEnum;
@@ -111,7 +110,7 @@ final public class InvarWriteJava extends InvarWrite
         {
             StringBuilder code = new StringBuilder();
             code.append("StringBuilder code = new StringBuilder(); ");
-            String rule = f.evalGenericsFull(getContext(), ".");
+            String rule = f.createFullNameRule(getContext(), ".");
             code.append(codeToXmlNode(0, rule, new StringBuilder(), f.getKey(), f.getKey(), "", ""));
             code.append(brIndent2 + "return code;");
             String mName = "public StringBuilder toXml" + upperHeadChar(f.getKey()) + "()";
@@ -148,7 +147,7 @@ final public class InvarWriteJava extends InvarWrite
                 break;
             default:
                 String k = f.getKey();
-                String rule = f.evalGenericsFull(getContext(), ".");
+                String rule = f.createFullNameRule(getContext(), ".");
                 InvarType t = findType(getContext(), ruleLeft(rule));
                 String s = "this." + k;
                 if (TypeID.ENUM == t.getId())
@@ -162,7 +161,7 @@ final public class InvarWriteJava extends InvarWrite
         {
             for (InvarField f : structFields)
             {
-                String rule = f.evalGenericsFull(getContext(), ".");
+                String rule = f.createFullNameRule(getContext(), ".");
                 code.append(codeToXmlNode(0, rule, new StringBuilder(), f.getKey(), shortNameField(f), "", ""));
             }
             code.append(brIndent2 + "code.append(\"</\" + nodeName + \">\");");
@@ -349,19 +348,6 @@ final public class InvarWriteJava extends InvarWrite
         //        return strNode;
     }
 
-    private InvarType findType (InvarContext ctx, String fullName)
-    {
-        int iEnd = fullName.lastIndexOf(".");
-        if (iEnd < 0)
-            return ctx.findBuildInType(fullName);
-        String packName = fullName.substring(0, iEnd);
-        String typeName = fullName.substring(iEnd + 1);
-        InvarPackage pack = ctx.getPack(packName);
-        if (pack == null)
-            return null;
-        return pack.getType(typeName);
-    }
-
     private StringBuilder codeStructImports (TreeSet<String> keys)
     {
         StringBuilder code = new StringBuilder();
@@ -445,7 +431,7 @@ final public class InvarWriteJava extends InvarWrite
 
     private void codeFieldAnno (StringBuilder code, InvarField f)
     {
-        String meta = f.evalGenerics(getContext(), ".");
+        String meta = f.createAliasRule(getContext(), ".");
         String shortName = f.getShortName() == null ? "" : f.getShortName();
         if (!meta.equals(""))
         {

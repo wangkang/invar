@@ -119,7 +119,7 @@ public class InvarWriteXSD
         while (i.hasNext())
         {
             String key = i.next();
-            String rule = type.getField(key).evalGenerics(getContext(), ".");
+            String rule = type.getField(key).createAliasRule(getContext(), ".");
             code.append(codeByRule(key, rule, brIndent2, 0, 2048, null));
         }
         code.append(brIndent);
