@@ -342,20 +342,6 @@ public class InvarReadData
         return v;
     }
 
-    static private String FormatXmlNode (XmlNode n)
-    {
-        XmlAttributeCollection attrs = n.Attributes;
-        StringWriter code = new StringWriter ();
-        code.Write ("<" + n.Name);
-        int len = attrs != null ? attrs.Count : 0;
-        for (int i = 0; i < len; i++) {
-            XmlAttribute a = attrs [i];
-            code.Write (" " + a.Name + "=\"" + a.Value + "\"");
-        }
-        code.Write (" />");
-        return code.ToString ();
-    }
-
     static private String UpperHeadChar (String s)
     {
         return s.Substring (0, 1).ToUpper () + s.Substring (1, s.Length - 1);
@@ -510,7 +496,7 @@ public class InvarReadData
             if (Enum.IsDefined (t, Int32.Parse (s)))
                 arg = Enum.Parse (t, s);
             else
-                OnError ("'" + s + "' is a bad enum value. " + t, x);
+                OnError ("'" + s + "' is a bad enum value. ", x);
         } else {
             switch (rule) {
             case "int8":
@@ -605,6 +591,20 @@ public class InvarReadData
             OnError (debug + " = " + v + ". Number is out of range [" + min + ", " + max + "]", x);
         }
         return v;
+    }
+
+    static private String FormatXmlNode (XmlNode n)
+    {
+        XmlAttributeCollection attrs = n.Attributes;
+        StringBuilder code = new StringBuilder ();
+        code.Append ("<" + n.Name);
+        int len = attrs != null ? attrs.Count : 0;
+        for (int i = 0; i < len; i++) {
+            XmlAttribute a = attrs [i];
+            code.Append (" " + a.Name + "=\"" + a.Value + "\"");
+        }
+        code.Append (" />");
+        return code.ToString ();
     }
 
     static private void OnError (String hint, XmlNode n)
