@@ -96,6 +96,8 @@ public class InvarWriteCode extends InvarWrite
         final static public String INIT_STRUCT         = "init.struct";
         final static public String INIT_ENUM           = "init.enum";
         final static public String CODE_ASSIGNMENT     = "code.assignment";
+        final static public String CODE_INDEXER        = "code.indexer";
+        final static public String CODE_FOREACH        = "code.foreach";
         final static public String CODE_FORI           = "code.fori";
         final static public String CODE_FORI_ITYPE     = "code.fori.itype";
 
@@ -132,26 +134,6 @@ public class InvarWriteCode extends InvarWrite
         this.codeStreamWrite = new StreamWriteCoder();
     }
 
-    private String makeCodeFori (String body, int numIndent, CodeForParams params)
-    {
-        String iterNameUp = upperHeadChar(params.name);
-        String iterName = params.name;
-        String index = "idx" + iterNameUp;
-        String sizeName = "len" + iterNameUp;
-        String sizeType = getContext().findBuildInType(snippetGet(Key.CODE_FORI_ITYPE)).getRedirect().getName();
-        String head = empty;
-        if (params.needDefine)
-            head += makeCodeAssignment(params.type, iterName, params.init) + br;
-        head += makeCodeAssignment(sizeType, sizeName, params.sizeInit) + br;
-        String s = snippetGet(Key.CODE_FORI);
-        s = head + s;
-        s = replace(s, tokenType, sizeType);
-        s = replace(s, tokenLen, sizeName);
-        s = replace(s, tokenIndex, index);
-        s = replace(s, tokenBody, body);
-        return s;
-    }
-
     protected String makeDocLine (String comment)
     {
         if (comment == null || comment.equals(empty))
@@ -176,6 +158,14 @@ public class InvarWriteCode extends InvarWrite
         s = replace(s, tokenValue, value);
         s = replace(s, tokenType, type != empty ? type + whiteSpace : empty);
         s = replace(s, tokenName, name);
+        return s;
+    }
+
+    private String makeCodeIndexer (String name, String index)
+    {
+        String s = snippetGet(Key.CODE_INDEXER);
+        s = replace(s, tokenName, name);
+        s = replace(s, tokenIndex, index);
         return s;
     }
 
@@ -638,6 +628,7 @@ public class InvarWriteCode extends InvarWrite
     {
         public Boolean needDefine = false;
         public String  name       = empty;
+        public String  nameOutter = empty;
         public String  type       = empty;
         public String  init       = empty;
         public String  sizeInit   = empty;
@@ -645,8 +636,7 @@ public class InvarWriteCode extends InvarWrite
 
     final private class StreamReadCoder
     {
-
-        final private String prefix = "read.";
+        private String prefix = "read.";
 
         public String code (TypeStruct type, List<InvarField> fs, TreeSet<String> imps)
         {
@@ -755,14 +745,172 @@ public class InvarWriteCode extends InvarWrite
             }
             lines.addAll(indentLines(code));
         }
+
+        private String makeCodeFori (String body, int numIndent, CodeForParams params)
+        {
+            String iterNameUp = upperHeadChar(params.name);
+            String iterName = params.name;
+            String index = "idx" + iterNameUp;
+            String sizeName = "len" + iterNameUp;
+            String sizeType = getContext().findBuildInType(snippetGet(Key.CODE_FORI_ITYPE)).getRedirect().getName();
+            String head = empty;
+            if (params.needDefine)
+                head += makeCodeAssignment(params.type, iterName, params.init) + br;
+            head += makeCodeAssignment(sizeType, sizeName, params.sizeInit) + br;
+            String s = snippetGet(Key.CODE_FORI);
+            s = head + s;
+            s = replace(s, tokenType, sizeType);
+            s = replace(s, tokenLen, sizeName);
+            s = replace(s, tokenIndex, index);
+            s = replace(s, tokenBody, body);
+            return s;
+        }
     }
 
     private class StreamWriteCoder
     {
+        private final String prefix = "write.";
+        private InvarType    sizeType;
+
         public String code (TypeStruct type, List<InvarField> fs, TreeSet<String> imps)
         {
+            imps.add(snippetGet(prefix + "imports"));
+            sizeType = getContext().findBuildInType(snippetGet(Key.CODE_FORI_ITYPE)).getRedirect();
+            List<String> reads = new ArrayList<String>();
+            for (InvarField f : fs)
+            {
+                reads.addAll(makeField(f));
+            }
+            return makeCodeMethod(reads, type.getName(), prefix + "method");
+        }
+
+        private CodeForParams makeParams (Boolean needDefine,
+                                          String type,
+                                          String name,
+                                          String nameOutter,
+                                          String indexer)
+        {
+            CodeForParams params = new CodeForParams();
+            params.needDefine = needDefine;
+            params.type = type;
+            params.name = name;
+            params.nameOutter = nameOutter;
             //TODO
-            return empty;
+            params.sizeInit = name + ".Count";
+            params.init = makeCodeIndexer(nameOutter, indexer);
+            return params;
+        }
+
+        private List<String> makeField (InvarField f)
+        {
+            String rule = f.createShortRule(getContext());
+            List<String> lines = new ArrayList<String>();
+            CodeForParams params = makeParams(false, rule, f.getKey(), f.getKey(), empty);
+            makeField(rule, 1, params, lines);
+            return lines;
+        }
+
+        private String makeGeneric (String rule,
+                                    int numLayer,
+                                    CodeForParams params,
+                                    String name,
+                                    Boolean needDef,
+                                    String indexer)
+        {
+            CodeForParams p = makeParams(needDef, rule, name, params.name, indexer);
+            List<String> body = new ArrayList<String>();
+            makeField(rule, numLayer + 1, p, body);
+            return buildCodeLines(body).toString();
+        }
+
+        private void makeField (String rule, int numLayer, CodeForParams p, List<String> lines)
+        {
+            String L = ruleLeft(rule);
+            InvarType t = getTypeByShort(L);
+            if (t == null)
+            {
+                logErr("No type named " + L);
+                return;
+            }
+            TypeID type = t.getRealId();
+            String code = empty;
+            String indexer = "idx" + upperHeadChar(p.name);
+            if (TypeID.LIST == type)
+            {
+                String R = ruleRight(rule);
+                String nameItem = "item" + numLayer;
+                String body = makeGeneric(R, numLayer, p, nameItem, true, indexer);
+                code = makeCodeFori(body, p);
+            }
+            else if (TypeID.MAP == type)
+            {
+                String r = ruleRight(rule);
+                String[] R = r.split(",");
+                String ruleK = R[0];
+                String ruleV = R[1];
+                String nameKey = "key" + numLayer;
+                String nameVal = "value" + numLayer;
+                String body = empty;
+                body += makeGeneric(ruleK, numLayer, p, nameKey, false, indexer);
+                body += makeGeneric(ruleV, numLayer, p, nameVal, true, nameKey);
+                String head = makeCodeForHead(p);
+                CodeForParams p2 = makeParams(false, rule, nameKey, p.name, indexer);
+                p2.type = ruleK;
+                code = head + makeCodeForeach(body, p2);
+            }
+            else
+            {
+                String s = snippetGet(prefix + type.getName());
+                s = replace(s, tokenName, p.name);
+                s = replace(s, tokenType, p.type);
+                if (p.needDefine)
+                {
+                    s = makeCodeAssignment(p.type, p.name, p.init) + br + s;
+                }
+                code = s;
+            }
+            lines.addAll(indentLines(code));
+        }
+
+        private String makeCodeForHead (CodeForParams params)
+        {
+            String iterNameUp = upperHeadChar(params.name);
+            String iterName = params.name;
+            String sizeName = "len" + iterNameUp;
+            String sizeType = this.sizeType.getName();
+            String head = empty;
+            if (params.needDefine)
+                head += makeCodeAssignment(params.type, iterName, params.init) + br;
+            head += makeCodeAssignment(sizeType, sizeName, params.sizeInit) + br;
+            //TODO
+            head += "stream.Write(" + sizeName + ");" + br;
+            return head;
+        }
+
+        private String makeCodeForeach (String body, CodeForParams params)
+        {
+            String s = snippetGet(prefix + "map.foreach");
+            s = replace(s, tokenType, params.type);
+            s = replace(s, tokenName, params.name);
+            s = replace(s, tokenNameUpper, params.nameOutter);
+            s = replace(s, tokenBody, body);
+            return s;
+        }
+
+        private String makeCodeFori (String body, CodeForParams params)
+        {
+            String iterNameUp = upperHeadChar(params.name);
+            String index = "idx" + iterNameUp;
+            String sizeName = "len" + iterNameUp;
+            String sizeType = this.sizeType.getName();
+            String head = makeCodeForHead(params);
+            String s = snippetGet(Key.CODE_FORI);
+            s = head + s;
+            s = replace(s, tokenType, sizeType);
+            s = replace(s, tokenLen, sizeName);
+            s = replace(s, tokenIndex, index);
+            s = replace(s, tokenBody, body);
+            return s;
         }
     }
 
