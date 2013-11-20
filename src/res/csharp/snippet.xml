@@ -16,7 +16,7 @@
     <uint64 pack="System" type="UInt64" initValue="0" initSuffix="L"/>
     <float pack="System" type="Single" initValue="0.0" initSuffix="F"/>
     <double pack="System" type="Double" initValue="0.00"/>
-    <string pack="System" type="String" initValue="" initPrefix="&quot;" initSuffix="&quot;"/>
+    <string pack="System" type="String" initValue="String.Empty" initPrefix="&quot;" initSuffix="&quot;"/>
     <bool pack="System" type="Boolean" initValue="false"/>
     <vec pack="System.Collections.Generic" type="List" generic="&lt;?&gt;" initValue=""/>
     <map pack="System.Collections.Generic" type="Dictionary" generic="&lt;?,?&gt;" initValue=""/>
@@ -129,7 +129,7 @@
   <template key="read.enum"><![CDATA[(#name) = ((#type))Enum.ToObject(typeof((#type)), stream.ReadInt32());]]></template>
   <template key="read.struct"><![CDATA[(#name).Read(stream);]]></template>
   <template key="read.struct.check"><![CDATA[
-  if (stream.ReadByte() > 0)
+  if (stream.ReadByte() == 0x01)
   {
   (#tab)if ((#name) == null)
   (#tab)(#tab)(#name) = new (#type)();
@@ -191,7 +191,7 @@
   ]]></template>
   <template key="write.size.init"><![CDATA[(#name).Count]]></template>
   <template key="write.vec.for"><![CDATA[
-  Int32 (#len) = (#nameupper).Count;
+  Int32 (#len) = (#name).Count;
   stream.Write((#len));
   for ((#sizetype) (#index) = 0; (#index) < (#len); (#index)++)
   {(#body)

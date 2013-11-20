@@ -57,7 +57,7 @@ final public class InvarReadRule
             Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(f);
             if (!doc.hasChildNodes())
                 return;
-            log("Read <- " + f.getAbsolutePath());
+            log("read  <- " + f.getAbsolutePath());
             InvarReadRule read = new InvarReadRule(ctx, f.getAbsolutePath());
             read.build(doc);
             xmls.add(read);

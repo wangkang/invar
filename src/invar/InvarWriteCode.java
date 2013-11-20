@@ -371,6 +371,8 @@ public class InvarWriteCode extends InvarWrite
             s = replace(s, tokenType, tEnum.getName());
             s = replace(s, tokenName, tEnum.firstOptionKey());
             return s;
+        case STRING:
+            return type.getInitValue();
         default:
             return type.getInitPrefix() + type.getInitValue() + type.getInitSuffix();
         }
@@ -582,7 +584,7 @@ public class InvarWriteCode extends InvarWrite
             Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(res);
             if (!doc.hasChildNodes())
                 return null;
-            log("Read <- " + path);
+            log("read  <- " + path);
             return doc;
         }
         else
