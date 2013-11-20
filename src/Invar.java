@@ -44,6 +44,11 @@ final public class Invar
             log("");
             InvarReadRule.start(ctx, ".xml");
 
+            if (a.has(ARG_XSD_PATH))
+            {
+                log("");
+                new InvarWriteXSD().write(ctx, basics, a.get(ARG_XSD_PATH));
+            }
             if (a.has(ARG_CSHARP_PATH))
             {
                 log("");
@@ -52,18 +57,13 @@ final public class Invar
             if (a.has(ARG_JAVA_PATH))
             {
                 log("");
-                new InvarWriteJava(ctx, a.get(ARG_JAVA_PATH)).write(".java");
+                //new InvarWriteJava(ctx, a.get(ARG_JAVA_PATH)).write(".java");
                 //new InvarWriteCode(ctx, getSnippetDoc(ARG_JAVA_PATH, ctx), a.get(ARG_JAVA_PATH)).write(".java");
             }
             if (a.has(ARG_FLASH_PATH))
             {
                 log("");
-                new InvarWriteAS3(ctx, a.get(ARG_FLASH_PATH)).write(".as");
-            }
-            if (a.has(ARG_XSD_PATH))
-            {
-                log("");
-                new InvarWriteXSD().write(ctx, basics, a.get(ARG_XSD_PATH));
+                //new InvarWriteAS3(ctx, a.get(ARG_FLASH_PATH)).write(".as");
             }
 
             log("\nInvar end: " + (new Date().getTime() - startMS) + "ms");
