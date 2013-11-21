@@ -57,8 +57,7 @@ final public class Invar
             if (a.has(ARG_JAVA_PATH))
             {
                 log("");
-                //new InvarWriteJava(ctx, a.get(ARG_JAVA_PATH)).write(".java");
-                //new InvarWriteCode(ctx, getSnippetDoc(ARG_JAVA_PATH, ctx), a.get(ARG_JAVA_PATH)).write(".java");
+                new InvarWriteCode(ctx, ARG_JAVA_PATH, a.get(ARG_JAVA_PATH)).write(".java");
             }
             if (a.has(ARG_FLASH_PATH))
             {

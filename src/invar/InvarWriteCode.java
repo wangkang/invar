@@ -95,6 +95,8 @@ public class InvarWriteCode extends InvarWrite
         final static public String DOC                 = "doc";
         final static public String DOC_LINE            = "doc.line";
         final static public String IMPORT              = "import";
+        final static public String IMPORT_SPLIT        = "import.split";
+
         final static public String INIT_STRUCT         = "init.struct";
         final static public String INIT_ENUM           = "init.enum";
         final static public String CODE_ASSIGNMENT     = "code.assignment";
@@ -436,20 +438,29 @@ public class InvarWriteCode extends InvarWrite
     {
         if (getContext().findTypes(t.getName()).size() > 1)
             return;
+        String split = snippetGet(Key.IMPORT_SPLIT);
         String s = snippetGet(Key.IMPORT);
-        s = replace(s, tokenName, t.getName());
         s = replace(s, tokenPack, t.getPack().getName());
+        s = replace(s, tokenName, split + t.getName());
         imps.add(s);
     }
 
     protected void impsCheckAdd (TreeSet<String> imps, String ss)
     {
+        if (ss.equals(empty))
+            return;
         String[] lines = ss.split((","));
         for (String line : lines)
         {
+            String[] names = line.split("::");
             String s = snippetGet(Key.IMPORT);
-            s = replace(s, tokenName, empty);
-            s = replace(s, tokenPack, line);
+            if (names.length > 0)
+                s = replace(s, tokenPack, names[0]);
+            if (names.length > 1)
+            {
+                String split = snippetGet(Key.IMPORT_SPLIT);
+                s = replace(s, tokenName, split + names[1]);
+            }
             imps.add(s);
         }
     }

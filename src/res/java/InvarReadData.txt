@@ -122,9 +122,15 @@ final public class InvarReadData
     {
         this.path = path;
     }
+    
+    public InvarReadData()
+    {
+        this.path = "";
+    }
 
     public void parse (Object o, Node n) throws Exception
     {
+        this.path = n.getBaseURI();
         parse(o, n, o.getClass().getName(), "");
     }
 
