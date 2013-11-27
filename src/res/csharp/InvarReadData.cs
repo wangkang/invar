@@ -493,8 +493,8 @@ public class InvarReadData
         } else if (t == typeof(Boolean)) {
             arg = Boolean.Parse (s);
         } else if (t.IsEnum) {
-            if (Enum.IsDefined (t, Int32.Parse (s)))
-                arg = Enum.Parse (t, s);
+             if (Enum.IsDefined (t, s))
+                arg = Enum.Parse (t, s, false);
             else
                 OnError ("'" + s + "' is a bad enum value. ", x);
         } else {

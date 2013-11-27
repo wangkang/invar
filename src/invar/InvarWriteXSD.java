@@ -324,7 +324,7 @@ public class InvarWriteXSD
         code.append("<xs:simpleType name=\"" + simpleName + "\"");
         code.append(">");
         code.append(brIndent);
-        code.append("<xs:restriction base=\"int\">");
+        code.append("<xs:restriction base=\"xs:string\">");
         Iterator<String> i = type.getKeys().iterator();
         while (i.hasNext())
         {
@@ -332,11 +332,11 @@ public class InvarWriteXSD
             Integer value = type.getValue(key);
             code.append(brIndent2);
             code.append("<!-- ");
-            code.append(key);
+            code.append(value);
             //code.append(key + ": " + type.getComment(key));
             code.append(" -->");
             //code.append(brIndent2);
-            code.append("<xs:enumeration value=\"" + value + "\" />");
+            code.append("<xs:enumeration value=\"" + key + "\" />");
         }
         code.append(brIndent);
         code.append("</xs:restriction>");
