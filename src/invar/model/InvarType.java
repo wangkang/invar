@@ -4,17 +4,36 @@ public class InvarType
 {
     static public enum TypeID
     {
-        STRUCT, ENUM, PROTOCOL, //
-        INT8, INT16, INT32, INT64, UINT8, UINT16, UINT32, UINT64, //
-        FLOAT, DOUBLE, BOOL, STRING, LIST, MAP, GHOST//
+        STRUCT("struct"), ENUM("enum"), PROTOCOL("protoc"), //
+        INT8("int8"), INT16("int16"), INT32("int32"), INT64("int64"), //
+        UINT8("uint8"), UINT16("uint16"), UINT32("uint32"), UINT64("uint64"), //
+        FLOAT("float"), DOUBLE("double"), BOOL("bool"), //
+        STRING("string"), LIST("vec"), MAP("map"), GHOST("*");//
+
+        public String getName ()
+        {
+            return name;
+        }
+
+        private TypeID(String name)
+        {
+            this.name = name;
+        }
+
+        private String name;
     };
 
     private final TypeID       id;
     private final InvarPackage pack;
     private final String       name;
     private final String       comment;
-    private String             generic;
+    private Boolean            isConflict;
+    private TypeID             realId;
     private InvarType          redirect;
+    private String             generic;
+    private String             initValue;
+    private String             initSuffix;
+    private String             initPrefix;
 
     public InvarType(TypeID id, String name, InvarPackage pack, String comment)
     {
@@ -23,12 +42,15 @@ public class InvarType
         this.comment = comment;
         this.pack = pack;
         this.generic = "";
+        this.initPrefix = "";
+        this.initSuffix = "";
+        this.initValue = "";
+        this.isConflict = false;
     }
 
-    final public InvarType setGeneric (String template)
+    final public String fullName ()
     {
-        this.generic = template;
-        return this;
+        return (pack.getName() != "") ? pack.getName() + "." + name : name;
     }
 
     final public String fullName (String splitter)
@@ -66,8 +88,63 @@ public class InvarType
         return redirect == null ? this : redirect;
     }
 
+    final public void setGeneric (String template)
+    {
+        this.generic = template;
+    }
+
     public void setRedirect (InvarType redirect)
     {
         this.redirect = redirect;
+    }
+
+    public String getInitValue ()
+    {
+        return initValue;
+    }
+
+    public void setInitValue (String construct)
+    {
+        this.initValue = construct;
+    }
+
+    public TypeID getRealId ()
+    {
+        return realId != null ? realId : id;
+    }
+
+    public void setRealId (TypeID realId)
+    {
+        this.realId = realId;
+    }
+
+    public String getInitSuffix ()
+    {
+        return initSuffix;
+    }
+
+    public void setInitSuffix (String initSuffix)
+    {
+        this.initSuffix = initSuffix;
+    }
+
+    public String getInitPrefix ()
+    {
+        return initPrefix;
+    }
+
+    public void setInitPrefix (String initPrefix)
+    {
+        this.initPrefix = initPrefix;
+    }
+
+    public Boolean getIsConflict ()
+    {
+        return isConflict;
+    }
+
+    public void setIsConflict (Boolean isConflict)
+    {
+        this.isConflict = isConflict;
     }
 }

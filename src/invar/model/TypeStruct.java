@@ -9,6 +9,7 @@ import java.util.Set;
 
 public class TypeStruct extends InvarType
 {
+    private InvarType                  superType;
     private HashMap<String,InvarField> fields;
     private String                     charset;
     private String                     alias;
@@ -101,6 +102,16 @@ public class TypeStruct extends InvarType
         this.alias = alias;
     }
 
+    public InvarType getSuperType ()
+    {
+        return superType;
+    }
+
+    public void setSuperType (InvarType superType)
+    {
+        this.superType = superType;
+    }
+
     public String getShortField ()
     {
         return shortField;
@@ -110,4 +121,5 @@ public class TypeStruct extends InvarType
     {
         this.shortField = shortField;
     }
+
 }

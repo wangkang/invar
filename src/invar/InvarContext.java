@@ -20,6 +20,7 @@ final public class InvarContext
     private final HashMap<String,InvarType>    typeWithAlias;
     private String                             structRootAlias = "root";
     private TypeStruct                         structRoot;
+    private String                             ruleDir;
 
     public InvarContext() throws Exception
     {
@@ -51,25 +52,37 @@ final public class InvarContext
 
     public InvarContext typeRedefine (TypeID id, String namePack, String nameType, String generic)
     {
+        return typeRedefine(id, namePack, nameType, generic, "", "", "");
+    }
+
+    public InvarContext typeRedefine (TypeID id,
+                                      String namePack,
+                                      String nameType,
+                                      String generic,
+                                      String initValue,
+                                      String initPrefix,
+                                      String initSuffix)
+    {
         if (TypeID.ENUM == id || TypeID.STRUCT == id || TypeID.PROTOCOL == id)
         {
             return this;
         }
-        InvarPackage pack = packAll.get(namePack);
-        if (pack == null)
-        {
-            pack = new InvarPackage(namePack, false);
-            packAll.put(namePack, pack);
-        }
         InvarType type = packBuildIn.getType(id);
-        InvarType typeRedi = new InvarType(id, nameType, pack, "").setGeneric(generic);
-        type.setRedirect(typeRedi);
-        typeWithAlias.put(type.getName(), typeRedi);
-        pack.put(typeRedi);
+        InvarType typeGhost = ghostAdd(namePack, nameType, generic, id);
+        type.setRedirect(typeGhost);
+        type.setInitValue(initValue);
+        type.setInitSuffix(initSuffix);
+        type.setInitPrefix(initPrefix);
+        typeWithAlias.put(type.getName(), typeGhost);
         return this;
     }
 
     public InvarType ghostAdd (String namePack, String nameType, String generic)
+    {
+        return ghostAdd(namePack, nameType, generic, TypeID.STRUCT);
+    }
+
+    public InvarType ghostAdd (String namePack, String nameType, String generic, TypeID realId)
     {
         InvarPackage pack = packAll.get(namePack);
         if (pack == null)
@@ -77,7 +90,9 @@ final public class InvarContext
             pack = new InvarPackage(namePack, false);
             packAll.put(namePack, pack);
         }
-        InvarType t = new InvarType(TypeID.GHOST, nameType, pack, "").setGeneric(generic);
+        InvarType t = new InvarType(TypeID.GHOST, nameType, pack, "");
+        t.setGeneric(generic);
+        t.setRealId(realId);
         pack.put(t);
         return t;
     }
@@ -89,6 +104,8 @@ final public class InvarContext
         {
             InvarPackage pack = packAll.get(i.next());
             pack.clearGhostTypes();
+            if (pack.size() == 0)
+                i.remove();
         }
     }
 
@@ -130,6 +147,21 @@ final public class InvarContext
 
     public InvarType findBuildInType (String typeName)
     {
+        Iterator<String> i = packBuildIn.getTypeNames();
+        while (i.hasNext())
+        {
+            String name = i.next();
+            InvarType type = packBuildIn.getType(name);
+            if (name.equals(typeName))
+            {
+                return type;
+            }
+            InvarType typeRedi = type.getRedirect();
+            if (typeRedi != null && typeRedi.getName().equals(typeName))
+            {
+                return typeRedi;
+            }
+        }
         return packBuildIn.getType(typeName.toLowerCase());
     }
 
@@ -173,6 +205,16 @@ final public class InvarContext
     public String getStructRootAlias ()
     {
         return structRootAlias;
+    }
+
+    public void setRuleDir (String path)
+    {
+        ruleDir = path;
+    }
+
+    public String getRuleDir ()
+    {
+        return ruleDir;
     }
 
 }

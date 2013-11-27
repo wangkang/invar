@@ -54,7 +54,7 @@ final public class InvarMainArgs
             if (arg.charAt(0) == '-')
             {
                 listCurrent = new ArrayList<String>();
-                userArgs.put(arg, listCurrent);
+                userArgs.put(arg.substring(1), listCurrent);
             }
             else if (listCurrent != null)
             {
