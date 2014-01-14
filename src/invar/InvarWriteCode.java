@@ -20,10 +20,13 @@ import org.w3c.dom.NodeList;
 
 public class InvarWriteCode extends InvarWrite
 {
+
     @Override
     protected Boolean beforeWrite (InvarContext c)
     {
         buildSnippetMap(c);
+        Boolean capitalize = Boolean.parseBoolean(snippetGet(Key.PACK_CAPITALIZE));
+        packNameReset(c, capitalize);
         return true;
     }
 
@@ -92,6 +95,8 @@ public class InvarWriteCode extends InvarWrite
 
     final protected class Key
     {
+        final static public String PACK                = "pack";
+        final static public String PACK_CAPITALIZE     = "capitalize.pack.head";
         final static public String DOC                 = "doc";
         final static public String DOC_LINE            = "doc.line";
         final static public String IMPORT              = "import";
@@ -116,7 +121,6 @@ public class InvarWriteCode extends InvarWrite
         final static public String RUNTIME_ALIAS_VEC   = "runtime.alias.list";
         final static public String RUNTIME_ALIAS_MAP   = "runtime.alias.map";
 
-        final static public String PACK                = "pack";
         final static public String ENUM                = "enum";
         final static public String ENUM_FIELD          = "enum.field";
         final static public String STRUCT              = "struct";

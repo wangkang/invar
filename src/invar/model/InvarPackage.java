@@ -7,16 +7,47 @@ import java.util.Iterator;
 
 public class InvarPackage
 {
-    private final String              name;
     private final Boolean             needWrite;
+    private final String              nameReal;
+    private String                    name;
     private File                      codeDir;
     private HashMap<String,InvarType> typeMap;
 
     public InvarPackage(String name, Boolean needWrite)
     {
         this.name = name;
+        this.nameReal = name;
         this.needWrite = needWrite;
         this.typeMap = new HashMap<String,InvarType>();
+    }
+
+    public void capitalizeNameHead (Boolean bool)
+    {
+        if (nameReal.length() <= 0)
+            return;
+        if (!bool)
+        {
+            name = nameReal;
+            return;
+        }
+        String[] names = nameReal.split("\\.");
+        name = "";
+        int len = names.length;
+        for (int i = 0; i < len; i++)
+        {
+            String s = names[i];
+            if (s.length() < 1)
+                continue;
+            s = s.substring(0, 1).toUpperCase() + s.substring(1, s.length());
+            name += s;
+            if (i + 1 < len)
+                name += ".";
+        }
+    }
+
+    public String getName ()
+    {
+        return name;
     }
 
     public void put (InvarType t)
@@ -70,11 +101,6 @@ public class InvarPackage
     {
         typeMap.put(t.getName(), t);
         return this;
-    }
-
-    public String getName ()
-    {
-        return name;
     }
 
     public File getCodeDir ()
