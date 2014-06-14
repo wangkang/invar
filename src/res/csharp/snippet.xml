@@ -31,8 +31,8 @@
   <template key="init.struct"><![CDATA[new (#type)()]]></template>
   <template key="init.enum"><![CDATA[(#type).(#name)]]></template>
   <template key="code.invoker"><![CDATA[.]]></template>
-  <template key="code.assignment"><![CDATA[(#type)(#name) = (#value);]]></template>
-  <template key="code.definition"><![CDATA[(#type)(#name);]]></template>
+  <template key="code.assignment"><![CDATA[(#type)(#name) = (#value);(#brk)]]></template>
+  <template key="code.definition"><![CDATA[(#type) (#name);(#brk)]]></template>
   <template key="code.indexer"><![CDATA[ (#name)[(#index)] ]]></template>
   <template key="code.fori.itype"><![CDATA[int32]]></template>
   <template key="code.fori"><![CDATA[

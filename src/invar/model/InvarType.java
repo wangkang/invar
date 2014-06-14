@@ -8,19 +8,32 @@ public class InvarType
         INT8("int8"), INT16("int16"), INT32("int32"), INT64("int64"), //
         UINT8("uint8"), UINT16("uint16"), UINT32("uint32"), UINT64("uint64"), //
         FLOAT("float"), DOUBLE("double"), BOOL("bool"), //
-        STRING("string"), LIST("vec"), MAP("map"), GHOST("*");//
+        STRING("string"), LIST("vec", "<?>"), MAP("map", "<?,?>"), GHOST("*");//
+
+        private TypeID(String name)
+        {
+            this.name = name;
+            this.generic = "";
+        }
+
+        private TypeID(String name, String generic)
+        {
+            this.name = name;
+            this.generic = generic;
+        }
 
         public String getName ()
         {
             return name;
         }
 
-        private TypeID(String name)
+        public String getGeneric ()
         {
-            this.name = name;
+            return generic;
         }
 
-        private String name;
+        final private String name;
+        final private String generic;
     };
 
     private final TypeID       id;
