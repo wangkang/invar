@@ -25,7 +25,7 @@ public class InvarWriteCode extends InvarWrite
     protected Boolean beforeWrite (InvarContext c)
     {
         buildSnippetMap(c);
-        Boolean capitalize = Boolean.parseBoolean(snippetGet(Key.PACK_CAPITALIZE));
+        Boolean capitalize = Boolean.parseBoolean(snippetTryGet(Key.PACK_CAPITALIZE));
         packNameReset(c, capitalize);
         return true;
     }
@@ -226,8 +226,9 @@ public class InvarWriteCode extends InvarWrite
         {
             String key = i.next();
             String s = snippetGet(Key.ENUM_FIELD);
-            s = replace(s, tokenName, fixedLen(lenKey, key));
+            s = replaceFirst(s, tokenName, fixedLen(lenKey, key));
             s = replace(s, tokenName, key);
+            s = replace(s, tokenType, type.getName());
             s = replace(s, tokenValue, fixedLenBackward(whiteSpace, lenVal, type.getValue(key).toString()));
             s = replace(s, tokenDoc, makeDoc(type.getComment(key)));
             code.append(s);
@@ -444,8 +445,14 @@ public class InvarWriteCode extends InvarWrite
             return;
         String split = snippetGet(Key.IMPORT_SPLIT);
         String s = snippetGet(Key.IMPORT);
-        s = replace(s, tokenPack, t.getPack().getName());
-        s = replace(s, tokenName, split + t.getName());
+        String packName = t.getPack().getName();
+        String typeName = t.getName();
+        if (packName != empty)
+        {
+            typeName = split + typeName;
+        }
+        s = replace(s, tokenPack, packName);
+        s = replace(s, tokenName, typeName);
         imps.add(s);
     }
 
@@ -590,6 +597,15 @@ public class InvarWriteCode extends InvarWrite
         return snippetMap.get(key);
     }
 
+    private String snippetTryGet (String key)
+    {
+        if (!snippetMap.containsKey(key))
+        {
+            return empty;
+        }
+        return snippetMap.get(key);
+    }
+
     private Document getSnippetDoc (String langName, InvarContext ctx) throws Exception
     {
         String path = "/res/" + langName + "/snippet.xml";
@@ -644,6 +660,12 @@ public class InvarWriteCode extends InvarWrite
         return s.replaceAll(token, Matcher.quoteReplacement(replacement));
     }
 
+    private String replaceFirst (String s, String token, String replacement)
+    {
+        // RegExp Common Metacharacters: ^[.${*(\+)|?<> 
+        return s.replaceFirst(token, Matcher.quoteReplacement(replacement));
+    }
+
     private String makeCodeMethod (List<String> lines, String returnType, String snippetKey)
     {
         indentLines(lines, 1);
@@ -672,6 +694,37 @@ public class InvarWriteCode extends InvarWrite
             String rt = getContext().findBuildInType(TypeID.STRING).getRedirect().getName();
             return makeCodeMethod(reads, rt, "toxml.method");
         }
+
+    }
+
+    static private String createShortRule (InvarField f, InvarContext ctx)
+    {
+        String split = ".";
+        InvarType typeBasic = f.getType().getRedirect();
+        if (f.getGenerics().size() == 0)
+        {
+            if (ctx.findTypes(typeBasic.getName()).size() > 1)
+                return typeBasic.fullName(split);
+            else
+                return typeBasic.getName();
+        }
+        String s = typeBasic.getRealId().getGeneric();
+        for (InvarType t : f.getGenerics())
+        {
+            t = t.getRedirect();
+            String forShort = null;
+            if (t.getRealId() == TypeID.LIST || t.getRealId() == TypeID.MAP)
+                forShort = t.getName();
+            else
+            {
+                if (ctx.findTypes(t.getName()).size() > 1)
+                    forShort = t.fullName(split);
+                else
+                    forShort = t.getName();
+            }
+            s = s.replaceFirst("\\?", forShort + t.getRealId().getGeneric());
+        }
+        return typeBasic.getName() + s;
 
     }
 
@@ -752,9 +805,8 @@ public class InvarWriteCode extends InvarWrite
 
         private List<String> makeField (InvarField f)
         {
-            String rule = f.createShortRule(getContext());
+            String rule = createShortRule(f, getContext());
             TypeID type = f.getType().getRealId();
-
             List<String> lines = new ArrayList<String>();
             CodeForParams params = makeParams(type, false, true, rule, f.getKey(), f.getKey(), empty);
             params.numLayer = 1;
@@ -780,16 +832,24 @@ public class InvarWriteCode extends InvarWrite
             String s = empty;
             if (p.needDefine)
             {
-                if (p.init.equals(empty))
-                    s = p.type + whiteSpace;
+                if (!p.init.equals(empty))
+                {
+                    s = makeCodeAssignment(p.type, p.name, p.init);
+                }
                 else
-                    s = makeCodeAssignment(p.type, p.name, p.init) + br;
+                {
+                    s = snippetGet(Key.CODE_DEFINITION);
+                }
             }
-            if (TypeID.STRUCT == type && p.needCheck)
-                s += snippetGet(prefix + type.getName() + ".check");
-            else
-                s += snippetGet(prefix + type.getName());
 
+            if (TypeID.STRUCT == type && p.needCheck)
+            {
+                s += snippetGet(prefix + type.getName() + ".check");
+            }
+            else
+            {
+                s += snippetGet(prefix + type.getName());
+            }
             s = replace(s, tokenName, p.name);
             s = replace(s, tokenType, p.type);
             return s;
@@ -802,7 +862,7 @@ public class InvarWriteCode extends InvarWrite
             String nameItem = "v" + p.numLayer;
             String head = empty;
             if (p.needDefine)
-                head += makeCodeAssignment(p.type, p.name, p.init) + br;
+                head += makeCodeAssignment(p.type, p.name, p.init);
             String body = makeGeneric(R, p, nameItem, true, indexer);
             return head + makeCodeFor(TypeID.LIST, body, p, nameItem, empty, empty);
         }
@@ -824,7 +884,7 @@ public class InvarWriteCode extends InvarWrite
                 body += makeGeneric(ruleV, p, nameVal, true, nameKey);
                 String head = empty;
                 if (p.needDefine)
-                    head += makeCodeAssignment(p.type, p.name, p.init) + br;
+                    head += makeCodeAssignment(p.type, p.name, p.init);
                 return head + makeCodeFor(TypeID.MAP, body, p, nameVal, nameKey, empty);
             }
             else
@@ -835,7 +895,7 @@ public class InvarWriteCode extends InvarWrite
                 String nameLen = "len" + upperHeadChar(p.nameOutter);
                 String head = empty;
                 if (p.needDefine)
-                    head += makeCodeAssignment(p.type, p.nameOutter, p.init) + br;
+                    head += makeCodeAssignment(p.type, p.nameOutter, p.init);
                 p.name = nameKey;
                 p.type = ruleK;
                 return head + makeCodeFor(TypeID.MAP, body, p, nameVal, nameKey, nameLen);

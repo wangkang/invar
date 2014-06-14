@@ -1,7 +1,6 @@
 package invar.model;
 
 import invar.InvarContext;
-import invar.model.InvarType.TypeID;
 import java.util.LinkedList;
 
 public class InvarField
@@ -106,38 +105,6 @@ public class InvarField
             s = s.replaceFirst("\\?", t.fullName(split) + t.getGeneric());
         }
         return typeBasic.fullName(split) + s;
-    }
-
-    public String createShortRule (InvarContext ctx)
-    {
-        String split = ".";
-        InvarType typeBasic = type.getRedirect();
-        if (getGenerics().size() == 0)
-        {
-            if (ctx.findTypes(typeBasic.getName()).size() > 1)
-                return typeBasic.fullName(split);
-            else
-                return typeBasic.getName();
-        }
-        String s = typeBasic.getGeneric();
-        for (InvarType t : getGenerics())
-        {
-            t = t.getRedirect();
-
-            String forShort = null;
-            if (t.getRealId() == TypeID.LIST || t.getRealId() == TypeID.MAP)
-                forShort = t.getName();
-            else
-            {
-                if (ctx.findTypes(t.getName()).size() > 1)
-                    forShort = t.fullName(split);
-                else
-                    forShort = t.getName();
-            }
-            s = s.replaceFirst("\\?", forShort + t.getGeneric());
-        }
-        return typeBasic.getName() + s;
-
     }
 
     public void setEncode (Boolean encode)

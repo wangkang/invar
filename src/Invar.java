@@ -49,6 +49,11 @@ final public class Invar
                 log("");
                 new InvarWriteXSD().write(ctx, basics, a.get(ARG_XSD_PATH));
             }
+            if (a.has(ARG_FLASH_PATH))
+            {
+                log("");
+                new InvarWriteCode(ctx, ARG_FLASH_PATH, a.get(ARG_FLASH_PATH)).write(".as");
+            }
             if (a.has(ARG_CSHARP_PATH))
             {
                 log("");
@@ -59,12 +64,6 @@ final public class Invar
                 log("");
                 new InvarWriteCode(ctx, ARG_JAVA_PATH, a.get(ARG_JAVA_PATH)).write(".java");
             }
-            if (a.has(ARG_FLASH_PATH))
-            {
-                log("");
-                //new InvarWriteAS3(ctx, a.get(ARG_FLASH_PATH)).write(".as");
-            }
-
             log("\nInvar end: " + (System.currentTimeMillis() - startMS) + "ms");
         }
         catch (Throwable e)

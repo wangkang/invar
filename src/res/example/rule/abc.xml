@@ -38,7 +38,7 @@
     <field name="s" type="String" scope="public" doc="a string"/>
     <field name="gender" type="Gender" doc=""/>
     <field name="next" type="Info" doc=""/>
-    <field name="conflict" type="test.xyz::Conflict" doc=""/>
+    <field name="conflict" type="test.abc::Conflict" doc=""/>
     <field name="conflicts" type="Vec-test.xyz::Conflict" doc=""/>
     <field name="infos" type="Vec-Vec-Vec-Vec-Vec-Info" doc=""/>
     <field name="mapInfoG" type="Map-Info-Gender" doc=""/>
