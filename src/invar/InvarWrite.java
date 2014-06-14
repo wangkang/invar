@@ -73,7 +73,7 @@ abstract public class InvarWrite
 
     final protected void logErr (Object txt)
     {
-        System.out.println("error ---------> " + txt);
+        System.out.println("error X---------> " + txt);
     }
 
     final protected void addExportFile (String packName, String fileName, String content)
@@ -370,6 +370,20 @@ abstract public class InvarWrite
         if (pack == null)
             return null;
         return pack.getType(typeName);
+    }
+
+    final protected void packNameReset (InvarContext context, Boolean capitalize)
+    {
+        typeForShort.clear();
+        Iterator<String> i = context.getPackNames();
+        while (i.hasNext())
+        {
+            InvarPackage pack = context.getPack(i.next());
+            if (pack.getNeedWrite())
+            {
+                pack.capitalizeNameHead(capitalize);
+            }
+        }
     }
 
     private void typeForShortReset (InvarContext context)

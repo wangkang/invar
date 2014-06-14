@@ -11,16 +11,16 @@ final public class Invar
 {
     static final String ARG_HELP        = "help";
     static final String ARG_RULE_PATH   = "rule";
+    static final String ARG_XSD_PATH    = "xsd";
     static final String ARG_JAVA_PATH   = "java";
     static final String ARG_FLASH_PATH  = "flash";
     static final String ARG_CSHARP_PATH = "csharp";
-    static final String ARG_XSD_PATH    = "xsd";
 
     static public void main (String[] args)
     {
         InvarMainArgs a = new InvarMainArgs();
         a.addDefault(ARG_RULE_PATH, "rule/");
-        a.addDefault(ARG_XSD_PATH, "data/");
+        a.addDefault(ARG_XSD_PATH, "code/xsd/");
         a.addDefault(ARG_JAVA_PATH, "code/java/");
         a.addDefault(ARG_FLASH_PATH, "code/flash/");
         a.addDefault(ARG_CSHARP_PATH, "code/csharp/");
@@ -35,7 +35,7 @@ final public class Invar
         TreeMap<TypeID,String> basics = InvarReadRule.makeTypeIdMap();
         try
         {
-            long startMS = new Date().getTime();
+            long startMS = System.currentTimeMillis();
             log("Invar start: " + new Date().toString());
             InvarContext ctx = new InvarContext();
             ctx.addBuildInTypes(basics);
@@ -65,7 +65,7 @@ final public class Invar
                 //new InvarWriteAS3(ctx, a.get(ARG_FLASH_PATH)).write(".as");
             }
 
-            log("\nInvar end: " + (new Date().getTime() - startMS) + "ms");
+            log("\nInvar end: " + (System.currentTimeMillis() - startMS) + "ms");
         }
         catch (Throwable e)
         {
@@ -75,7 +75,7 @@ final public class Invar
 
     static void showHelp ()
     {
-        StringBuilder s = new StringBuilder();
+        StringBuilder s = new StringBuilder(256);
         s.append("\n");
         s.append("Description: ");
         s.append("\n  ");

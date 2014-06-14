@@ -23,6 +23,7 @@
   </redefine>
   
   <!-- Common snippet -->
+  <template key="capitalize.pack.head"><![CDATA[true]]></template>
   <template key="doc"><![CDATA[/// (#doc).]]></template>
   <template key="doc.line"><![CDATA[// (#doc).]]></template>
   <template key="import"><![CDATA[using (#pack);]]></template>
