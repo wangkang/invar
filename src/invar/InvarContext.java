@@ -132,12 +132,19 @@ final public class InvarContext
 
     public List<InvarType> findTypes (String typeName)
     {
+        return findTypes(typeName, false);
+    }
+
+    public List<InvarType> findTypes (String typeName, boolean ignoreBuildin)
+    {
         Iterator<String> i = packAll.keySet().iterator();
         InvarType type = null;
         List<InvarType> types = new ArrayList<InvarType>();
         while (i.hasNext())
         {
             InvarPackage pack = packAll.get(i.next());
+            if (ignoreBuildin && pack == packBuildIn)
+                continue;
             type = pack.getType(typeName);
             if (type != null)
                 types.add(type);

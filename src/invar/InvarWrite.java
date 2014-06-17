@@ -17,15 +17,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 abstract public class InvarWrite
 {
 
     abstract protected Boolean beforeWrite (InvarContext ctx);
 
-    abstract protected String codeEnum (TypeEnum type);
-
-    abstract protected String codeStruct (TypeStruct type);
+    abstract protected String codeOneFile (String packName, List<TypeEnum> enums, List<TypeStruct> structs);
 
     abstract protected void codeRuntime (String suffix);
 
@@ -33,6 +33,9 @@ abstract public class InvarWrite
     final private File                      dirRoot;
     final private HashMap<String,String>    exports;
     final private HashMap<String,InvarType> typeForShort;
+
+    Boolean                                 flattenCodeDir;
+    Boolean                                 onePackOneFile;
 
     public InvarWrite(InvarContext context, String dirRootPath)
     {
@@ -55,10 +58,72 @@ abstract public class InvarWrite
         typeForShortReset(context);
         if (bool)
         {
-            makePackageDirs();
-            HashMap<File,String> files = makeFiles(suffix);
-            writeFiles(files);
+            if (flattenCodeDir || onePackOneFile)
+                makeFlattenDirs();
+            else
+                makePackageDirs();
+            startWritting(suffix);
         }
+    }
+
+    private void startWritting (String suffix) throws Exception
+    {
+        HashMap<File,String> files = new LinkedHashMap<File,String>();
+        Iterator<String> i = getContext().getPackNames();
+        while (i.hasNext())
+        {
+            InvarPackage pack = getContext().getPack(i.next());
+            Iterator<String> iTypeName = pack.getTypeNames();
+            List<TypeEnum> enums = new LinkedList<TypeEnum>();
+            List<TypeStruct> structs = new LinkedList<TypeStruct>();
+            File codeDir = pack.getCodeDir();
+            if (codeDir == null)
+                continue;
+            while (iTypeName.hasNext())
+            {
+                String typeName = iTypeName.next();
+                InvarType type = pack.getType(typeName);
+                if (TypeID.ENUM == type.getId())
+                {
+                    TypeEnum t = (TypeEnum)type;
+                    enums.add(t);
+                }
+                else if (TypeID.STRUCT == type.getId())
+                {
+                    TypeStruct t = (TypeStruct)type;
+                    structs.add(t);
+                }
+                else if (TypeID.PROTOCOL == type.getId())
+                {
+                    TypeProtocol t = (TypeProtocol)type;
+                    if (t.hasClient())
+                        structs.add(t.getClient());
+                    if (t.hasServer())
+                        structs.add(t.getServer());
+                }
+                else
+                {
+                    // do nothing
+                }
+                if (onePackOneFile == false)
+                {
+                    File codeFile = new File(codeDir, typeName + suffix);
+                    files.put(codeFile, codeOneFile(pack.getName(), enums, structs));
+                    enums.clear();
+                    structs.clear();
+                }
+            } //while (iTypeName.hasNext())
+
+            if (onePackOneFile == true)
+            {
+                File codeFile = new File(codeDir, pack.getName() + suffix);
+                files.put(codeFile, codeOneFile(pack.getName(), enums, structs));
+                enums.clear();
+                structs.clear();
+            }
+        }
+        codeRuntime(suffix);
+        writeFiles(files);
     }
 
     final protected InvarContext getContext ()
@@ -106,68 +171,28 @@ abstract public class InvarWrite
         }
     }
 
-    private HashMap<File,String> makeFiles (String suffix)
-    {
-        HashMap<File,String> files = new LinkedHashMap<File,String>();
-        Iterator<String> i = getContext().getPackNames();
-        while (i.hasNext())
-        {
-            InvarPackage pack = getContext().getPack(i.next());
-            Iterator<String> iTypeName = pack.getTypeNames();
-            while (iTypeName.hasNext())
-            {
-                String typeName = iTypeName.next();
-                makeFile(files, pack, typeName, suffix);
-            }
-        }
-        codeRuntime(suffix);
-        return files;
-    }
-
-    private void makeFile (HashMap<File,String> fs, InvarPackage pack, String tName, String suffix)
-    {
-        File codeDir = pack.getCodeDir();
-        if (codeDir == null)
-            return;
-        InvarType type = pack.getType(tName);
-        if (TypeID.ENUM == type.getId())
-        {
-            TypeEnum t = (TypeEnum)type;
-            File codeFile = new File(codeDir, t.getName() + suffix);
-            fs.put(codeFile, codeEnum(t));
-        }
-        else if (TypeID.STRUCT == type.getId())
-        {
-            TypeStruct t = (TypeStruct)type;
-            File codeFile = new File(codeDir, t.getName() + suffix);
-            fs.put(codeFile, codeStruct(t));
-        }
-        else if (TypeID.PROTOCOL == type.getId())
-        {
-            TypeProtocol t = (TypeProtocol)type;
-            File codeFile = null;
-            if (t.hasClient())
-            {
-                codeFile = new File(codeDir, t.getClient().getName() + suffix);
-                fs.put(codeFile, codeStruct(t.getClient()));
-            }
-            if (t.hasServer())
-            {
-                codeFile = new File(codeDir, t.getServer().getName() + suffix);
-                fs.put(codeFile, codeStruct(t.getServer()));
-            }
-        }
-        else
-        {
-            // do nothing
-        }
-    }
-
     protected HashMap<File,String> makeProtocFile (String string)
     {
         //TODO make a protocol interface code
         HashMap<File,String> files = new HashMap<File,String>();
         return files;
+    }
+
+    private void makeFlattenDirs () throws Exception
+    {
+        Iterator<String> i = getContext().getPackNames();
+        while (i.hasNext())
+        {
+            InvarPackage pack = getContext().getPack(i.next());
+            if (!pack.getNeedWrite())
+                continue;
+            File packDir = new File(dirRoot, makeDirs(""));
+            if (!packDir.exists())
+            {
+                throw new Exception("Dir do not exist: " + packDir.getAbsolutePath());
+            }
+            pack.setCodeDir(packDir);
+        }
     }
 
     private void makePackageDirs () throws Exception
@@ -407,5 +432,20 @@ abstract public class InvarWrite
     final protected InvarType getTypeByShort (String key)
     {
         return typeForShort.get(key);
+    }
+
+    final protected void setFlattenDir (Boolean flatten)
+    {
+        flattenCodeDir = flatten;
+    }
+
+    final protected void setOnePackOneFile (Boolean p1f1)
+    {
+        onePackOneFile = p1f1;
+    }
+
+    final protected boolean getOnePackOneFile ()
+    {
+        return onePackOneFile;
     }
 }

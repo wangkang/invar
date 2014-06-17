@@ -56,17 +56,19 @@ public class InvarField
         return key;
     }
 
-    public String makeTypeFormatted (InvarContext ctx)
+    public String makeTypeFormatted (InvarContext ctx, String split)
     {
         InvarType t = type.getRedirect();
         String tName = t.getName();
-        if (ctx.findTypes(t.getName()).size() > 1)
-            tName = t.fullName(".");
-        typeFormatted = tName + evalGenerics(ctx, t);
+
+        if (ctx.findTypes(t.getName(), true).size() > 1)
+            tName = t.fullName(split);
+
+        typeFormatted = tName + evalGenerics(ctx, t, split);
         return typeFormatted;
     }
 
-    private String evalGenerics (InvarContext ctx, InvarType typeBasic)
+    String evalGenerics (InvarContext ctx, InvarType typeBasic, String split)
     {
         if (getGenerics().size() == 0)
             return "";
@@ -75,8 +77,8 @@ public class InvarField
         {
             t = t.getRedirect();
             String tName = t.getName();
-            if (ctx.findTypes(t.getName()).size() > 1)
-                tName = t.fullName(".");
+            if (ctx.findTypes(t.getName(), true).size() > 1)
+                tName = t.fullName(split);
             s = s.replaceFirst("\\?", tName + t.getGeneric());
         }
         return s;
