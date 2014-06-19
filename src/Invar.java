@@ -69,8 +69,8 @@ final public class Invar
             if (a.has(ARG_CPP_PATH))
             {
                 log("");
-                new InvarWriteCode(ctx, ARG_CPP_PATH, a.get(ARG_CPP_PATH), "snippet.cc.xml").write(".cc");
-                new InvarWriteCode(ctx, ARG_CPP_PATH, a.get(ARG_CPP_PATH) + "/inc", "snippet.h.xml").write(".h");
+                new InvarWriteCode(ctx, ARG_CPP_PATH, a.get(ARG_CPP_PATH), "snippet.h.xml").write(".h");
+                new InvarWriteCode(ctx, ARG_CPP_PATH, a.get(ARG_CPP_PATH), "snippet.cc.xml").write(".cc", true);
             }
             log("\nInvar end: " + (System.currentTimeMillis() - startMS) + "ms");
         }

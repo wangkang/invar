@@ -8,7 +8,7 @@ public class InvarType
         INT8("int8"), INT16("int16"), INT32("int32"), INT64("int64"), //
         UINT8("uint8"), UINT16("uint16"), UINT32("uint32"), UINT64("uint64"), //
         FLOAT("float"), DOUBLE("double"), BOOL("bool"), //
-        STRING("string"), LIST("vec", "<?>"), MAP("map", "<?,?>"), GHOST("*");//
+        STRING("string"), LIST("vec", "<?>"), MAP("map", "<?,?>"), GHOST("sham");//
 
         private TypeID(String name)
         {
@@ -47,6 +47,8 @@ public class InvarType
     private String             initValue;
     private String             initSuffix;
     private String             initPrefix;
+    private String             codePath;
+    private String             codeName;
 
     public InvarType(TypeID id, String name, InvarPackage pack, String comment)
     {
@@ -58,6 +60,8 @@ public class InvarType
         this.initPrefix = "";
         this.initSuffix = "";
         this.initValue = "";
+        this.codePath = "";
+        this.codeName = name;
         this.isConflict = false;
     }
 
@@ -68,7 +72,8 @@ public class InvarType
 
     final public String fullName (String splitter)
     {
-        return (pack.getName() != "") ? pack.getName() + splitter + name : name;
+        String packName = pack.getName().replaceAll("\\.", splitter);
+        return (packName != "") ? packName + splitter + name : name;
     }
 
     final public TypeID getId ()
@@ -96,9 +101,14 @@ public class InvarType
         return generic;
     }
 
-    public InvarType getRedirect ()
+    final public InvarType getRedirect ()
     {
         return redirect == null ? this : redirect;
+    }
+
+    final public String getInitValue ()
+    {
+        return initValue;
     }
 
     final public void setGeneric (String template)
@@ -109,11 +119,6 @@ public class InvarType
     public void setRedirect (InvarType redirect)
     {
         this.redirect = redirect;
-    }
-
-    public String getInitValue ()
-    {
-        return initValue;
     }
 
     public void setInitValue (String construct)
@@ -159,5 +164,25 @@ public class InvarType
     public void setIsConflict (Boolean isConflict)
     {
         this.isConflict = isConflict;
+    }
+
+    public String getCodePath ()
+    {
+        return codePath;
+    }
+
+    public void setCodePath (String codePath)
+    {
+        this.codePath = codePath;
+    }
+
+    public String getCodeName ()
+    {
+        return codeName;
+    }
+
+    public void setCodeName (String codeName)
+    {
+        this.codeName = codeName;
     }
 }

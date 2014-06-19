@@ -21,8 +21,40 @@ import org.w3c.dom.NodeList;
 
 public class InvarWriteCode extends InvarWrite
 {
-    Integer methodIndentNum = 1;
-    Boolean packNameNested  = false;
+    private Integer                      methodIndentNum = 1;
+    private Boolean                      packNameNested  = false;
+
+    final private TreeSet<String>        fileIncludes;
+    final private Document               snippetDoc;
+    final private HashMap<String,String> snippetMap;
+    final private String                 snippetPath;
+    final private StreamCoder            codeStreamRead;
+    final private StreamCoder            codeStreamWrite;
+    final private ToXmlCoder             codeToXml;
+
+    public InvarWriteCode(InvarContext ctx, String langName, String dirRootPath) throws Exception
+    {
+        super(ctx, dirRootPath);
+        this.snippetPath = "/res/" + langName + "/snippet.xml";
+        this.snippetDoc = getSnippetDoc(snippetPath, ctx);
+        this.snippetMap = new LinkedHashMap<String,String>();
+        this.codeStreamRead = new StreamCoder(Key.PREFIX_READ);
+        this.codeStreamWrite = new StreamCoder(Key.PREFIX_WRITE);
+        this.codeToXml = new ToXmlCoder();
+        this.fileIncludes = new TreeSet<String>();
+    }
+
+    public InvarWriteCode(InvarContext ctx, String langName, String dirRootPath, String snippetName) throws Exception
+    {
+        super(ctx, dirRootPath);
+        this.snippetPath = "/res/" + langName + "/" + snippetName;
+        this.snippetDoc = getSnippetDoc(snippetPath, ctx);
+        this.snippetMap = new LinkedHashMap<String,String>();
+        this.codeStreamRead = new StreamCoder(Key.PREFIX_READ);
+        this.codeStreamWrite = new StreamCoder(Key.PREFIX_WRITE);
+        this.codeToXml = new ToXmlCoder();
+        this.fileIncludes = new TreeSet<String>();
+    }
 
     @Override
     protected Boolean beforeWrite (InvarContext c)
@@ -39,22 +71,45 @@ public class InvarWriteCode extends InvarWrite
 
         Boolean capitalize = Boolean.parseBoolean(snippetTryGet(Key.PACK_CAPITALIZE));
         super.packNameReset(c, capitalize);
-        Boolean flatten = Boolean.parseBoolean(snippetTryGet(Key.CODE_DIR_FLATTEN));
-        super.setFlattenDir(flatten);
-        Boolean p1f1 = Boolean.parseBoolean(snippetTryGet(Key.ONE_PACK_ONE_FILE));
-        super.setOnePackOneFile(p1f1);
+        super.setDirPrefix(snippetTryGet(Key.CODE_DIR_PREFIX));
+        super.setLowerFileName(Boolean.parseBoolean(snippetTryGet(Key.FILE_NAME_LOWER)));
+        super.setOnePackOneFile(Boolean.parseBoolean(snippetTryGet(Key.ONE_PACK_ONE_FILE)));
+        super.setFlattenDir(Boolean.parseBoolean(snippetTryGet(Key.CODE_DIR_FLATTEN)));
         return true;
     }
 
     @Override
-    protected String codeOneFile (String packName, List<TypeEnum> enums, List<TypeStruct> structs)
+    protected String codeOneFile (String packName, String filePath, List<TypeEnum> enums, List<TypeStruct> structs)
     {
-        String def = packName;
-        def = def.toUpperCase();
-        def = replace(def, tokenDot, "_");
+        String ifndef = filePath;
+        ifndef = ifndef.toUpperCase();
+        ifndef = replace(ifndef, "\"", empty);
+        ifndef = replace(ifndef, "//", "_");
+        ifndef = replace(ifndef, "/", "_");
+        ifndef = replace(ifndef, tokenDot, "_");
 
+        fileIncludes.clear();
         TreeSet<String> imps = new TreeSet<String>();
         String body = codeOneFileBody(enums, structs, imps);
+
+        if (enums.size() > 0)
+        {
+            String codePath = getContext().findBuildInType(TypeID.INT32).getRedirect().getCodePath();
+            fileIncludes.add(codePath);
+        }
+        StringBuilder includes = new StringBuilder();
+        for (String inc : fileIncludes)
+        {
+            String s = snippetTryGet(Key.FILE_INCLUDE);
+            if (s.equals(empty))
+                continue;
+            if (inc.equals(empty))
+                continue;
+            //if (inc.equals(filePath))
+            //  continue;
+            s = replace(s, tokenName, inc);
+            includes.append(s);
+        }
 
         List<String> packNames = new LinkedList<String>();
         if (packNameNested)
@@ -70,7 +125,8 @@ public class InvarWriteCode extends InvarWrite
         }
 
         String s = snippetTryGet(Key.FILE, "//Error: No template named '" + Key.FILE + "' in " + snippetPath);
-        s = replace(s, tokenDefine, def);
+        s = replace(s, tokenDefine, ifndef);
+        s = replace(s, tokenIncludes, includes.toString());
         s = replace(s, tokenPack, codeOneFilePack(packNames, body));
         return s;
     }
@@ -80,14 +136,17 @@ public class InvarWriteCode extends InvarWrite
         StringBuilder codeEnums = new StringBuilder();
         StringBuilder codeStructs = new StringBuilder();
 
-        for (TypeEnum type : enums)
+        if (!snippetTryGet(Key.ENUM).equals(empty))
         {
-            String block = makeEnumBlock(type);
-            String s = snippetGet(Key.ENUM);
-            s = replace(s, tokenName, type.getName());
-            s = replace(s, tokenBody, block);
-            s = replace(s, tokenDoc, makeDoc(type.getComment()));
-            codeEnums.append(s);
+            for (TypeEnum type : enums)
+            {
+                String block = makeEnumBlock(type);
+                String s = snippetGet(Key.ENUM);
+                s = replace(s, tokenName, type.getName());
+                s = replace(s, tokenBody, block);
+                s = replace(s, tokenDoc, makeDoc(type.getComment()));
+                codeEnums.append(s);
+            }
         }
 
         for (TypeStruct type : structs)
@@ -151,120 +210,6 @@ public class InvarWriteCode extends InvarWrite
         s = replace(s, tokenBody, block);
         s = replace(s, tokenDoc, empty);
         addExportFile(fileDir, typeName + suffix, makePack(fileDir, Key.RUNTIME_NAME, s, imps));
-    }
-
-    final static protected String empty          = "";
-    final static protected String whiteSpace     = " ";
-    final static protected String br             = "\n";
-    final static protected String indent         = whiteSpace + whiteSpace + whiteSpace + whiteSpace;
-    final static protected String typeSplit      = "::";
-
-    final static protected String tokenDot       = "\\.";
-    final static protected String tokenPrefix    = "\\(#";
-    final static protected String tokenSuffix    = "\\)";
-    final static protected String tokenBr        = tokenPrefix + "brk" + tokenSuffix;
-    final static protected String tokenIndent    = tokenPrefix + "tab" + tokenSuffix;
-    final static protected String tokenBlank     = tokenPrefix + "blank" + tokenSuffix;
-
-    final static protected String tokenDoc       = tokenPrefix + "doc" + tokenSuffix;
-    final static protected String tokenMeta      = tokenPrefix + "meta" + tokenSuffix;
-    final static protected String tokenKey       = tokenPrefix + "key" + tokenSuffix;
-    final static protected String tokenValue     = tokenPrefix + "value" + tokenSuffix;
-
-    final static protected String tokenDefine    = tokenPrefix + "define" + tokenSuffix;
-    final static protected String tokenImport    = tokenPrefix + "import" + tokenSuffix;
-    final static protected String tokenBody      = tokenPrefix + "body" + tokenSuffix;
-    final static protected String tokenEnums     = tokenPrefix + "enums" + tokenSuffix;
-    final static protected String tokenStructs   = tokenPrefix + "structs" + tokenSuffix;
-    final static protected String tokenFields    = tokenPrefix + "fields" + tokenSuffix;
-    final static protected String tokenSetters   = tokenPrefix + "setters" + tokenSuffix;
-    final static protected String tokenGetters   = tokenPrefix + "getters" + tokenSuffix;
-    final static protected String tokenEncoder   = tokenPrefix + "encoder" + tokenSuffix;
-    final static protected String tokenDecoder   = tokenPrefix + "decoder" + tokenSuffix;
-
-    final static protected String tokenPack      = tokenPrefix + "pack" + tokenSuffix;
-    final static protected String tokenType      = tokenPrefix + "type" + tokenSuffix;
-    final static protected String tokenTypeHost  = tokenPrefix + "typehost" + tokenSuffix;
-    final static protected String tokenTypeSize  = tokenPrefix + "sizetype" + tokenSuffix;
-    final static protected String tokenName      = tokenPrefix + "name" + tokenSuffix;
-    final static protected String tokenNameUpper = tokenPrefix + "nameupper" + tokenSuffix;
-    final static protected String tokenIndex     = tokenPrefix + "index" + tokenSuffix;
-    final static protected String tokenLen       = tokenPrefix + "len" + tokenSuffix;
-
-    final protected class Key
-    {
-        final static public String PACK_CAPITALIZE     = "capitalize.pack.head";
-        final static public String PACK_NAME_NESTED    = "pack.name.nested";
-        final static public String CODE_DIR_FLATTEN    = "code.dir.flatten";
-        final static public String METHOD_INDENT_NUM   = "method.indent.num";
-        final static public String ONE_PACK_ONE_FILE   = "one.pack.one.file";
-
-        final static public String FILE                = "file";
-        final static public String FILE_PACK           = "file.pack";
-        final static public String FILE_BODY           = "file.body";
-
-        final static public String PACK                = "pack";
-        final static public String DOC                 = "doc";
-        final static public String DOC_LINE            = "doc.line";
-        final static public String IMPORT              = "import";
-        final static public String IMPORT_SPLIT        = "import.split";
-        final static public String IMPORT_BODY         = "import.body";
-
-        final static public String INIT_STRUCT         = "init.struct";
-        final static public String INIT_ENUM           = "init.enum";
-        final static public String CODE_ASSIGNMENT     = "code.assignment";
-        final static public String CODE_DEFINITION     = "code.definition";
-
-        final static public String CODE_INDEXER        = "code.indexer";
-        final static public String CODE_FOREACH        = "code.foreach";
-        final static public String CODE_FORI           = "code.fori";
-        final static public String PREFIX_READ         = "read.";
-        final static public String PREFIX_WRITE        = "write.";
-
-        final static public String RUNTIME_PACK        = "runtime.pack";
-        final static public String RUNTIME_NAME        = "runtime.name";
-        final static public String RUNTIME_BODY        = "runtime.body";
-        final static public String RUNTIME_ALIAS       = "runtime.alias";
-        final static public String RUNTIME_ALIAS_BASIC = "runtime.alias.basic";
-        final static public String RUNTIME_ALIAS_VEC   = "runtime.alias.list";
-        final static public String RUNTIME_ALIAS_MAP   = "runtime.alias.map";
-
-        final static public String ENUM                = "enum";
-        final static public String ENUM_FIELD          = "enum.field";
-        final static public String STRUCT              = "struct";
-        final static public String STRUCT_META         = "struct.meta";
-        final static public String STRUCT_FIELD        = "struct.field";
-        final static public String STRUCT_GETTER       = "struct.getter";
-        final static public String STRUCT_SETTER       = "struct.setter";
-    }
-
-    final private Document               snippetDoc;
-    final private HashMap<String,String> snippetMap;
-    final private String                 snippetPath;
-    final private StreamCoder            codeStreamRead;
-    final private StreamCoder            codeStreamWrite;
-    final private ToXmlCoder             codeToXml;
-
-    public InvarWriteCode(InvarContext ctx, String langName, String dirRootPath) throws Exception
-    {
-        super(ctx, dirRootPath);
-        this.snippetPath = "/res/" + langName + "/snippet.xml";
-        this.snippetDoc = getSnippetDoc(snippetPath, ctx);
-        this.snippetMap = new LinkedHashMap<String,String>();
-        this.codeStreamRead = new StreamCoder(Key.PREFIX_READ);
-        this.codeStreamWrite = new StreamCoder(Key.PREFIX_WRITE);
-        this.codeToXml = new ToXmlCoder();
-    }
-
-    public InvarWriteCode(InvarContext ctx, String langName, String dirRootPath, String snippetName) throws Exception
-    {
-        super(ctx, dirRootPath);
-        this.snippetPath = "/res/" + langName + "/" + snippetName;
-        this.snippetDoc = getSnippetDoc(snippetPath, ctx);
-        this.snippetMap = new LinkedHashMap<String,String>();
-        this.codeStreamRead = new StreamCoder(Key.PREFIX_READ);
-        this.codeStreamWrite = new StreamCoder(Key.PREFIX_WRITE);
-        this.codeToXml = new ToXmlCoder();
     }
 
     protected String makeDocLine (String comment)
@@ -583,9 +528,10 @@ public class InvarWriteCode extends InvarWrite
                 }
                 else
                 {
-                    String pName = names[0];
-                    body = replace(body, tokenPack, pName);
                     String split = snippetGet(Key.IMPORT_SPLIT);
+                    String pName = names[0];
+                    pName = replace(pName, tokenDot, split);
+                    body = replace(body, tokenPack, pName);
                     if (pName.equals(empty))
                         split = empty;
                     body = replace(body, tokenName, split + names[1]);
@@ -612,6 +558,15 @@ public class InvarWriteCode extends InvarWrite
         String packName = t.getPack().getName();
         String typeName = t.getName();
         imps.add(packName + typeSplit + typeName);
+
+        String include = t.getCodePath();
+        if (include != null && !include.equals(empty))
+        {
+            if (super.getLowerFileName())
+                include = include.toLowerCase();
+            fileIncludes.add(include);
+            //System.out.println("InvarWriteCode.impsCheckAdd()  " + include);
+        }
     }
 
     protected void impsCheckAdd (TreeSet<String> imps, String ss)
@@ -629,7 +584,6 @@ public class InvarWriteCode extends InvarWrite
 
     private void buildSnippetMap (InvarContext c)
     {
-        c.ghostClear();
         if (!snippetDoc.hasChildNodes())
             return;
         Node root = snippetDoc.getFirstChild();
@@ -695,9 +649,10 @@ public class InvarWriteCode extends InvarWrite
             String initValue = getAttrOptional(n, "initValue");
             String initSuffix = getAttrOptional(n, "initSuffix");
             String initPrefix = getAttrOptional(n, "initPrefix");
+            String include = getAttrOptional(n, "include");
             type = type.trim();
             pack = pack.trim();
-            c.typeRedefine(id, pack, type, generic, initValue, initPrefix, initSuffix);
+            c.typeRedefine(id, pack, type, generic, initValue, initPrefix, initSuffix, include);
         }
     }
 

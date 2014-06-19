@@ -144,6 +144,7 @@ final public class InvarReadRule
         map.put(TypeID.STRING, BI_STRING);
         map.put(TypeID.MAP, BI_MAP);
         map.put(TypeID.LIST, BI_VECTOR);
+        map.put(TypeID.GHOST, TypeID.GHOST.getName());
         return map;
     }
 

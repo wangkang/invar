@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.TreeMap;
 
 final public class InvarContext
@@ -25,7 +24,7 @@ final public class InvarContext
     public InvarContext() throws Exception
     {
         typeWithAlias = new LinkedHashMap<String,InvarType>();
-        packBuildIn = new InvarPackage("", false);
+        packBuildIn = new InvarPackage("___", false);
         packAll = new HashMap<String,InvarPackage>();
         packAll.put(packBuildIn.getName(), packBuildIn);
     }
@@ -33,14 +32,13 @@ final public class InvarContext
     public InvarPackage addBuildInTypes (TreeMap<TypeID,String> map)
     {
         InvarPackage pack = packBuildIn;
-        Set<TypeID> keys = map.keySet();
-        Iterator<TypeID> i = keys.iterator();
+        Iterator<TypeID> i = map.keySet().iterator();
         while (i.hasNext())
         {
             TypeID id = i.next();
             String name = map.get(id);
             InvarType type = new InvarType(id, name, pack, name + "[buildin]");
-            packBuildIn.put(type);
+            pack.put(type);
             if (TypeID.LIST == id)
                 type.setGeneric("<?>");
             else if (TypeID.MAP == id)
@@ -50,18 +48,14 @@ final public class InvarContext
         return pack;
     }
 
-    public InvarContext typeRedefine (TypeID id, String namePack, String nameType, String generic)
-    {
-        return typeRedefine(id, namePack, nameType, generic, "", "", "");
-    }
-
     public InvarContext typeRedefine (TypeID id,
                                       String namePack,
                                       String nameType,
                                       String generic,
                                       String initValue,
                                       String initPrefix,
-                                      String initSuffix)
+                                      String initSuffix,
+                                      String codePath)
     {
         if (TypeID.ENUM == id || TypeID.STRUCT == id || TypeID.PROTOCOL == id)
         {
@@ -73,6 +67,9 @@ final public class InvarContext
         type.setInitValue(initValue);
         type.setInitSuffix(initSuffix);
         type.setInitPrefix(initPrefix);
+        type.setCodePath(codePath);
+
+        typeGhost.setCodePath(codePath);
         typeWithAlias.put(type.getName(), typeGhost);
         return this;
     }

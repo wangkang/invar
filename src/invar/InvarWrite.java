@@ -25,24 +25,29 @@ abstract public class InvarWrite
 
     abstract protected Boolean beforeWrite (InvarContext ctx);
 
-    abstract protected String codeOneFile (String packName, List<TypeEnum> enums, List<TypeStruct> structs);
+    abstract protected String codeOneFile (String packName,
+                                           String filePath,
+                                           List<TypeEnum> enums,
+                                           List<TypeStruct> structs);
 
     abstract protected void codeRuntime (String suffix);
 
     final private InvarContext              context;
-    final private File                      dirRoot;
     final private HashMap<String,String>    exports;
     final private HashMap<String,InvarType> typeForShort;
+    final private String                    dirRootPath;
 
-    Boolean                                 flattenCodeDir;
-    Boolean                                 onePackOneFile;
+    private File                            dirRoot;
+    private String                          suffix;
+    private String                          dirPrefix;
+    private Boolean                         flattenCodeDir;
+    private Boolean                         onePackOneFile;
+    private Boolean                         lowerFileName;
 
     public InvarWrite(InvarContext context, String dirRootPath)
     {
-        File file = new File(dirRootPath);
-        if (file.exists())
-            deleteDirs(dirRootPath);
-        this.dirRoot = file;
+        this.suffix = ".x";
+        this.dirRootPath = dirRootPath;
         this.context = context;
         this.exports = new HashMap<String,String>();
         this.typeForShort = new HashMap<String,InvarType>();
@@ -50,35 +55,117 @@ abstract public class InvarWrite
 
     final public void write (String suffix) throws Throwable
     {
+        write(suffix, false);
+    }
+
+    final public void write (String suffix, Boolean merge) throws Throwable
+    {
+        this.suffix = suffix;
         if (getContext() == null)
             return;
-        if (dirRoot == null)
-            return;
+        if (!merge)
+            context.ghostClear();
+
         Boolean bool = beforeWrite(getContext());
         typeForShortReset(context);
+
+        String dir = dirRootPath;
+        if (getDirPrefix() != null && !getDirPrefix().equals(""))
+        {
+            dir += getDirPrefix();
+        }
+        File file = new File(dir);
+        if (file.exists())
+        {
+            deleteDirs(dir);
+        }
+        this.dirRoot = file;
         if (bool)
         {
-            if (flattenCodeDir || onePackOneFile)
+            if (onePackOneFile)
+                flattenCodeDir = true;
+            if (flattenCodeDir)
                 makeFlattenDirs();
             else
                 makePackageDirs();
+
+            resetCodePathes(merge);
             startWritting(suffix);
         }
     }
 
+    private void resetCodePathes (Boolean merge)
+    {
+        Iterator<String> iPack = context.getPackNames();
+        while (iPack.hasNext())
+        {
+            InvarPackage pack = context.getPack(iPack.next());
+            if (context.isBuildInPack(pack))
+                continue;
+
+            String name = pack.getName();
+            Iterator<String> iType = pack.getTypeNames();
+            while (iType.hasNext())
+            {
+                String typeName = iType.next();
+                InvarType type = pack.getType(typeName);
+                if (onePackOneFile == false)
+                {
+                    name = typeName;
+                    if (flattenCodeDir)
+                    {
+                        name = type.fullName("_");
+                    }
+                }
+                String path = flattenCodeDir ? name : type.fullName("/");
+                path = dirPrefix + path;
+                path = wrapCodePath(path);
+                switch (type.getId()) {
+                case ENUM:
+                case STRUCT:
+                    resetCodePath(type, path, name, merge);
+                    break;
+                case PROTOCOL:
+                    resetCodePath(type, path, name, merge);
+                    TypeProtocol t = (TypeProtocol)type;
+                    if (t.hasClient())
+                    {
+                        resetCodePath(t.getClient(), path, name, merge);
+                    }
+                    if (t.hasServer())
+                    {
+                        resetCodePath(t.getServer(), path, name, merge);
+                    }
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+    }
+
+    private void resetCodePath (InvarType type, String path, String name, Boolean merge)
+    {
+        type.setCodeName(name);
+        if (!merge)
+            type.setCodePath(path);
+    }
+
     private void startWritting (String suffix) throws Exception
     {
+        System.out.println(dumpTypeAll().toString());
         HashMap<File,String> files = new LinkedHashMap<File,String>();
         Iterator<String> i = getContext().getPackNames();
         while (i.hasNext())
         {
             InvarPackage pack = getContext().getPack(i.next());
-            Iterator<String> iTypeName = pack.getTypeNames();
             List<TypeEnum> enums = new LinkedList<TypeEnum>();
             List<TypeStruct> structs = new LinkedList<TypeStruct>();
             File codeDir = pack.getCodeDir();
             if (codeDir == null)
                 continue;
+
+            Iterator<String> iTypeName = pack.getTypeNames();
             while (iTypeName.hasNext())
             {
                 String typeName = iTypeName.next();
@@ -96,34 +183,59 @@ abstract public class InvarWrite
                 else if (TypeID.PROTOCOL == type.getId())
                 {
                     TypeProtocol t = (TypeProtocol)type;
+                    //t.setCodePath(filePath);
                     if (t.hasClient())
+                    {
                         structs.add(t.getClient());
+                    }
                     if (t.hasServer())
+                    {
                         structs.add(t.getServer());
+                    }
                 }
                 else
                 {
                     // do nothing
+                    continue;
                 }
                 if (onePackOneFile == false)
                 {
-                    File codeFile = new File(codeDir, typeName + suffix);
-                    files.put(codeFile, codeOneFile(pack.getName(), enums, structs));
+                    String fileName = type.getCodeName() + suffix;
+                    String filePath = type.getCodePath();
+                    if (lowerFileName)
+                    {
+                        fileName = fileName.toLowerCase();
+                        filePath = filePath.toLowerCase();
+                    }
+                    File codeFile = new File(codeDir, fileName);
+                    files.put(codeFile, codeOneFile(pack.getName(), filePath, enums, structs));
                     enums.clear();
                     structs.clear();
-                }
-            } //while (iTypeName.hasNext())
 
+                }
+            } // while (iTypeName.hasNext())
             if (onePackOneFile == true)
             {
-                File codeFile = new File(codeDir, pack.getName() + suffix);
-                files.put(codeFile, codeOneFile(pack.getName(), enums, structs));
+                String fileName = pack.getName() + suffix;
+                String filePath = wrapCodePath(dirPrefix + fileName);
+                if (lowerFileName)
+                {
+                    fileName = fileName.toLowerCase();
+                    filePath = filePath.toLowerCase();
+                }
+                File codeFile = new File(codeDir, fileName);
+                files.put(codeFile, codeOneFile(pack.getName(), filePath, enums, structs));
                 enums.clear();
                 structs.clear();
             }
-        }
+        } // while (i.hasNext())
         codeRuntime(suffix);
         writeFiles(files);
+    }
+
+    private String wrapCodePath (String path)
+    {
+        return "\"" + path + suffix + "\"";
     }
 
     final protected InvarContext getContext ()
@@ -288,8 +400,12 @@ abstract public class InvarWrite
                     String namePack = typeR.getPack().getName();
                     if (!namePack.equals(""))
                         s.append(namePack + ".");
-                    s.append(typeR.getName());
-                    s.append(typeR.getGeneric());
+
+                    String nameR = typeR.getName() + typeR.getGeneric();
+
+                    s.append(fixedLen(32, nameR));
+
+                    s.append(type.getCodePath());
                 }
                 s.append("\n");
             }
@@ -448,4 +564,114 @@ abstract public class InvarWrite
     {
         return onePackOneFile;
     }
+
+    public String getDirPrefix ()
+    {
+        return dirPrefix;
+    }
+
+    public void setDirPrefix (String dirPrefix)
+    {
+        this.dirPrefix = dirPrefix;
+    }
+
+    public Boolean getLowerFileName ()
+    {
+        return lowerFileName;
+    }
+
+    public void setLowerFileName (Boolean lowerFileName)
+    {
+        this.lowerFileName = lowerFileName;
+    }
+
+    final static protected String empty          = "";
+    final static protected String whiteSpace     = " ";
+    final static protected String br             = "\n";
+    final static protected String indent         = whiteSpace + whiteSpace + whiteSpace + whiteSpace;
+    final static protected String typeSplit      = "::";
+
+    final static protected String tokenDot       = "\\.";
+    final static protected String tokenPrefix    = "\\(#";
+    final static protected String tokenSuffix    = "\\)";
+    final static protected String tokenBr        = tokenPrefix + "brk" + tokenSuffix;
+    final static protected String tokenIndent    = tokenPrefix + "tab" + tokenSuffix;
+    final static protected String tokenBlank     = tokenPrefix + "blank" + tokenSuffix;
+
+    final static protected String tokenDoc       = tokenPrefix + "doc" + tokenSuffix;
+    final static protected String tokenMeta      = tokenPrefix + "meta" + tokenSuffix;
+    final static protected String tokenKey       = tokenPrefix + "key" + tokenSuffix;
+    final static protected String tokenValue     = tokenPrefix + "value" + tokenSuffix;
+
+    final static protected String tokenDefine    = tokenPrefix + "define" + tokenSuffix;
+    final static protected String tokenImport    = tokenPrefix + "import" + tokenSuffix;
+    final static protected String tokenIncludes  = tokenPrefix + "includes" + tokenSuffix;
+    final static protected String tokenEnums     = tokenPrefix + "enums" + tokenSuffix;
+    final static protected String tokenStructs   = tokenPrefix + "structs" + tokenSuffix;
+    final static protected String tokenFields    = tokenPrefix + "fields" + tokenSuffix;
+    final static protected String tokenSetters   = tokenPrefix + "setters" + tokenSuffix;
+    final static protected String tokenGetters   = tokenPrefix + "getters" + tokenSuffix;
+    final static protected String tokenEncoder   = tokenPrefix + "encoder" + tokenSuffix;
+    final static protected String tokenDecoder   = tokenPrefix + "decoder" + tokenSuffix;
+    final static protected String tokenBody      = tokenPrefix + "body" + tokenSuffix;
+
+    final static protected String tokenPack      = tokenPrefix + "pack" + tokenSuffix;
+    final static protected String tokenType      = tokenPrefix + "type" + tokenSuffix;
+    final static protected String tokenTypeHost  = tokenPrefix + "typehost" + tokenSuffix;
+    final static protected String tokenTypeSize  = tokenPrefix + "sizetype" + tokenSuffix;
+    final static protected String tokenName      = tokenPrefix + "name" + tokenSuffix;
+    final static protected String tokenNameUpper = tokenPrefix + "nameupper" + tokenSuffix;
+    final static protected String tokenIndex     = tokenPrefix + "index" + tokenSuffix;
+    final static protected String tokenLen       = tokenPrefix + "len" + tokenSuffix;
+
+    final protected class Key
+    {
+        final static public String CODE_DIR_FLATTEN    = "code.dir.flatten";
+        final static public String CODE_DIR_PREFIX     = "code.dir.prefix";
+        final static public String PACK_CAPITALIZE     = "capitalize.pack.head";
+        final static public String PACK_NAME_NESTED    = "pack.name.nested";
+        final static public String FILE_NAME_LOWER     = "file.name.lowercase";
+        final static public String METHOD_INDENT_NUM   = "method.indent.num";
+        final static public String ONE_PACK_ONE_FILE   = "one.pack.one.file";
+
+        final static public String FILE                = "file";
+        final static public String FILE_PACK           = "file.pack";
+        final static public String FILE_BODY           = "file.body";
+        final static public String FILE_INCLUDE        = "file.include";
+
+        final static public String PACK                = "pack";
+        final static public String DOC                 = "doc";
+        final static public String DOC_LINE            = "doc.line";
+        final static public String IMPORT              = "import";
+        final static public String IMPORT_SPLIT        = "import.split";
+        final static public String IMPORT_BODY         = "import.body";
+
+        final static public String INIT_STRUCT         = "init.struct";
+        final static public String INIT_ENUM           = "init.enum";
+        final static public String CODE_ASSIGNMENT     = "code.assignment";
+        final static public String CODE_DEFINITION     = "code.definition";
+
+        final static public String CODE_INDEXER        = "code.indexer";
+        final static public String CODE_FOREACH        = "code.foreach";
+        final static public String CODE_FORI           = "code.fori";
+        final static public String PREFIX_READ         = "read.";
+        final static public String PREFIX_WRITE        = "write.";
+
+        final static public String RUNTIME_PACK        = "runtime.pack";
+        final static public String RUNTIME_NAME        = "runtime.name";
+        final static public String RUNTIME_BODY        = "runtime.body";
+        final static public String RUNTIME_ALIAS       = "runtime.alias";
+        final static public String RUNTIME_ALIAS_BASIC = "runtime.alias.basic";
+        final static public String RUNTIME_ALIAS_VEC   = "runtime.alias.list";
+        final static public String RUNTIME_ALIAS_MAP   = "runtime.alias.map";
+
+        final static public String ENUM                = "enum";
+        final static public String ENUM_FIELD          = "enum.field";
+        final static public String STRUCT              = "struct";
+        final static public String STRUCT_META         = "struct.meta";
+        final static public String STRUCT_FIELD        = "struct.field";
+        final static public String STRUCT_GETTER       = "struct.getter";
+        final static public String STRUCT_SETTER       = "struct.setter";
+    }
+
 }
