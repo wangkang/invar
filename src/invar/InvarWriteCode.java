@@ -75,6 +75,7 @@ public class InvarWriteCode extends InvarWrite
         super.setLowerFileName(Boolean.parseBoolean(snippetTryGet(Key.FILE_NAME_LOWER)));
         super.setOnePackOneFile(Boolean.parseBoolean(snippetTryGet(Key.ONE_PACK_ONE_FILE)));
         super.setFlattenDir(Boolean.parseBoolean(snippetTryGet(Key.CODE_DIR_FLATTEN)));
+        super.setTraceAllTypes(Boolean.parseBoolean(snippetTryGet("trace.all.types")));
         return true;
     }
 
@@ -384,7 +385,7 @@ public class InvarWriteCode extends InvarWrite
     private StringBuilder makeStructSetter (InvarField f, TypeStruct struct)
     {
         StringBuilder code = new StringBuilder();
-        if (TypeID.LIST == f.getType().getId())
+        if (TypeID.VEC == f.getType().getId())
             return code;
         if (TypeID.MAP == f.getType().getId())
             return code;
@@ -426,7 +427,7 @@ public class InvarWriteCode extends InvarWrite
         String s = null;
         switch (type.getRealId()) {
         case STRUCT:
-        case LIST:
+        case VEC:
         case MAP:
             String t = f.getTypeFormatted();
             s = snippetGet(Key.INIT_STRUCT);
@@ -466,7 +467,7 @@ public class InvarWriteCode extends InvarWrite
             impsCheckAdd(imps, type);
 
             String key = null;
-            if (TypeID.LIST == type.getRealId())
+            if (TypeID.VEC == type.getRealId())
                 key = Key.RUNTIME_ALIAS_VEC;
             else if (TypeID.MAP == type.getRealId())
                 key = Key.RUNTIME_ALIAS_MAP;
@@ -636,13 +637,6 @@ public class InvarWriteCode extends InvarWrite
             if (Node.ELEMENT_NODE != n.getNodeType())
                 continue;
             String typeName = n.getNodeName().toLowerCase();
-            InvarType buildInT = c.findBuildInType(typeName);
-            if (buildInT == null)
-            {
-                logErr("No buildin type named: " + typeName);
-                continue;
-            }
-            TypeID id = buildInT.getId();
             String type = getAttrOptional(n, "type");
             String pack = getAttrOptional(n, "pack");
             String generic = getAttrOptional(n, "generic");
@@ -652,6 +646,13 @@ public class InvarWriteCode extends InvarWrite
             String include = getAttrOptional(n, "include");
             type = type.trim();
             pack = pack.trim();
+            InvarType buildInT = c.findBuildInType(typeName);
+            if (buildInT == null)
+            {
+                getContext().ghostAdd(pack, type, generic, TypeID.GHOST);
+                continue;
+            }
+            TypeID id = buildInT.getId();
             c.typeRedefine(id, pack, type, generic, initValue, initPrefix, initSuffix, include);
         }
     }
@@ -837,7 +838,7 @@ public class InvarWriteCode extends InvarWrite
         {
             t = t.getRedirect();
             String forShort = null;
-            if (t.getRealId() == TypeID.LIST || t.getRealId() == TypeID.MAP)
+            if (t.getRealId() == TypeID.VEC || t.getRealId() == TypeID.MAP)
                 forShort = t.getName();
             else
             {
@@ -861,8 +862,19 @@ public class InvarWriteCode extends InvarWrite
             public int     numLayer   = 0;
             public String  name       = empty;
             public String  nameOutter = empty;
-            public String  type       = empty;
             public String  init       = empty;
+            private String type       = empty;
+
+            public String getType ()
+            {
+                return type;
+            }
+
+            public void setType (String type)
+            {
+
+                this.type = type.replace(tokenDot, typeSplit);
+            }
         }
 
         private String prefix   = empty;
@@ -896,12 +908,12 @@ public class InvarWriteCode extends InvarWrite
             CodeForParams params = new CodeForParams();
             params.needDefine = needDefine;
             params.needCheck = needCheck;
-            params.type = type;
+            params.setType(type);
             params.name = name;
             params.nameOutter = nameOutter;
             if (Key.PREFIX_READ.equals(prefix))
             {
-                if (TypeID.STRUCT == typeID || TypeID.LIST == typeID || TypeID.MAP == typeID)
+                if (TypeID.STRUCT == typeID || TypeID.VEC == typeID || TypeID.MAP == typeID)
                     params.init = replace(snippetGet(Key.INIT_STRUCT), tokenType, type);
                 else
                     params.init = empty;
@@ -944,7 +956,7 @@ public class InvarWriteCode extends InvarWrite
         private void makeField (TypeID type, String rule, CodeForParams p, List<String> lines)
         {
             String code = null;
-            if (TypeID.LIST == type)
+            if (TypeID.VEC == type)
                 code = makeFieldVec(p, rule);
             else if (TypeID.MAP == type)
                 code = makeFieldMap(p, rule);
@@ -961,7 +973,7 @@ public class InvarWriteCode extends InvarWrite
             {
                 if (!p.init.equals(empty))
                 {
-                    s = makeCodeAssignment(p.type, p.name, p.init);
+                    s = makeCodeAssignment(p.getType(), p.name, p.init);
                 }
                 else
                 {
@@ -978,7 +990,7 @@ public class InvarWriteCode extends InvarWrite
                 s += snippetGet(prefix + type.getName());
             }
             s = replace(s, tokenName, p.name);
-            s = replace(s, tokenType, p.type);
+            s = replace(s, tokenType, p.getType());
             return s;
         }
 
@@ -989,9 +1001,9 @@ public class InvarWriteCode extends InvarWrite
             String nameItem = "v" + p.numLayer;
             String head = empty;
             if (p.needDefine)
-                head += makeCodeAssignment(p.type, p.name, p.init);
+                head += makeCodeAssignment(p.getType(), p.name, p.init);
             String body = makeGeneric(R, p, nameItem, true, indexer);
-            return head + makeCodeFor(TypeID.LIST, body, p, nameItem, empty, empty);
+            return head + makeCodeFor(TypeID.VEC, body, p, nameItem, empty, empty);
         }
 
         private String makeFieldMap (CodeForParams p, String rule)
@@ -1011,7 +1023,7 @@ public class InvarWriteCode extends InvarWrite
                 body += makeGeneric(ruleV, p, nameVal, true, nameKey);
                 String head = empty;
                 if (p.needDefine)
-                    head += makeCodeAssignment(p.type, p.name, p.init);
+                    head += makeCodeAssignment(p.getType(), p.name, p.init);
                 return head + makeCodeFor(TypeID.MAP, body, p, nameVal, nameKey, empty);
             }
             else
@@ -1022,9 +1034,9 @@ public class InvarWriteCode extends InvarWrite
                 String nameLen = "len" + upperHeadChar(p.nameOutter);
                 String head = empty;
                 if (p.needDefine)
-                    head += makeCodeAssignment(p.type, p.nameOutter, p.init);
+                    head += makeCodeAssignment(p.getType(), p.nameOutter, p.init);
                 p.name = nameKey;
-                p.type = ruleK;
+                p.setType(ruleK);
                 return head + makeCodeFor(TypeID.MAP, body, p, nameVal, nameKey, nameLen);
             }
         }
@@ -1050,7 +1062,7 @@ public class InvarWriteCode extends InvarWrite
             String s = snippetGet(prefix + type.getName() + ".for");
             s = replace(s, tokenBody, body);
             //
-            s = replace(s, tokenType, params.type);
+            s = replace(s, tokenType, params.getType());
             s = replace(s, tokenName, params.name);
             s = replace(s, tokenNameUpper, params.nameOutter);
             //

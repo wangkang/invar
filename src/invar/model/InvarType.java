@@ -5,10 +5,10 @@ public class InvarType
     static public enum TypeID
     {
         STRUCT("struct"), ENUM("enum"), PROTOCOL("protoc"), //
-        INT8("int8"), INT16("int16"), INT32("int32"), INT64("int64"), //
-        UINT8("uint8"), UINT16("uint16"), UINT32("uint32"), UINT64("uint64"), //
+        INT08("int8"), INT16("int16"), INT32("int32"), INT64("int64"), //
+        UINT08("uint8"), UINT16("uint16"), UINT32("uint32"), UINT64("uint64"), //
         FLOAT("float"), DOUBLE("double"), BOOL("bool"), //
-        STRING("string"), LIST("vec", "<?>"), MAP("map", "<?,?>"), GHOST("sham");//
+        STRING("string"), VEC("vec", "<?>"), MAP("map", "<?,?>"), GHOST("*");//
 
         private TypeID(String name)
         {

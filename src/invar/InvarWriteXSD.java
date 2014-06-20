@@ -23,11 +23,11 @@ public class InvarWriteXSD
     public InvarWriteXSD()
     {
         TreeMap<TypeID,String> map = new TreeMap<TypeID,String>();
-        map.put(TypeID.INT8, "xs:byte");
+        map.put(TypeID.INT08, "xs:byte");
         map.put(TypeID.INT16, "xs:short");
         map.put(TypeID.INT32, "xs:int");
         map.put(TypeID.INT64, "xs:long");
-        map.put(TypeID.UINT8, "xs:unsignedByte");
+        map.put(TypeID.UINT08, "xs:unsignedByte");
         map.put(TypeID.UINT16, "xs:unsignedShort");
         map.put(TypeID.UINT32, "xs:unsignedInt");
         map.put(TypeID.UINT64, "xs:unsignedLong");

@@ -19,13 +19,13 @@
 	//
 	//===----------------------------------------------------------------------===//
 	(#blank)
-	#ifndef _(#define)_IMPL_
-	#define _(#define)_IMPL_
+	#ifndef IMPL_(#define)_
+	#define IMPL_(#define)_
 	(#blank)
 	(#includes)
 	(#pack)
 	(#blank)
-	#endif //_(#define)_IMPL_]]></template>
+	#endif //IMPL_(#define)_]]></template>
   
   <template key="file.include"><![CDATA[#include (#name)(#brk)]]></template>
  
@@ -127,7 +127,7 @@
   <template key="read.double"><![CDATA[(#name) = stream.ReadDouble();]]></template>
   <template key="read.string"><![CDATA[(#name) = stream.ReadString();]]></template>
   <template key="read.bool"><![CDATA[(#name) = stream.ReadBoolean();]]></template>
-  <template key="read.enum"><![CDATA[(#name) = ((#type))Enum.ToObject(typeof((#type)), stream.ReadInt32());]]></template>
+  <template key="read.enum"><![CDATA[(#name) = ((#type))stream.ReadInt32();]]></template>
   <template key="read.struct"><![CDATA[(#name).Decode(stream);]]></template>
   <template key="read.struct.check"><![CDATA[
   if (stream.ReadByte() == 0x01)
@@ -152,7 +152,7 @@
   int32_t (#len) = stream.ReadInt32();
   for ((#sizetype) (#index) = 0; (#index) < (#len); (#index)++) //read.map.for
   {(#body)
-  (#tab)(#name).Add((#key),(#value));
+  (#tab)(#name).insert((#key),(#value));
   }
   ]]></template>
   
@@ -177,17 +177,17 @@
   <template key="write.double"><![CDATA[stream.Write((#name));]]></template>
   <template key="write.string"><![CDATA[stream.Write((#name));]]></template>
   <template key="write.bool"><![CDATA[stream.Write((#name));]]></template>
-  <template key="write.enum"><![CDATA[stream.Write((Int32)(#name));]]></template>
+  <template key="write.enum"><![CDATA[stream.Write((std::int32_t)(#name));]]></template>
   <template key="write.struct"><![CDATA[(#name).Encode(stream);]]></template>
   <template key="write.struct.check"><![CDATA[
-  if ((#name) != null)
+  if ((#name) != NULL)
   {
-  (#tab)stream.Write((Byte)0x01);
-  (#tab)(#name).Write(stream);
+  (#tab)stream.Write((std::int8_t)0x01);
+  (#tab)(#name).Encode(stream);
   }
   else
   {
-  (#tab)stream.Write((Byte)0x00);
+  (#tab)stream.Write((std::int8_t)0x00);
   }
   ]]></template>
   <template key="write.size.init"><![CDATA[(#name).Count]]></template>

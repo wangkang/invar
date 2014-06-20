@@ -107,21 +107,6 @@ final public class InvarReadRule
     static private final String ATTR_ENUM_VAL       = "value";
     static private final String XML_NODE_CLIENT     = "client";
     static private final String XML_NODE_SERVER     = "server";
-    //Build in types
-    static private final String BI_INT8             = "int8";
-    static private final String BI_INT16            = "int16";
-    static private final String BI_INT32            = "int32";
-    static private final String BI_INT64            = "int64";
-    static private final String BI_UINT8            = "uint8";
-    static private final String BI_UINT16           = "uint16";
-    static private final String BI_UINT32           = "uint32";
-    static private final String BI_UINT64           = "uint64";
-    static private final String BI_FLOAT            = "float";
-    static private final String BI_DOUBLE           = "double";
-    static private final String BI_BOOL             = "bool";
-    static private final String BI_STRING           = "string";
-    static private final String BI_MAP              = "map";
-    static private final String BI_VECTOR           = "vec";
     //User custom types, will be write to code file.
     static private final String EXT_ENUM            = "Enum";
     static private final String EXT_STRUCT          = "Struct";
@@ -130,21 +115,20 @@ final public class InvarReadRule
     static public TreeMap<TypeID,String> makeTypeIdMap ()
     {
         TreeMap<TypeID,String> map = new TreeMap<TypeID,String>();
-        map.put(TypeID.INT8, BI_INT8);
-        map.put(TypeID.INT16, BI_INT16);
-        map.put(TypeID.INT32, BI_INT32);
-        map.put(TypeID.INT64, BI_INT64);
-        map.put(TypeID.UINT8, BI_UINT8);
-        map.put(TypeID.UINT16, BI_UINT16);
-        map.put(TypeID.UINT32, BI_UINT32);
-        map.put(TypeID.UINT64, BI_UINT64);
-        map.put(TypeID.FLOAT, BI_FLOAT);
-        map.put(TypeID.DOUBLE, BI_DOUBLE);
-        map.put(TypeID.BOOL, BI_BOOL);
-        map.put(TypeID.STRING, BI_STRING);
-        map.put(TypeID.MAP, BI_MAP);
-        map.put(TypeID.LIST, BI_VECTOR);
-        map.put(TypeID.GHOST, TypeID.GHOST.getName());
+        map.put(TypeID.INT08, TypeID.INT08.getName());
+        map.put(TypeID.INT16, TypeID.INT16.getName());
+        map.put(TypeID.INT32, TypeID.INT32.getName());
+        map.put(TypeID.INT64, TypeID.INT64.getName());
+        map.put(TypeID.UINT08, TypeID.UINT08.getName());
+        map.put(TypeID.UINT16, TypeID.UINT16.getName());
+        map.put(TypeID.UINT32, TypeID.UINT32.getName());
+        map.put(TypeID.UINT64, TypeID.UINT64.getName());
+        map.put(TypeID.FLOAT, TypeID.FLOAT.getName());
+        map.put(TypeID.DOUBLE, TypeID.DOUBLE.getName());
+        map.put(TypeID.BOOL, TypeID.BOOL.getName());
+        map.put(TypeID.STRING, TypeID.STRING.getName());
+        map.put(TypeID.MAP, TypeID.MAP.getName());
+        map.put(TypeID.VEC, TypeID.VEC.getName());
         return map;
     }
 
@@ -157,7 +141,7 @@ final public class InvarReadRule
         while (i.hasNext())
         {
             TypeID key = i.next();
-            if (TypeID.LIST == key)
+            if (TypeID.VEC == key)
                 continue;
             if (TypeID.MAP == key)
                 continue;
@@ -452,21 +436,21 @@ final public class InvarReadRule
             String name = nameTypes[i];
             names.add(name);
             InvarType type = searchType(name, n);
-            if (TypeID.LIST == type.getId())
+            if (TypeID.VEC == type.getId())
             {
                 if (i == len - 1)
-                    names.add(BI_INT32);
+                    names.add(TypeID.INT32.getName());
             }
             else if (TypeID.MAP == type.getId())
             {
                 if (i == len - 1)
                 {
-                    names.add(BI_STRING);
-                    names.add(BI_INT32);
+                    names.add(TypeID.STRING.getName());
+                    names.add(TypeID.INT32.getName());
                 }
                 else if (i == len - 2)
                 {
-                    names.add(BI_STRING);
+                    names.add(TypeID.STRING.getName());
                 }
             }
             else

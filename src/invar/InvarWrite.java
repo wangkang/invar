@@ -43,6 +43,7 @@ abstract public class InvarWrite
     private Boolean                         flattenCodeDir;
     private Boolean                         onePackOneFile;
     private Boolean                         lowerFileName;
+    private Boolean                         traceAllTypes;
 
     public InvarWrite(InvarContext context, String dirRootPath)
     {
@@ -153,7 +154,8 @@ abstract public class InvarWrite
 
     private void startWritting (String suffix) throws Exception
     {
-        System.out.println(dumpTypeAll().toString());
+        if (getTraceAllTypes())
+            System.out.println(dumpTypeAll().toString());
         HashMap<File,String> files = new LinkedHashMap<File,String>();
         Iterator<String> i = getContext().getPackNames();
         while (i.hasNext())
@@ -400,11 +402,8 @@ abstract public class InvarWrite
                     String namePack = typeR.getPack().getName();
                     if (!namePack.equals(""))
                         s.append(namePack + ".");
-
                     String nameR = typeR.getName() + typeR.getGeneric();
-
                     s.append(fixedLen(32, nameR));
-
                     s.append(type.getCodePath());
                 }
                 s.append("\n");
@@ -585,46 +584,56 @@ abstract public class InvarWrite
         this.lowerFileName = lowerFileName;
     }
 
-    final static protected String empty          = "";
-    final static protected String whiteSpace     = " ";
-    final static protected String br             = "\n";
-    final static protected String indent         = whiteSpace + whiteSpace + whiteSpace + whiteSpace;
-    final static protected String typeSplit      = "::";
+    public Boolean getTraceAllTypes ()
+    {
+        return traceAllTypes;
+    }
 
-    final static protected String tokenDot       = "\\.";
-    final static protected String tokenPrefix    = "\\(#";
-    final static protected String tokenSuffix    = "\\)";
-    final static protected String tokenBr        = tokenPrefix + "brk" + tokenSuffix;
-    final static protected String tokenIndent    = tokenPrefix + "tab" + tokenSuffix;
-    final static protected String tokenBlank     = tokenPrefix + "blank" + tokenSuffix;
+    public void setTraceAllTypes (Boolean traceAllTypes)
+    {
+        this.traceAllTypes = traceAllTypes;
+    }
 
-    final static protected String tokenDoc       = tokenPrefix + "doc" + tokenSuffix;
-    final static protected String tokenMeta      = tokenPrefix + "meta" + tokenSuffix;
-    final static protected String tokenKey       = tokenPrefix + "key" + tokenSuffix;
-    final static protected String tokenValue     = tokenPrefix + "value" + tokenSuffix;
+    final static String empty          = "";
+    final static String whiteSpace     = " ";
+    final static String br             = "\n";
+    final static String indent         = whiteSpace + whiteSpace + whiteSpace + whiteSpace;
+    final static String typeSplit      = "::";
 
-    final static protected String tokenDefine    = tokenPrefix + "define" + tokenSuffix;
-    final static protected String tokenImport    = tokenPrefix + "import" + tokenSuffix;
-    final static protected String tokenIncludes  = tokenPrefix + "includes" + tokenSuffix;
-    final static protected String tokenEnums     = tokenPrefix + "enums" + tokenSuffix;
-    final static protected String tokenStructs   = tokenPrefix + "structs" + tokenSuffix;
-    final static protected String tokenFields    = tokenPrefix + "fields" + tokenSuffix;
-    final static protected String tokenSetters   = tokenPrefix + "setters" + tokenSuffix;
-    final static protected String tokenGetters   = tokenPrefix + "getters" + tokenSuffix;
-    final static protected String tokenEncoder   = tokenPrefix + "encoder" + tokenSuffix;
-    final static protected String tokenDecoder   = tokenPrefix + "decoder" + tokenSuffix;
-    final static protected String tokenBody      = tokenPrefix + "body" + tokenSuffix;
+    final static String tokenDot       = "\\.";
+    final static String tokenPrefix    = "\\(#";
+    final static String tokenSuffix    = "\\)";
+    final static String tokenBr        = tokenPrefix + "brk" + tokenSuffix;
+    final static String tokenIndent    = tokenPrefix + "tab" + tokenSuffix;
+    final static String tokenBlank     = tokenPrefix + "blank" + tokenSuffix;
 
-    final static protected String tokenPack      = tokenPrefix + "pack" + tokenSuffix;
-    final static protected String tokenType      = tokenPrefix + "type" + tokenSuffix;
-    final static protected String tokenTypeHost  = tokenPrefix + "typehost" + tokenSuffix;
-    final static protected String tokenTypeSize  = tokenPrefix + "sizetype" + tokenSuffix;
-    final static protected String tokenName      = tokenPrefix + "name" + tokenSuffix;
-    final static protected String tokenNameUpper = tokenPrefix + "nameupper" + tokenSuffix;
-    final static protected String tokenIndex     = tokenPrefix + "index" + tokenSuffix;
-    final static protected String tokenLen       = tokenPrefix + "len" + tokenSuffix;
+    final static String tokenDoc       = tokenPrefix + "doc" + tokenSuffix;
+    final static String tokenMeta      = tokenPrefix + "meta" + tokenSuffix;
+    final static String tokenKey       = tokenPrefix + "key" + tokenSuffix;
+    final static String tokenValue     = tokenPrefix + "value" + tokenSuffix;
 
-    final protected class Key
+    final static String tokenDefine    = tokenPrefix + "define" + tokenSuffix;
+    final static String tokenImport    = tokenPrefix + "import" + tokenSuffix;
+    final static String tokenIncludes  = tokenPrefix + "includes" + tokenSuffix;
+    final static String tokenEnums     = tokenPrefix + "enums" + tokenSuffix;
+    final static String tokenStructs   = tokenPrefix + "structs" + tokenSuffix;
+    final static String tokenFields    = tokenPrefix + "fields" + tokenSuffix;
+    final static String tokenSetters   = tokenPrefix + "setters" + tokenSuffix;
+    final static String tokenGetters   = tokenPrefix + "getters" + tokenSuffix;
+    final static String tokenEncoder   = tokenPrefix + "encoder" + tokenSuffix;
+    final static String tokenDecoder   = tokenPrefix + "decoder" + tokenSuffix;
+    final static String tokenBody      = tokenPrefix + "body" + tokenSuffix;
+
+    final static String tokenPack      = tokenPrefix + "pack" + tokenSuffix;
+    final static String tokenType      = tokenPrefix + "type" + tokenSuffix;
+    final static String tokenTypeHost  = tokenPrefix + "typehost" + tokenSuffix;
+    final static String tokenTypeSize  = tokenPrefix + "sizetype" + tokenSuffix;
+    final static String tokenName      = tokenPrefix + "name" + tokenSuffix;
+    final static String tokenNameUpper = tokenPrefix + "nameupper" + tokenSuffix;
+    final static String tokenIndex     = tokenPrefix + "index" + tokenSuffix;
+    final static String tokenLen       = tokenPrefix + "len" + tokenSuffix;
+
+    final class Key
     {
         final static public String CODE_DIR_FLATTEN    = "code.dir.flatten";
         final static public String CODE_DIR_PREFIX     = "code.dir.prefix";

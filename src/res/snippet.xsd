@@ -37,7 +37,7 @@
 			<xs:element minOccurs="0" maxOccurs="unbounded" name="bool" type="tns:redefine.item"/>
 			<xs:element minOccurs="0" maxOccurs="unbounded" name="vec" type="tns:redefine.item"/>
 			<xs:element minOccurs="0" maxOccurs="unbounded" name="map" type="tns:redefine.item"/>
-			<xs:element minOccurs="0" maxOccurs="unbounded" name="sham" type="tns:redefine.item"/>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="ghost" type="tns:redefine.item"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="redefine.item">

@@ -2,7 +2,8 @@
 <tns:root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="invar.template ../snippet.xsd"
   xmlns:tns="invar.template" language="cpp">
   
-  <!-- Redefine 14 Invar buildin types to adapt current language  -->
+  <export resPath="/res/cpp/invar.codec.h" destDir="" destName="invar.codec.h"/>
+  
   <redefine>
     <int8 include="&lt;cstdint&gt;" pack="" type="std::int8_t" initValue="-1"/>
     <int16 include="&lt;cstdint&gt;" pack="" type="std::int16_t" initValue="-1"/>
@@ -18,10 +19,11 @@
     <bool pack="" type="bool" initValue="false"/>
     <vec include="&lt;vector&gt;" pack="" type="std::vector" generic=" &lt; ? &gt;" initValue=""/>
     <map include="&lt;map&gt;" pack="" type="std::map" generic=" &lt; ?, ? &gt;" initValue=""/>
-    <sham include="&quot;ggg&quot;" pack="" type="ggc" generic=" &lt; ?, ? &gt;" initValue=""/>
-    <sham include="&quot;ggg&quot;" pack="" type="ggg" generic=" &lt; ?, ? &gt;" initValue=""/>
+    <ghost include="&quot;invar.codec.h&quot;" pack="invar" type="BinaryWriter" generic="" initValue=""/>
+    <ghost include="&quot;invar.codec.h&quot;" pack="invar" type="BinaryReader" generic="" initValue=""/>
   </redefine>
   
+  <template key="trace.all.types"><![CDATA[true]]></template>
   <template key="pack.name.nested"><![CDATA[true]]></template>
   <template key="file.name.lowercase"><![CDATA[true]]></template>
   <template key="capitalize.pack.head"><![CDATA[false]]></template>
@@ -32,6 +34,10 @@
   <template key="code.dir.prefix"><![CDATA[include/]]></template>
   
   
+  <template key="null.struct"><![CDATA[NULL]]></template>
+  <template key="null.byte.yes"><![CDATA[(std::int8_t)0x01]]></template>
+  <template key="null.byte.no"><![CDATA[(std::int8_t)0x00]]></template>
+  <template key="type.enum"><![CDATA[int32]]></template>
   <template key="file"><![CDATA[
 	(#blank)
 	//===----------------------------*  C++  *---------------------------------===//
@@ -40,14 +46,14 @@
 	//
 	//===----------------------------------------------------------------------===//
 	(#blank)
-	#ifndef _(#define)_
-	#define _(#define)_
+	#ifndef (#define)_
+	#define (#define)_
 	(#blank)
-	#include "include/invar.binary.codec.h"
+	#include "include/invar.codec.h"
 	(#includes)
 	(#pack)
 	(#blank)
-	#endif //_(#define)_]]></template>
+	#endif //(#define)_]]></template>
  
   <template key="file.include"><![CDATA[#include (#name)(#brk)]]></template>
   
@@ -58,12 +64,14 @@
   
   <template key="file.body"><![CDATA[
 	(#blank)
+	using namespace invar;
 	(#import)(#enums)(#structs)]]></template>
   
   <template key="enum"><![CDATA[
 	(#brk)(#doc)
 	enum (#name) : std::int32_t
 	{
+		(#blank)
 		(#body)
 	}; //enum: (#name)
   ]]></template>

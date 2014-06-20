@@ -39,10 +39,13 @@ final public class InvarContext
             String name = map.get(id);
             InvarType type = new InvarType(id, name, pack, name + "[buildin]");
             pack.put(type);
-            if (TypeID.LIST == id)
+            if (TypeID.VEC == id)
                 type.setGeneric("<?>");
             else if (TypeID.MAP == id)
                 type.setGeneric("<?,?>");
+            else
+            {
+            }
         }
         packAll.put(pack.getName(), pack);
         return pack;
@@ -68,7 +71,6 @@ final public class InvarContext
         type.setInitSuffix(initSuffix);
         type.setInitPrefix(initPrefix);
         type.setCodePath(codePath);
-
         typeGhost.setCodePath(codePath);
         typeWithAlias.put(type.getName(), typeGhost);
         return this;
