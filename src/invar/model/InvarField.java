@@ -90,7 +90,8 @@ public class InvarField
         String s = typeBasic.getGeneric();
         for (InvarType t : getGenerics())
         {
-            s = s.replaceFirst("\\?", t.fullName(split) + t.getGeneric());
+            String name = t.fullName(split);
+            s = s.replaceFirst("\\?", name + t.getGeneric());
         }
         return typeBasic.fullName(split) + s;
     }

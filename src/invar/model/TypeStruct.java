@@ -17,7 +17,7 @@ public class TypeStruct extends InvarType
 
     public TypeStruct(String name, InvarPackage pack, String comment)
     {
-        super(TypeID.STRUCT, name, pack, comment);
+        super(TypeID.STRUCT, name, pack, comment, false);
         fields = new LinkedHashMap<String,InvarField>();
         setCharset("UTF-8");
         setAlias("");

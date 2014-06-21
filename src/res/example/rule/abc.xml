@@ -44,5 +44,8 @@
     <field name="mapInfoG" type="Map-Info-Gender" doc=""/>
     <field name="mapGenderInfo" type="Map-Gender-Info" doc=""/>
     <field name="mapDouble" type="Map-Double" doc=""/>
+    <!-- 
+    <field name="mapDouble2" type="Map(Int32,Vec(Info))" doc=""/>
+    -->
   </struct>
 </tns:package>

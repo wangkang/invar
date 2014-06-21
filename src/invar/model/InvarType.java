@@ -7,8 +7,10 @@ public class InvarType
         STRUCT("struct"), ENUM("enum"), PROTOCOL("protoc"), //
         INT08("int8"), INT16("int16"), INT32("int32"), INT64("int64"), //
         UINT08("uint8"), UINT16("uint16"), UINT32("uint32"), UINT64("uint64"), //
-        FLOAT("float"), DOUBLE("double"), BOOL("bool"), //
-        STRING("string"), VEC("vec", "<?>"), MAP("map", "<?,?>"), GHOST("*");//
+        FLOAT("float"), DOUBLE("double"), BOOL("bool"), STRING("string"), //
+        VEC("vec", "<?>"), MAP("map", "<?,?>"), //
+        FUNC("func", "<?...>"), //
+        GHOST("*");//
 
         private TypeID(String name)
         {
@@ -40,6 +42,7 @@ public class InvarType
     private final InvarPackage pack;
     private final String       name;
     private final String       comment;
+    private final Boolean      isBuildin;
     private Boolean            isConflict;
     private TypeID             realId;
     private InvarType          redirect;
@@ -50,7 +53,7 @@ public class InvarType
     private String             codePath;
     private String             codeName;
 
-    public InvarType(TypeID id, String name, InvarPackage pack, String comment)
+    public InvarType(TypeID id, String name, InvarPackage pack, String comment, Boolean isBuildin)
     {
         this.id = id;
         this.name = name;
@@ -63,17 +66,13 @@ public class InvarType
         this.codePath = "";
         this.codeName = name;
         this.isConflict = false;
-    }
-
-    final public String fullName ()
-    {
-        return (pack.getName() != "") ? pack.getName() + "." + name : name;
+        this.isBuildin = isBuildin;
     }
 
     final public String fullName (String splitter)
     {
         String packName = pack.getName().replaceAll("\\.", splitter);
-        return (packName != "") ? packName + splitter + name : name;
+        return !getIsBuildin() && !packName.equals("") ? packName + splitter + name : name;
     }
 
     final public TypeID getId ()
@@ -185,4 +184,10 @@ public class InvarType
     {
         this.codeName = codeName;
     }
+
+    public Boolean getIsBuildin ()
+    {
+        return isBuildin;
+    }
+
 }

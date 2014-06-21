@@ -132,9 +132,9 @@
   <template key="read.struct.check"><![CDATA[
   if (stream.ReadByte() == 0x01)
   {
-  (#tab)if ((#name) == null)
+  (#tab)if ((#name) == NULL)
   (#tab)(#tab)(#name) = new (#type)();
-  (#tab)(#name).Read(stream);
+  (#tab)(#name).Decode(stream);
   }
   ]]></template>
   <template key="read.size.init"><![CDATA[stream.ReadInt32();]]></template>
@@ -152,7 +152,7 @@
   int32_t (#len) = stream.ReadInt32();
   for ((#sizetype) (#index) = 0; (#index) < (#len); (#index)++) //read.map.for
   {(#body)
-  (#tab)(#name).insert((#key),(#value));
+  (#tab)(#name).insert((#typeupper)::value_type((#key),(#value)));
   }
   ]]></template>
   
@@ -192,7 +192,7 @@
   ]]></template>
   <template key="write.size.init"><![CDATA[(#name).Count]]></template>
   <template key="write.vec.for"><![CDATA[
-  int32_t (#len) = (#name).Count;
+  int32_t (#len) = (#name).size();
   stream.Write((#len));
   for ((#sizetype) (#index) = 0; (#index) < (#len); (#index)++) //write.vec.for
   {(#body)
@@ -200,11 +200,14 @@
   ]]></template>
   <template key="write.map.keys"><![CDATA[Keys]]></template>
   <template key="write.map.for"><![CDATA[
-  int32_t (#len) = (#nameupper).Count;
-  stream.Write((#len));
-  foreach ((#type) (#name) in (#nameupper).Keys) //write.map.for
-  {(#body)
-  }
+	(#blank)
+	int32_t (#len) = (#nameupper).size();
+	stream.Write((#len));
+	(#typeupper)::iterator iter(#nameupper);
+	for (iter(#nameupper) = (#nameupper).begin(); iter(#nameupper) != (#nameupper).end(); iter(#nameupper)++) //write.map.for
+	{
+	(#tab)(#type) (#name) = iter(#nameupper)->first;(#body)
+	}
   ]]></template>
   
   

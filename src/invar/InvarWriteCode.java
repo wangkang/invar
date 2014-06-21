@@ -21,6 +21,7 @@ import org.w3c.dom.NodeList;
 
 public class InvarWriteCode extends InvarWrite
 {
+    private static String                packSplit       = "::";
     private Integer                      methodIndentNum = 1;
     private Boolean                      packNameNested  = false;
 
@@ -649,7 +650,7 @@ public class InvarWriteCode extends InvarWrite
             InvarType buildInT = c.findBuildInType(typeName);
             if (buildInT == null)
             {
-                getContext().ghostAdd(pack, type, generic, TypeID.GHOST);
+                getContext().ghostAdd(pack, type, generic, TypeID.GHOST, false);
                 continue;
             }
             TypeID id = buildInT.getId();
@@ -824,7 +825,7 @@ public class InvarWriteCode extends InvarWrite
 
     static private String createShortRule (InvarField f, InvarContext ctx)
     {
-        String split = ".";
+        String split = packSplit;
         InvarType typeBasic = f.getType().getRedirect();
         if (f.getGenerics().size() == 0)
         {
@@ -849,7 +850,10 @@ public class InvarWriteCode extends InvarWrite
             }
             s = s.replaceFirst("\\?", forShort + t.getRealId().getGeneric());
         }
-        return typeBasic.getName() + s;
+        String rule = typeBasic.getName() + s;
+        //String rule = typeBasic.getRedirect().getName() + s;
+        System.out.println("InvarWriteCode.createShortRule() " + rule);
+        return rule;
 
     }
 
@@ -862,6 +866,7 @@ public class InvarWriteCode extends InvarWrite
             public int     numLayer   = 0;
             public String  name       = empty;
             public String  nameOutter = empty;
+            public String  typeOutter = empty;
             public String  init       = empty;
             private String type       = empty;
 
@@ -903,6 +908,7 @@ public class InvarWriteCode extends InvarWrite
                                           String type,
                                           String name,
                                           String nameOutter,
+                                          String typeOutter,
                                           String indexer)
         {
             CodeForParams params = new CodeForParams();
@@ -911,6 +917,7 @@ public class InvarWriteCode extends InvarWrite
             params.setType(type);
             params.name = name;
             params.nameOutter = nameOutter;
+            params.typeOutter = typeOutter;
             if (Key.PREFIX_READ.equals(prefix))
             {
                 if (TypeID.STRUCT == typeID || TypeID.VEC == typeID || TypeID.MAP == typeID)
@@ -935,7 +942,7 @@ public class InvarWriteCode extends InvarWrite
                 return empty;
             }
             TypeID type = t.getRealId();
-            CodeForParams p = makeParams(type, needDef, false, rule, name, params.name, indexer);
+            CodeForParams p = makeParams(type, needDef, false, rule, name, params.name, params.type, indexer);
             List<String> body = new ArrayList<String>();
             p.numLayer = params.numLayer + 1;
             makeField(type, rule, p, body);
@@ -947,7 +954,7 @@ public class InvarWriteCode extends InvarWrite
             String rule = createShortRule(f, getContext());
             TypeID type = f.getType().getRealId();
             List<String> lines = new ArrayList<String>();
-            CodeForParams params = makeParams(type, false, true, rule, f.getKey(), f.getKey(), empty);
+            CodeForParams params = makeParams(type, false, true, rule, f.getKey(), f.getKey(), rule, empty);
             params.numLayer = 1;
             makeField(type, rule, params, lines);
             return lines;
@@ -1030,6 +1037,7 @@ public class InvarWriteCode extends InvarWrite
             {
                 body += makeGeneric(ruleK, p, nameKey, false, indexer);
                 body += makeGeneric(ruleV, p, nameVal, true, nameKey);
+                p.typeOutter = p.type;
                 p.nameOutter = p.name;
                 String nameLen = "len" + upperHeadChar(p.nameOutter);
                 String head = empty;
@@ -1064,6 +1072,7 @@ public class InvarWriteCode extends InvarWrite
             //
             s = replace(s, tokenType, params.getType());
             s = replace(s, tokenName, params.name);
+            s = replace(s, tokenTypeUpper, params.typeOutter);
             s = replace(s, tokenNameUpper, params.nameOutter);
             //
             s = replace(s, tokenTypeSize, sizeType);

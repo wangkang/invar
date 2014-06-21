@@ -538,7 +538,7 @@ abstract public class InvarWrite
             {
                 String typeName = iTypeName.next();
                 InvarType type = pack.getType(typeName);
-                typeForShort.put(type.fullName(), type);
+                typeForShort.put(type.fullName(typeSplit), type);
                 typeForShort.put(type.getName(), type);
             }
         }
@@ -601,37 +601,41 @@ abstract public class InvarWrite
     final static String typeSplit      = "::";
 
     final static String tokenDot       = "\\.";
-    final static String tokenPrefix    = "\\(#";
-    final static String tokenSuffix    = "\\)";
-    final static String tokenBr        = tokenPrefix + "brk" + tokenSuffix;
-    final static String tokenIndent    = tokenPrefix + "tab" + tokenSuffix;
-    final static String tokenBlank     = tokenPrefix + "blank" + tokenSuffix;
+    final static String tokenBr        = wrapToken("brk");
+    final static String tokenIndent    = wrapToken("tab");
+    final static String tokenBlank     = wrapToken("blank");
 
-    final static String tokenDoc       = tokenPrefix + "doc" + tokenSuffix;
-    final static String tokenMeta      = tokenPrefix + "meta" + tokenSuffix;
-    final static String tokenKey       = tokenPrefix + "key" + tokenSuffix;
-    final static String tokenValue     = tokenPrefix + "value" + tokenSuffix;
+    final static String tokenDoc       = wrapToken("doc");
+    final static String tokenMeta      = wrapToken("meta");
+    final static String tokenKey       = wrapToken("key");
+    final static String tokenValue     = wrapToken("value");
 
-    final static String tokenDefine    = tokenPrefix + "define" + tokenSuffix;
-    final static String tokenImport    = tokenPrefix + "import" + tokenSuffix;
-    final static String tokenIncludes  = tokenPrefix + "includes" + tokenSuffix;
-    final static String tokenEnums     = tokenPrefix + "enums" + tokenSuffix;
-    final static String tokenStructs   = tokenPrefix + "structs" + tokenSuffix;
-    final static String tokenFields    = tokenPrefix + "fields" + tokenSuffix;
-    final static String tokenSetters   = tokenPrefix + "setters" + tokenSuffix;
-    final static String tokenGetters   = tokenPrefix + "getters" + tokenSuffix;
-    final static String tokenEncoder   = tokenPrefix + "encoder" + tokenSuffix;
-    final static String tokenDecoder   = tokenPrefix + "decoder" + tokenSuffix;
-    final static String tokenBody      = tokenPrefix + "body" + tokenSuffix;
+    final static String tokenDefine    = wrapToken("define");
+    final static String tokenImport    = wrapToken("import");
+    final static String tokenIncludes  = wrapToken("includes");
+    final static String tokenEnums     = wrapToken("enums");
+    final static String tokenStructs   = wrapToken("structs");
+    final static String tokenFields    = wrapToken("fields");
+    final static String tokenSetters   = wrapToken("setters");
+    final static String tokenGetters   = wrapToken("getters");
+    final static String tokenEncoder   = wrapToken("encoder");
+    final static String tokenDecoder   = wrapToken("decoder");
+    final static String tokenBody      = wrapToken("body");
 
-    final static String tokenPack      = tokenPrefix + "pack" + tokenSuffix;
-    final static String tokenType      = tokenPrefix + "type" + tokenSuffix;
-    final static String tokenTypeHost  = tokenPrefix + "typehost" + tokenSuffix;
-    final static String tokenTypeSize  = tokenPrefix + "sizetype" + tokenSuffix;
-    final static String tokenName      = tokenPrefix + "name" + tokenSuffix;
-    final static String tokenNameUpper = tokenPrefix + "nameupper" + tokenSuffix;
-    final static String tokenIndex     = tokenPrefix + "index" + tokenSuffix;
-    final static String tokenLen       = tokenPrefix + "len" + tokenSuffix;
+    final static String tokenPack      = wrapToken("pack");
+    final static String tokenType      = wrapToken("type");
+    final static String tokenTypeUpper = wrapToken("typeupper");
+    final static String tokenTypeHost  = wrapToken("typehost");
+    final static String tokenTypeSize  = wrapToken("sizetype");
+    final static String tokenName      = wrapToken("name");
+    final static String tokenNameUpper = wrapToken("nameupper");
+    final static String tokenIndex     = wrapToken("index");
+    final static String tokenLen       = wrapToken("len");
+
+    final static String wrapToken (String name)
+    {
+        return "\\(#" + name + "\\)";
+    }
 
     final class Key
     {

@@ -37,7 +37,7 @@ final public class InvarContext
         {
             TypeID id = i.next();
             String name = map.get(id);
-            InvarType type = new InvarType(id, name, pack, name + "[buildin]");
+            InvarType type = new InvarType(id, name, pack, name + "[buildin]", true);
             pack.put(type);
             if (TypeID.VEC == id)
                 type.setGeneric("<?>");
@@ -65,7 +65,7 @@ final public class InvarContext
             return this;
         }
         InvarType type = packBuildIn.getType(id);
-        InvarType typeGhost = ghostAdd(namePack, nameType, generic, id);
+        InvarType typeGhost = ghostAdd(namePack, nameType, generic, id, false);
         type.setRedirect(typeGhost);
         type.setInitValue(initValue);
         type.setInitSuffix(initSuffix);
@@ -76,12 +76,7 @@ final public class InvarContext
         return this;
     }
 
-    public InvarType ghostAdd (String namePack, String nameType, String generic)
-    {
-        return ghostAdd(namePack, nameType, generic, TypeID.STRUCT);
-    }
-
-    public InvarType ghostAdd (String namePack, String nameType, String generic, TypeID realId)
+    public InvarType ghostAdd (String namePack, String nameType, String generic, TypeID realId, Boolean isBuildin)
     {
         InvarPackage pack = packAll.get(namePack);
         if (pack == null)
@@ -89,7 +84,7 @@ final public class InvarContext
             pack = new InvarPackage(namePack, false);
             packAll.put(namePack, pack);
         }
-        InvarType t = new InvarType(TypeID.GHOST, nameType, pack, "");
+        InvarType t = new InvarType(TypeID.GHOST, nameType, pack, "", isBuildin);
         t.setGeneric(generic);
         t.setRealId(realId);
         pack.put(t);

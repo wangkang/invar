@@ -139,9 +139,16 @@
 					<xs:pattern value="(Vec\-)+[A-Za-z]+[A-Za-z0-9_.:]*" />
 				</xs:restriction>
 			</xs:simpleType>
+			
 			<xs:simpleType>
 				<xs:restriction base="xs:string">
-					<xs:pattern value="(Map\-)+[A-Za-z]+[A-Za-z0-9_.:]*" />
+					<xs:pattern value="(Map)+(\()[A-Za-z]+[A-Za-z0-9_.:,\(\)]*\)" />
+				</xs:restriction>
+			</xs:simpleType>
+			
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:pattern value="(Map\-)+[A-Za-z]+[A-Za-z0-9_.:\(\)]*" />
 				</xs:restriction>
 			</xs:simpleType>
 			<xs:simpleType>
