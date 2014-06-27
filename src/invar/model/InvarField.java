@@ -9,6 +9,7 @@ public class InvarField
     private final LinkedList<InvarType> generics;
     private final String                key;
     private final String                comment;
+    private final Boolean               isStructSelf;
     private String                      shortName;
     private String                      defaultVal;
     private Boolean                     encode;
@@ -20,12 +21,13 @@ public class InvarField
     private int                         widthKey      = 1;
     private int                         widthDefault  = 1;
 
-    public InvarField(InvarType type, String key, String comment)
+    public InvarField(InvarType type, String key, String comment, Boolean isStructSelf)
     {
         this.type = type;
         this.generics = new LinkedList<InvarType>();
         this.key = key;
         this.comment = comment;
+        this.isStructSelf = isStructSelf;
         this.setEncode(true);
         this.setDecode(true);
         this.setDefault("");
@@ -56,19 +58,18 @@ public class InvarField
         return key;
     }
 
-    public String makeTypeFormatted (InvarContext ctx, String split)
+    public String makeTypeFormatted (InvarContext ctx, String split, Boolean fullName)
     {
         InvarType t = type.getRedirect();
         String tName = t.getName();
-
-        if (ctx.findTypes(t.getName(), true).size() > 1)
+        if (fullName || ctx.findTypes(t.getName(), true).size() > 1)
             tName = t.fullName(split);
 
-        typeFormatted = tName + evalGenerics(ctx, t, split);
+        typeFormatted = tName + evalGenerics(ctx, t, split, fullName);
         return typeFormatted;
     }
 
-    String evalGenerics (InvarContext ctx, InvarType typeBasic, String split)
+    String evalGenerics (InvarContext ctx, InvarType typeBasic, String split, Boolean fullName)
     {
         if (getGenerics().size() == 0)
             return "";
@@ -77,7 +78,7 @@ public class InvarField
         {
             t = t.getRedirect();
             String tName = t.getName();
-            if (ctx.findTypes(t.getName(), true).size() > 1)
+            if (fullName || ctx.findTypes(t.getName(), true).size() > 1)
                 tName = t.fullName(split);
             s = s.replaceFirst("\\?", tName + t.getGeneric());
         }
@@ -189,6 +190,11 @@ public class InvarField
     public void setDeftFormatted (String deftFormatted)
     {
         this.deftFormatted = deftFormatted;
+    }
+
+    public Boolean isStructSelf ()
+    {
+        return isStructSelf;
     }
 
 }

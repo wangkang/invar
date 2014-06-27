@@ -367,15 +367,16 @@ final public class InvarReadRule
         String key = getAttr(n, ATTR_FIELD_NAME);
         String comment = getAttrOptional(n, ATTR_COMMENT);
         InvarField field = null;
+        boolean isStructSelf = (typeBasic == type);
         switch (typeBasic.getId()) {
         case ENUM:
-            field = new InvarField(typeBasic, key, comment);
+            field = new InvarField(typeBasic, key, comment, isStructSelf);
             break;
         case STRUCT:
-            field = new InvarField(typeBasic, key, comment);
+            field = new InvarField(typeBasic, key, comment, isStructSelf);
             break;
         default:
-            field = new InvarField(typeBasic, key, comment);
+            field = new InvarField(typeBasic, key, comment, isStructSelf);
         }
         List<String> names = fixNameTypes(nameTypes, n);
         parseGenerics(field.getGenerics(), names, 1, n);

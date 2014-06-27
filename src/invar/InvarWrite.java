@@ -32,6 +32,7 @@ abstract public class InvarWrite
 
     abstract protected void codeRuntime (String suffix);
 
+    final static String                     typeSplit = "::";
     final private InvarContext              context;
     final private HashMap<String,String>    exports;
     final private HashMap<String,InvarType> typeForShort;
@@ -119,7 +120,7 @@ abstract public class InvarWrite
                     }
                 }
                 String path = flattenCodeDir ? name : type.fullName("/");
-                path = dirPrefix + path;
+                //path = dirPrefix + path;
                 path = wrapCodePath(path);
                 switch (type.getId()) {
                 case ENUM:
@@ -501,11 +502,11 @@ abstract public class InvarWrite
 
     final protected InvarType findType (InvarContext ctx, String fullName)
     {
-        int iEnd = fullName.lastIndexOf(".");
+        int iEnd = fullName.lastIndexOf(typeSplit);
         if (iEnd < 0)
             return ctx.findBuildInType(fullName);
         String packName = fullName.substring(0, iEnd);
-        String typeName = fullName.substring(iEnd + 1);
+        String typeName = fullName.substring(iEnd + typeSplit.length());
         InvarPackage pack = ctx.getPack(packName);
         if (pack == null)
             return null;
@@ -538,14 +539,15 @@ abstract public class InvarWrite
             {
                 String typeName = iTypeName.next();
                 InvarType type = pack.getType(typeName);
-                typeForShort.put(type.fullName(typeSplit), type);
                 typeForShort.put(type.getName(), type);
+                typeForShort.put(type.fullName(typeSplit), type);
             }
         }
     }
 
     final protected InvarType getTypeByShort (String key)
     {
+        key = key.trim();
         return typeForShort.get(key);
     }
 
@@ -592,99 +594,6 @@ abstract public class InvarWrite
     public void setTraceAllTypes (Boolean traceAllTypes)
     {
         this.traceAllTypes = traceAllTypes;
-    }
-
-    final static String empty          = "";
-    final static String whiteSpace     = " ";
-    final static String br             = "\n";
-    final static String indent         = whiteSpace + whiteSpace + whiteSpace + whiteSpace;
-    final static String typeSplit      = "::";
-
-    final static String tokenDot       = "\\.";
-    final static String tokenBr        = wrapToken("brk");
-    final static String tokenIndent    = wrapToken("tab");
-    final static String tokenBlank     = wrapToken("blank");
-
-    final static String tokenDoc       = wrapToken("doc");
-    final static String tokenMeta      = wrapToken("meta");
-    final static String tokenKey       = wrapToken("key");
-    final static String tokenValue     = wrapToken("value");
-
-    final static String tokenDefine    = wrapToken("define");
-    final static String tokenImport    = wrapToken("import");
-    final static String tokenIncludes  = wrapToken("includes");
-    final static String tokenEnums     = wrapToken("enums");
-    final static String tokenStructs   = wrapToken("structs");
-    final static String tokenFields    = wrapToken("fields");
-    final static String tokenSetters   = wrapToken("setters");
-    final static String tokenGetters   = wrapToken("getters");
-    final static String tokenEncoder   = wrapToken("encoder");
-    final static String tokenDecoder   = wrapToken("decoder");
-    final static String tokenBody      = wrapToken("body");
-
-    final static String tokenPack      = wrapToken("pack");
-    final static String tokenType      = wrapToken("type");
-    final static String tokenTypeUpper = wrapToken("typeupper");
-    final static String tokenTypeHost  = wrapToken("typehost");
-    final static String tokenTypeSize  = wrapToken("sizetype");
-    final static String tokenName      = wrapToken("name");
-    final static String tokenNameUpper = wrapToken("nameupper");
-    final static String tokenIndex     = wrapToken("index");
-    final static String tokenLen       = wrapToken("len");
-
-    final static String wrapToken (String name)
-    {
-        return "\\(#" + name + "\\)";
-    }
-
-    final class Key
-    {
-        final static public String CODE_DIR_FLATTEN    = "code.dir.flatten";
-        final static public String CODE_DIR_PREFIX     = "code.dir.prefix";
-        final static public String PACK_CAPITALIZE     = "capitalize.pack.head";
-        final static public String PACK_NAME_NESTED    = "pack.name.nested";
-        final static public String FILE_NAME_LOWER     = "file.name.lowercase";
-        final static public String METHOD_INDENT_NUM   = "method.indent.num";
-        final static public String ONE_PACK_ONE_FILE   = "one.pack.one.file";
-
-        final static public String FILE                = "file";
-        final static public String FILE_PACK           = "file.pack";
-        final static public String FILE_BODY           = "file.body";
-        final static public String FILE_INCLUDE        = "file.include";
-
-        final static public String PACK                = "pack";
-        final static public String DOC                 = "doc";
-        final static public String DOC_LINE            = "doc.line";
-        final static public String IMPORT              = "import";
-        final static public String IMPORT_SPLIT        = "import.split";
-        final static public String IMPORT_BODY         = "import.body";
-
-        final static public String INIT_STRUCT         = "init.struct";
-        final static public String INIT_ENUM           = "init.enum";
-        final static public String CODE_ASSIGNMENT     = "code.assignment";
-        final static public String CODE_DEFINITION     = "code.definition";
-
-        final static public String CODE_INDEXER        = "code.indexer";
-        final static public String CODE_FOREACH        = "code.foreach";
-        final static public String CODE_FORI           = "code.fori";
-        final static public String PREFIX_READ         = "read.";
-        final static public String PREFIX_WRITE        = "write.";
-
-        final static public String RUNTIME_PACK        = "runtime.pack";
-        final static public String RUNTIME_NAME        = "runtime.name";
-        final static public String RUNTIME_BODY        = "runtime.body";
-        final static public String RUNTIME_ALIAS       = "runtime.alias";
-        final static public String RUNTIME_ALIAS_BASIC = "runtime.alias.basic";
-        final static public String RUNTIME_ALIAS_VEC   = "runtime.alias.list";
-        final static public String RUNTIME_ALIAS_MAP   = "runtime.alias.map";
-
-        final static public String ENUM                = "enum";
-        final static public String ENUM_FIELD          = "enum.field";
-        final static public String STRUCT              = "struct";
-        final static public String STRUCT_META         = "struct.meta";
-        final static public String STRUCT_FIELD        = "struct.field";
-        final static public String STRUCT_GETTER       = "struct.getter";
-        final static public String STRUCT_SETTER       = "struct.setter";
     }
 
 }

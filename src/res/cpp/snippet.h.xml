@@ -13,14 +13,14 @@
     <uint16 include="&lt;cstdint&gt;" pack="" type="std::uint16_t" initValue="0"/>
     <uint32 include="&lt;cstdint&gt;" pack="" type="std::uint32_t" initValue="0"/>
     <uint64 include="&lt;cstdint&gt;" pack="" type="std::uint64_t" initValue="0" initSuffix="L"/>
+    <string include="&lt;string&gt;" pack="" type="std::string" initValue="&quot;&quot;" initPrefix="&quot;" initSuffix="&quot;"/>
     <float pack="" type="float" initValue="0.0" initSuffix="F"/>
     <double pack="" type="double" initValue="0.00"/>
-    <string include="&lt;string&gt;" pack="" type="std::string" initValue="&quot;&quot;" initPrefix="&quot;" initSuffix="&quot;"/>
     <bool pack="" type="bool" initValue="false"/>
     <vec include="&lt;vector&gt;" pack="" type="std::vector" generic=" &lt; ? &gt;" initValue=""/>
     <map include="&lt;map&gt;" pack="" type="std::map" generic=" &lt; ?, ? &gt;" initValue=""/>
-    <ghost include="&quot;invar.codec.h&quot;" pack="invar" type="BinaryWriter" generic="" initValue=""/>
-    <ghost include="&quot;invar.codec.h&quot;" pack="invar" type="BinaryReader" generic="" initValue=""/>
+    <ghost include="&quot;invar.codec.h&quot;" pack="invar" type="BinaryWriter" initValue=""/>
+    <ghost include="&quot;invar.codec.h&quot;" pack="invar" type="BinaryReader" initValue=""/>
   </redefine>
   
   <template key="trace.all.types"><![CDATA[true]]></template>
@@ -28,16 +28,20 @@
   <template key="file.name.lowercase"><![CDATA[true]]></template>
   <template key="capitalize.pack.head"><![CDATA[false]]></template>
   <template key="method.indent.num"><![CDATA[0]]></template>
+  <template key="use.full.type.name"><![CDATA[true]]></template>
   
   <template key="one.pack.one.file"><![CDATA[false]]></template>
   <template key="code.dir.flatten"><![CDATA[true]]></template>
   <template key="code.dir.prefix"><![CDATA[include/]]></template>
   
-  
   <template key="null.struct"><![CDATA[NULL]]></template>
   <template key="null.byte.yes"><![CDATA[(std::int8_t)0x01]]></template>
   <template key="null.byte.no"><![CDATA[(std::int8_t)0x00]]></template>
+  
+  
+  
   <template key="type.enum"><![CDATA[int32]]></template>
+  
   <template key="file"><![CDATA[
 	(#blank)
 	//===----------------------------*  C++  *---------------------------------===//
@@ -49,11 +53,11 @@
 	#ifndef (#define)_
 	#define (#define)_
 	(#blank)
-	#include "include/invar.codec.h"
 	(#includes)
 	(#pack)
 	(#blank)
-	#endif //(#define)_]]></template>
+	#endif //(#define)_
+  ]]></template>
  
   <template key="file.include"><![CDATA[#include (#name)(#brk)]]></template>
   
@@ -63,13 +67,11 @@
 	}; //namespace: (#name)]]></template>
   
   <template key="file.body"><![CDATA[
-	(#blank)
-	using namespace invar;
-	(#import)(#enums)(#structs)]]></template>
+	(#enums)(#structs)]]></template>
   
   <template key="enum"><![CDATA[
 	(#brk)(#doc)
-	enum (#name) : std::int32_t
+	enum (#name)
 	{
 		(#blank)
 		(#body)
@@ -89,13 +91,14 @@
 	(#blank)
 	(#tab)~(#name)();
 	(#tab)(#name)();
-	(#tab)(#name)(const (#name) &from);
-	(#tab)(#name)& operator = (const (#name) &from);
+	(#tab)(#name)(const (#name)& from);
+	(#tab)(#name)& operator = (const (#name)& from);
+	(#tab)bool operator < (const (#name)& other) const;
 	
 	(#blank)
-	(#tab)(#name)& CopyFrom(const (#name) &from);
-	(#tab)(#name)& Encode(BinaryWriter &stream);
-	(#tab)(#name)& Decode(BinaryReader &stream);
+	(#tab)(#name)& CopyFrom(const (#name)& from);
+	(#tab)(#name)& Encode(invar::BinaryWriter& stream);
+	(#tab)(#name)& Decode(invar::BinaryReader& stream);
 	
 	(#blank)
 	(#setters)
@@ -107,7 +110,7 @@
   ]]></template>
   
   <template key="struct.meta"><![CDATA[ [InvarRule("(#type)", "(#name)")] ]]></template>
-  
+  <template key="struct.field.self"><![CDATA[&]]></template>
   <template key="struct.field"><![CDATA[
 	(#tab)(#type) (#name); (#doc)
   ]]></template>
@@ -119,6 +122,10 @@
   <template key="struct.getter"><![CDATA[
 	(#tab)const (#type) Get(#nameupper)() const; (#doc)
   ]]></template>
+  
+  
+  <template key="read.import"><![CDATA[invar::BinaryReader]]></template>
+  <template key="write.import"><![CDATA[invar::BinaryReader]]></template>
   
   <!-- Common snippet -->
   <template key="doc"><![CDATA[/* (#doc) */]]></template>

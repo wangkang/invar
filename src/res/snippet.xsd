@@ -39,6 +39,7 @@
 			<xs:element minOccurs="0" maxOccurs="unbounded" name="map" type="tns:redefine.item"/>
 			<xs:element minOccurs="0" maxOccurs="unbounded" name="ghost" type="tns:redefine.item"/>
 		</xs:sequence>
+		<xs:attribute name="genericOverride" type="xs:boolean" default="false" use="optional"/>
 	</xs:complexType>
 	<xs:complexType name="redefine.item">
 		<xs:attribute name="pack" type="xs:string" use="required"/>

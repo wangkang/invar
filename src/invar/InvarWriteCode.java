@@ -1,5 +1,6 @@
 package invar;
 
+import invar.InvarSnippetConsts.Key;
 import invar.model.InvarField;
 import invar.model.InvarType;
 import invar.model.InvarType.TypeID;
@@ -21,9 +22,53 @@ import org.w3c.dom.NodeList;
 
 public class InvarWriteCode extends InvarWrite
 {
-    private static String                packSplit       = "::";
+
+    final static String empty          = "";
+    final static String whiteSpace     = " ";
+    final static String br             = "\n";
+    final static String indent         = whiteSpace + whiteSpace + whiteSpace + whiteSpace;
+
+    final static String tokenDot       = "\\.";
+    final static String tokenBr        = wrapToken("brk");
+    final static String tokenIndent    = wrapToken("tab");
+    final static String tokenBlank     = wrapToken("blank");
+
+    final static String tokenDoc       = wrapToken("doc");
+    final static String tokenMeta      = wrapToken("meta");
+    final static String tokenKey       = wrapToken("key");
+    final static String tokenValue     = wrapToken("value");
+
+    final static String tokenDefine    = wrapToken("define");
+    final static String tokenImport    = wrapToken("import");
+    final static String tokenIncludes  = wrapToken("includes");
+    final static String tokenEnums     = wrapToken("enums");
+    final static String tokenStructs   = wrapToken("structs");
+    final static String tokenFields    = wrapToken("fields");
+
+    final static String tokenSetters   = wrapToken("setters");
+    final static String tokenGetters   = wrapToken("getters");
+    final static String tokenEncoder   = wrapToken("encoder");
+    final static String tokenDecoder   = wrapToken("decoder");
+    final static String tokenBody      = wrapToken("body");
+
+    final static String tokenPack      = wrapToken("pack");
+    final static String tokenType      = wrapToken("type");
+    final static String tokenTypeUpper = wrapToken("typeupper");
+    final static String tokenTypeHost  = wrapToken("typehost");
+    final static String tokenTypeSize  = wrapToken("sizetype");
+    final static String tokenName      = wrapToken("name");
+    final static String tokenNameUpper = wrapToken("nameupper");
+    final static String tokenIndex     = wrapToken("index");
+    final static String tokenLen       = wrapToken("len");
+
+    final static String wrapToken (String name)
+    {
+        return "\\(#" + name + "\\)";
+    }
+
     private Integer                      methodIndentNum = 1;
     private Boolean                      packNameNested  = false;
+    private Boolean                      useFullName     = false;
 
     final private TreeSet<String>        fileIncludes;
     final private Document               snippetDoc;
@@ -66,16 +111,14 @@ public class InvarWriteCode extends InvarWrite
         if (!snippetTryGet(Key.METHOD_INDENT_NUM).equals(empty))
             methodIndentNum = Integer.parseUnsignedInt(snippetTryGet(Key.METHOD_INDENT_NUM));
 
-        packNameNested = false;
-        if (!snippetTryGet(Key.PACK_NAME_NESTED).equals(empty))
-            packNameNested = Boolean.parseBoolean(snippetTryGet(Key.PACK_NAME_NESTED));
+        packNameNested = Boolean.parseBoolean(snippetTryGet("pack.name.nested"));
+        useFullName = Boolean.parseBoolean(snippetTryGet("use.full.type.name"));
 
-        Boolean capitalize = Boolean.parseBoolean(snippetTryGet(Key.PACK_CAPITALIZE));
-        super.packNameReset(c, capitalize);
-        super.setDirPrefix(snippetTryGet(Key.CODE_DIR_PREFIX));
-        super.setLowerFileName(Boolean.parseBoolean(snippetTryGet(Key.FILE_NAME_LOWER)));
-        super.setOnePackOneFile(Boolean.parseBoolean(snippetTryGet(Key.ONE_PACK_ONE_FILE)));
-        super.setFlattenDir(Boolean.parseBoolean(snippetTryGet(Key.CODE_DIR_FLATTEN)));
+        super.packNameReset(c, Boolean.parseBoolean(snippetTryGet("capitalize.pack.head")));
+        super.setDirPrefix(snippetTryGet("code.dir.prefix"));
+        super.setLowerFileName(Boolean.parseBoolean(snippetTryGet("file.name.lowercase")));
+        super.setOnePackOneFile(Boolean.parseBoolean(snippetTryGet("one.pack.one.file")));
+        super.setFlattenDir(Boolean.parseBoolean(snippetTryGet("code.dir.flatten")));
         super.setTraceAllTypes(Boolean.parseBoolean(snippetTryGet("trace.all.types")));
         return true;
     }
@@ -99,16 +142,17 @@ public class InvarWriteCode extends InvarWrite
             String codePath = getContext().findBuildInType(TypeID.INT32).getRedirect().getCodePath();
             fileIncludes.add(codePath);
         }
+
         StringBuilder includes = new StringBuilder();
-        for (String inc : fileIncludes)
+        Iterator<String> iter = fileIncludes.descendingIterator();
+        while (iter.hasNext())
         {
+            String inc = iter.next();
             String s = snippetTryGet(Key.FILE_INCLUDE);
             if (s.equals(empty))
                 continue;
             if (inc.equals(empty))
                 continue;
-            //if (inc.equals(filePath))
-            //  continue;
             s = replace(s, tokenName, inc);
             includes.append(s);
         }
@@ -153,6 +197,7 @@ public class InvarWriteCode extends InvarWrite
 
         for (TypeStruct type : structs)
         {
+            fileIncludes.add(type.getCodePath());
             StringBuilder fields = new StringBuilder();
             StringBuilder setters = new StringBuilder();
             StringBuilder getters = new StringBuilder();
@@ -312,7 +357,7 @@ public class InvarWriteCode extends InvarWrite
         int widthDeft = 1;
         for (InvarField f : fs)
         {
-            f.makeTypeFormatted(getContext(), snippetGet(Key.IMPORT_SPLIT));
+            f.makeTypeFormatted(getContext(), snippetGet(Key.IMPORT_SPLIT), useFullName);
             f.setDeftFormatted(makeStructFieldInit(f, type));
 
             if (f.getDeftFormatted().length() > widthDeft)
@@ -339,8 +384,8 @@ public class InvarWriteCode extends InvarWrite
             getters.append(makeStructGetter(f, type));
             //reads.addAll(codeStreamRead.makeStructStreamBody(f, Key.PREFIX_READ));
         }
-        encoder.append(codeStreamWrite.code(type, fs, imps));
-        decoder.append(codeStreamRead.code(type, fs, imps));
+        encoder.append(codeStreamWrite.code(type, fs, imps, useFullName));
+        decoder.append(codeStreamRead.code(type, fs, imps, useFullName));
         StringBuilder body = new StringBuilder();
         body.append(fields);
         body.append(setters);
@@ -371,12 +416,23 @@ public class InvarWriteCode extends InvarWrite
         return code;
     }
 
-    protected StringBuilder makeStructField (InvarField f, TypeStruct struct)
+    private String makeStructFieldType (InvarField f, TypeStruct struct)
+    {
+        String typeName = f.getTypeFormatted();
+        if (f.getType() == struct)
+        {
+            typeName += snippetTryGet(Key.STRUCT_FIELD_SELF);
+        }
+        return typeName;
+    }
+
+    private StringBuilder makeStructField (InvarField f, TypeStruct struct)
     {
         StringBuilder code = new StringBuilder();
+
         String s = snippetGet(Key.STRUCT_FIELD);
+        s = replace(s, tokenType, fixedLen(f.getWidthType(), makeStructFieldType(f, struct)));
         s = replace(s, tokenName, fixedLen(f.getWidthKey(), f.getKey()));
-        s = replace(s, tokenType, fixedLen(f.getWidthType(), f.getTypeFormatted()));
         s = replace(s, tokenValue, fixedLen(f.getWidthDefault(), f.getDeftFormatted()));
         s = replace(s, tokenDoc, makeDocLine(f.getComment()));
         code.append(s);
@@ -393,7 +449,7 @@ public class InvarWriteCode extends InvarWrite
         String s = snippetGet(Key.STRUCT_SETTER);
         s = replace(s, tokenTypeHost, struct.getName());
         s = replace(s, tokenMeta, makeStructMeta(f).toString());
-        s = replace(s, tokenType, f.getTypeFormatted());
+        s = replace(s, tokenType, makeStructFieldType(f, struct));
         s = replace(s, tokenName, f.getKey());
         s = replace(s, tokenNameUpper, upperHeadChar(f.getKey()));
         s = replace(s, tokenDoc, makeDoc(f.getComment()));
@@ -407,7 +463,7 @@ public class InvarWriteCode extends InvarWrite
         String s = snippetGet(Key.STRUCT_GETTER);
         s = replace(s, tokenTypeHost, struct.getName());
         s = replace(s, tokenMeta, makeStructMeta(f).toString());
-        s = replace(s, tokenType, f.getTypeFormatted());
+        s = replace(s, tokenType, makeStructFieldType(f, struct));
         s = replace(s, tokenName, f.getKey());
         s = replace(s, tokenNameUpper, upperHeadChar(f.getKey()));
         s = replace(s, tokenDoc, makeDoc(f.getComment()));
@@ -418,7 +474,9 @@ public class InvarWriteCode extends InvarWrite
     protected String makeStructFieldInit (InvarField f, TypeStruct struct)
     {
         if (f.getType() == struct)
-            return "null";
+        {
+            return snippetTryGet(Key.NULL_STRUCT);
+        }
         String deft = f.getDefault();
         InvarType type = f.getType();
         if (deft != null && !deft.equals(empty))
@@ -555,12 +613,6 @@ public class InvarWriteCode extends InvarWrite
 
     protected void impsCheckAdd (TreeSet<String> imps, InvarType t)
     {
-        if (getContext().findTypes(t.getName()).size() > 1)
-            return;
-        String packName = t.getPack().getName();
-        String typeName = t.getName();
-        imps.add(packName + typeSplit + typeName);
-
         String include = t.getCodePath();
         if (include != null && !include.equals(empty))
         {
@@ -569,18 +621,30 @@ public class InvarWriteCode extends InvarWrite
             fileIncludes.add(include);
             //System.out.println("InvarWriteCode.impsCheckAdd()  " + include);
         }
+        if (getContext().findTypes(t.getName()).size() > 1)
+            return;
+        String packName = t.getPack().getName();
+        String typeName = t.getName();
+        imps.add(packName + typeSplit + typeName);
     }
 
     protected void impsCheckAdd (TreeSet<String> imps, String ss)
     {
         if (ss.equals(empty))
             return;
+        ss = ss.trim();
         String[] lines = ss.split((","));
         for (String line : lines)
         {
             if (line.equals(empty))
                 continue;
-            imps.add(line);
+            InvarType t = super.findType(getContext(), line);
+            if (t == null)
+            {
+                logErr("impsCheckAdd() --- Can't find type named " + line);
+                continue;
+            }
+            impsCheckAdd(imps, t);
         }
     }
 
@@ -598,6 +662,7 @@ public class InvarWriteCode extends InvarWrite
             String nameNode = n.getNodeName().toLowerCase();
             if (nameNode.equals("redefine"))
             {
+                genericOverride = Boolean.parseBoolean(getAttrOptional(n, "genericOverride"));
                 buildTypeRedefine(n.getChildNodes(), c);
             }
             else if (nameNode.equals("template"))
@@ -650,7 +715,7 @@ public class InvarWriteCode extends InvarWrite
             InvarType buildInT = c.findBuildInType(typeName);
             if (buildInT == null)
             {
-                getContext().ghostAdd(pack, type, generic, TypeID.GHOST, false);
+                getContext().ghostAdd(pack, type, generic, TypeID.GHOST, false, include);
                 continue;
             }
             TypeID id = buildInT.getId();
@@ -823,18 +888,20 @@ public class InvarWriteCode extends InvarWrite
 
     }
 
-    static private String createShortRule (InvarField f, InvarContext ctx)
+    static private Boolean genericOverride = false; //For C++ template ">>" issue in GCC
+
+    static private String createRule (InvarField f, InvarContext ctx, Boolean useFullName)
     {
-        String split = packSplit;
+        String split = typeSplit;
         InvarType typeBasic = f.getType().getRedirect();
         if (f.getGenerics().size() == 0)
         {
-            if (ctx.findTypes(typeBasic.getName()).size() > 1)
+            if (ctx.findTypes(typeBasic.getName()).size() > 1 || useFullName)
                 return typeBasic.fullName(split);
             else
                 return typeBasic.getName();
         }
-        String s = typeBasic.getRealId().getGeneric();
+        String s = getGenericOverride(typeBasic);
         for (InvarType t : f.getGenerics())
         {
             t = t.getRedirect();
@@ -843,18 +910,26 @@ public class InvarWriteCode extends InvarWrite
                 forShort = t.getName();
             else
             {
-                if (ctx.findTypes(t.getName()).size() > 1)
+                if (ctx.findTypes(t.getName()).size() > 1 || useFullName)
                     forShort = t.fullName(split);
                 else
                     forShort = t.getName();
             }
-            s = s.replaceFirst("\\?", forShort + t.getRealId().getGeneric());
+            s = s.replaceFirst("\\?", forShort + getGenericOverride(t));
         }
-        String rule = typeBasic.getName() + s;
-        //String rule = typeBasic.getRedirect().getName() + s;
-        System.out.println("InvarWriteCode.createShortRule() " + rule);
+        String rule = useFullName ? typeBasic.fullName(split) : typeBasic.getName();
+        rule = rule + s;
         return rule;
+    }
 
+    static String getGenericOverride (InvarType t)
+    {
+        String s = t.getRealId().getGeneric();
+        if (genericOverride)
+        {
+            s = t.getGeneric();
+        }
+        return s;
     }
 
     private class StreamCoder
@@ -868,38 +943,43 @@ public class InvarWriteCode extends InvarWrite
             public String  nameOutter = empty;
             public String  typeOutter = empty;
             public String  init       = empty;
+
             private String type       = empty;
 
             public String getType ()
             {
-                return type;
+                return this.type;
             }
 
-            public void setType (String type)
+            public void setType (String t)
             {
-
-                this.type = type.replace(tokenDot, typeSplit);
+                t = t.replace(tokenDot, typeSplit);
+                t = t.replaceAll("(^\\s*|\\s*$)", empty);
+                this.type = t;
             }
         }
 
-        private String prefix   = empty;
-        private TypeID sizeType = TypeID.INT32;
+        private Boolean useFullName = false;
+        private String  prefix      = empty;
+        private TypeID  sizeType    = TypeID.INT32;
 
         public StreamCoder(String prefix)
         {
             this.prefix = prefix;
+
         }
 
-        public String code (TypeStruct type, List<InvarField> fs, TreeSet<String> imps)
+        public String code (TypeStruct type, List<InvarField> fs, TreeSet<String> imps, Boolean fullName)
         {
-            String s = snippetTryGet(prefix + Key.IMPORT);
-            if (empty.equals(s))
-                return empty;
             impsCheckAdd(imps, snippetGet(prefix + Key.IMPORT));
+            String key = prefix + "method";
+            if (empty.equals(snippetTryGet(key)))
+                return empty;
+            this.useFullName = fullName;
             List<String> lines = new ArrayList<String>();
             for (InvarField f : fs)
                 lines.addAll(makeField(f));
-            return makeCodeMethod(lines, type.getName(), prefix + "method");
+            return makeCodeMethod(lines, type.getName(), key);
         }
 
         private CodeForParams makeParams (TypeID typeID,
@@ -945,22 +1025,24 @@ public class InvarWriteCode extends InvarWrite
             CodeForParams p = makeParams(type, needDef, false, rule, name, params.name, params.type, indexer);
             List<String> body = new ArrayList<String>();
             p.numLayer = params.numLayer + 1;
-            makeField(type, rule, p, body);
+            makeField(null, type, rule, p, body);
             return buildCodeLines(body).toString();
         }
 
         private List<String> makeField (InvarField f)
         {
-            String rule = createShortRule(f, getContext());
+            String rule = createRule(f, getContext(), useFullName);
+            if (useFullName)
+                System.out.println("InvarWriteCode.makeField() " + rule);
             TypeID type = f.getType().getRealId();
             List<String> lines = new ArrayList<String>();
             CodeForParams params = makeParams(type, false, true, rule, f.getKey(), f.getKey(), rule, empty);
             params.numLayer = 1;
-            makeField(type, rule, params, lines);
+            makeField(f, type, rule, params, lines);
             return lines;
         }
 
-        private void makeField (TypeID type, String rule, CodeForParams p, List<String> lines)
+        private void makeField (InvarField f, TypeID type, String rule, CodeForParams p, List<String> lines)
         {
             String code = null;
             if (TypeID.VEC == type)
@@ -968,11 +1050,11 @@ public class InvarWriteCode extends InvarWrite
             else if (TypeID.MAP == type)
                 code = makeFieldMap(p, rule);
             else
-                code = makeFieldSimple(p, type);
+                code = makeFieldSimple(p, type, f);
             lines.addAll(indentLines(code));
         }
 
-        private String makeFieldSimple (CodeForParams p, TypeID type)
+        private String makeFieldSimple (CodeForParams p, TypeID type, InvarField f)
         {
             //non-collection fields
             String s = empty;
@@ -987,10 +1069,12 @@ public class InvarWriteCode extends InvarWrite
                     s = snippetGet(Key.CODE_DEFINITION);
                 }
             }
-
             if (TypeID.STRUCT == type && p.needCheck)
             {
-                s += snippetGet(prefix + type.getName() + ".check");
+                String sKey = prefix + type.getName() + ".check";
+                if (f != null && f.isStructSelf())
+                    sKey += ".self";
+                s += snippetGet(sKey);
             }
             else
             {

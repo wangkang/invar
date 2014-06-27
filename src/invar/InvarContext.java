@@ -65,18 +65,22 @@ final public class InvarContext
             return this;
         }
         InvarType type = packBuildIn.getType(id);
-        InvarType typeGhost = ghostAdd(namePack, nameType, generic, id, false);
+        InvarType typeGhost = ghostAdd(namePack, nameType, generic, id, false, codePath);
         type.setRedirect(typeGhost);
         type.setInitValue(initValue);
         type.setInitSuffix(initSuffix);
         type.setInitPrefix(initPrefix);
         type.setCodePath(codePath);
-        typeGhost.setCodePath(codePath);
         typeWithAlias.put(type.getName(), typeGhost);
         return this;
     }
 
-    public InvarType ghostAdd (String namePack, String nameType, String generic, TypeID realId, Boolean isBuildin)
+    public InvarType ghostAdd (String namePack,
+                               String nameType,
+                               String generic,
+                               TypeID realId,
+                               Boolean isBuildin,
+                               String codePath)
     {
         InvarPackage pack = packAll.get(namePack);
         if (pack == null)
@@ -87,6 +91,7 @@ final public class InvarContext
         InvarType t = new InvarType(TypeID.GHOST, nameType, pack, "", isBuildin);
         t.setGeneric(generic);
         t.setRealId(realId);
+        t.setCodePath(codePath);
         pack.put(t);
         return t;
     }

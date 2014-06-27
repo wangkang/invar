@@ -2,6 +2,8 @@
 <tns:root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="invar.template ../snippet.xsd"
   xmlns:tns="invar.template" language="cpp">
   
+  <redefine genericOverride="true"/>
+  
   <template key="pack.name.nested"><![CDATA[true]]></template>
   <template key="file.name.lowercase"><![CDATA[true]]></template>
   <template key="capitalize.pack.head"><![CDATA[false]]></template>
@@ -35,6 +37,7 @@
   
   <template key="file.body"><![CDATA[
 	(#blank)
+	(#blank)
 	(#import)(#enums)(#structs)]]></template>
   
   
@@ -47,10 +50,10 @@
   <template key="import.body"><![CDATA[(#pack)]]></template>
   <template key="import.split"><![CDATA[::]]></template>
   
-  <template key="init.struct"><![CDATA[new (#type)()]]></template>
+  <template key="init.struct"><![CDATA[* new (#type)()]]></template>
   <template key="init.enum"><![CDATA[(#type).(#name)]]></template>
   <template key="code.invoker"><![CDATA[.]]></template>
-  <template key="code.assignment"><![CDATA[(#type)(#name) = (#value);]]></template>
+  <template key="code.assignment"><![CDATA[(#type) (#name) = (#value);(#brk)]]></template>
   <template key="code.definition"><![CDATA[(#type) (#name);(#brk)]]></template>
   <template key="code.indexer"><![CDATA[ (#name)[(#index)] ]]></template>
   <template key="code.fori.itype"><![CDATA[int32]]></template>
@@ -97,6 +100,7 @@
   ]]></template>
   
   <template key="struct.meta"><![CDATA[ [Invar.InvarRule("(#type)", "(#name)")] ]]></template>
+  <template key="struct.field.self"><![CDATA[&]]></template>
   <template key="struct.field"><![CDATA[
   (#tab) (#type) (#name) = (#value);(#doc)(#brk)]]></template>
   <template key="struct.setter"><![CDATA[
@@ -108,7 +112,7 @@
 
   
   <!-- Read bytes from a Stream -->
-  <template key="read.import"><![CDATA[System.IO]]></template>
+  <template key="read.import"><![CDATA[invar::BinaryReader]]></template>
   <template key="read.method"><![CDATA[
   (#type)& (#type)::Decode(BinaryReader& stream)
   {(#body)
@@ -132,21 +136,31 @@
   <template key="read.struct.check"><![CDATA[
   if (stream.ReadByte() == 0x01)
   {
-  (#tab)if ((#name) == NULL)
-  (#tab)(#tab)(#name) = new (#type)();
+  (#tab)(#name) = * new (#type)();
   (#tab)(#name).Decode(stream);
   }
   ]]></template>
+  <template key="read.struct.check.self"><![CDATA[
+  if (stream.ReadByte() == 0x01)
+  {
+  (#tab)if (&(#name) == this)
+  (#tab)(#tab)(#name) = * new (#type)();
+  (#tab)(#name).Decode(stream);
+  }
+  ]]></template>
+  
   <template key="read.size.init"><![CDATA[stream.ReadInt32();]]></template>
   <template key="read.vec"><![CDATA[(#name).Add((#value));]]></template>
   <template key="read.map"><![CDATA[(#nameupper).Add((#name),(#value));]]></template>
   <template key="read.vec.for"><![CDATA[
   int32_t (#len) = stream.ReadInt32();
+  (#nameupper).resize((#len));
   for ((#sizetype) (#index) = 0; (#index) < (#len); (#index)++) //read.vec.for
   {(#body)
-  (#tab)(#name).Add((#value));
+  (#tab)(#name).push_back((#value));
   }
   ]]></template>
+  
   <template key="read.map.keys"><![CDATA[]]></template>
   <template key="read.map.for"><![CDATA[
   int32_t (#len) = stream.ReadInt32();
@@ -158,7 +172,7 @@
   
   
   <!-- Write bytes to a Stream -->
-  <template key="write.import"><![CDATA[System.IO,System]]></template>
+  <template key="write.import"><![CDATA[invar::BinaryReader]]></template>
   <template key="write.method"><![CDATA[
   (#type)& (#type)::Encode(BinaryWriter& stream)
   {(#body)
@@ -180,7 +194,18 @@
   <template key="write.enum"><![CDATA[stream.Write((std::int32_t)(#name));]]></template>
   <template key="write.struct"><![CDATA[(#name).Encode(stream);]]></template>
   <template key="write.struct.check"><![CDATA[
-  if ((#name) != NULL)
+  //if ((#name) != NULL)
+  //{
+  stream.Write((std::int8_t)0x01);
+  (#name).Encode(stream);
+  //}
+  //else
+  //{
+  //(#tab)stream.Write((std::int8_t)0x00);
+  //}
+  ]]></template>
+  <template key="write.struct.check.self"><![CDATA[
+  if (&(#name) != this)
   {
   (#tab)stream.Write((std::int8_t)0x01);
   (#tab)(#name).Encode(stream);
@@ -210,10 +235,8 @@
 	}
   ]]></template>
   
-  
-  
   <!-- Output data to xml -->
-  <template key="toxml.import"><![CDATA[System.Text]]></template>
+  <template key="toxml.import"><![CDATA[]]></template>
   <template key="toxml.method"><![CDATA[
   (#tab)public (#type) ToXML(String nodeName)
   (#tab){
