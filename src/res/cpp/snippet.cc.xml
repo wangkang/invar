@@ -50,10 +50,11 @@
   <template key="import.body"><![CDATA[(#pack)]]></template>
   <template key="import.split"><![CDATA[::]]></template>
   
-  <template key="init.struct"><![CDATA[* new (#type)()]]></template>
-  <template key="init.enum"><![CDATA[(#type).(#name)]]></template>
+  <template key="init.struct"><![CDATA[]]></template>
+  <template key="init.enum"><![CDATA[(#name)]]></template>
+  
   <template key="code.invoker"><![CDATA[.]]></template>
-  <template key="code.assignment"><![CDATA[(#type) (#name) = (#value);(#brk)]]></template>
+  <template key="code.assignment"><![CDATA[(#type)& (#name) = (#value);(#brk)]]></template>
   <template key="code.definition"><![CDATA[(#type) (#name);(#brk)]]></template>
   <template key="code.indexer"><![CDATA[ (#name)[(#index)] ]]></template>
   <template key="code.fori.itype"><![CDATA[int32]]></template>
@@ -73,21 +74,35 @@
 	(#name)::~(#name)()
 	{
 	}
+	
 	(#blank)
-	(#name)::(#name)()
+	//(#name)::(#name)(const (#name)& from)
+	//{
+	//	(#tab)if (this != &from) { CopyFrom(from); }
+	//}
+	
+	(#blank)
+	(#name)& (#name)::CopyFrom (const (#name)& from)
 	{
+		(#tab)if (this == &from) { return *this; }
+		//TODO CopyFrom Implementation
+		(#tab)return *this;
 	}
+	
 	(#blank)
-	(#name)::(#name)(const (#name) &from)
-	{
-		(#tab)if (this != &from) { CopyFrom(from); }
-	}
-	(#blank)
-	(#name)& (#name)::operator = (const (#name) &from)
+	(#name)& (#name)::operator = (const (#name)& from)
 	{
 		(#tab)if (this != &from) { CopyFrom(from); }
 		(#tab)return *this;
 	}
+	
+	(#blank)
+	bool (#name)::operator < (const (#name)& other) const
+	{
+		//TODO operator < Implementation
+		(#tab)return true;
+	}
+	
 	(#blank)	
 	
 	(#getters)
@@ -98,7 +113,6 @@
 	(#decoder)
 	
   ]]></template>
-  
   <template key="struct.meta"><![CDATA[ [Invar.InvarRule("(#type)", "(#name)")] ]]></template>
   <template key="struct.field.self"><![CDATA[&]]></template>
   <template key="struct.field"><![CDATA[
@@ -136,25 +150,17 @@
   <template key="read.struct.check"><![CDATA[
   if (stream.ReadByte() == 0x01)
   {
-  (#tab)(#name) = * new (#type)();
-  (#tab)(#name).Decode(stream);
-  }
-  ]]></template>
-  <template key="read.struct.check.self"><![CDATA[
-  if (stream.ReadByte() == 0x01)
-  {
-  (#tab)if (&(#name) == this)
+  (#tab)if (&(#name) == ((#type)*)NULL)
   (#tab)(#tab)(#name) = * new (#type)();
   (#tab)(#name).Decode(stream);
   }
   ]]></template>
-  
   <template key="read.size.init"><![CDATA[stream.ReadInt32();]]></template>
   <template key="read.vec"><![CDATA[(#name).Add((#value));]]></template>
   <template key="read.map"><![CDATA[(#nameupper).Add((#name),(#value));]]></template>
   <template key="read.vec.for"><![CDATA[
   int32_t (#len) = stream.ReadInt32();
-  (#nameupper).resize((#len));
+  (#name).resize((#len));
   for ((#sizetype) (#index) = 0; (#index) < (#len); (#index)++) //read.vec.for
   {(#body)
   (#tab)(#name).push_back((#value));
@@ -166,7 +172,8 @@
   int32_t (#len) = stream.ReadInt32();
   for ((#sizetype) (#index) = 0; (#index) < (#len); (#index)++) //read.map.for
   {(#body)
-  (#tab)(#name).insert((#typeupper)::value_type((#key),(#value)));
+  (#tab)(#name)[(#key)] = (#value);
+  (#tab)//(#name).insert((#type)::value_type((#key),(#value)));
   }
   ]]></template>
   
@@ -194,18 +201,7 @@
   <template key="write.enum"><![CDATA[stream.Write((std::int32_t)(#name));]]></template>
   <template key="write.struct"><![CDATA[(#name).Encode(stream);]]></template>
   <template key="write.struct.check"><![CDATA[
-  //if ((#name) != NULL)
-  //{
-  stream.Write((std::int8_t)0x01);
-  (#name).Encode(stream);
-  //}
-  //else
-  //{
-  //(#tab)stream.Write((std::int8_t)0x00);
-  //}
-  ]]></template>
-  <template key="write.struct.check.self"><![CDATA[
-  if (&(#name) != this)
+  if (&(#name) != ((#type)*)NULL)
   {
   (#tab)stream.Write((std::int8_t)0x01);
   (#tab)(#name).Encode(stream);
@@ -216,6 +212,17 @@
   }
   ]]></template>
   <template key="write.size.init"><![CDATA[(#name).Count]]></template>
+  
+  
+  <template key="write.vec.iter"><![CDATA[
+  (#typeupper)::iterator iter(#nameupper) = (#nameupper).begin();
+  (#typeupper)::iterator iterEnd(#nameupper) = (#nameupper).end();
+    while (iter != iterEnd(#nameupper)) {
+    	*iter;
+    	++iter;
+    }
+  ]]></template>
+  
   <template key="write.vec.for"><![CDATA[
   int32_t (#len) = (#name).size();
   stream.Write((#len));
@@ -223,6 +230,9 @@
   {(#body)
   }
   ]]></template>
+  
+  
+  
   <template key="write.map.keys"><![CDATA[Keys]]></template>
   <template key="write.map.for"><![CDATA[
 	(#blank)

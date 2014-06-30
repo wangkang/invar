@@ -23,43 +23,44 @@ import org.w3c.dom.NodeList;
 public class InvarWriteCode extends InvarWrite
 {
 
-    final static String empty          = "";
-    final static String whiteSpace     = " ";
-    final static String br             = "\n";
-    final static String indent         = whiteSpace + whiteSpace + whiteSpace + whiteSpace;
+    final static String empty            = "";
+    final static String whiteSpace       = " ";
+    final static String br               = "\n";
+    final static String indent           = whiteSpace + whiteSpace + whiteSpace + whiteSpace;
 
-    final static String tokenDot       = "\\.";
-    final static String tokenBr        = wrapToken("brk");
-    final static String tokenIndent    = wrapToken("tab");
-    final static String tokenBlank     = wrapToken("blank");
+    final static String tokenDot         = "\\.";
+    final static String tokenBr          = wrapToken("brk");
+    final static String tokenIndent      = wrapToken("tab");
+    final static String tokenBlank       = wrapToken("blank");
 
-    final static String tokenDoc       = wrapToken("doc");
-    final static String tokenMeta      = wrapToken("meta");
-    final static String tokenKey       = wrapToken("key");
-    final static String tokenValue     = wrapToken("value");
+    final static String tokenDoc         = wrapToken("doc");
+    final static String tokenMeta        = wrapToken("meta");
+    final static String tokenKey         = wrapToken("key");
+    final static String tokenValue       = wrapToken("value");
+    final static String tokenBody        = wrapToken("body");
 
-    final static String tokenDefine    = wrapToken("define");
-    final static String tokenImport    = wrapToken("import");
-    final static String tokenIncludes  = wrapToken("includes");
-    final static String tokenEnums     = wrapToken("enums");
-    final static String tokenStructs   = wrapToken("structs");
-    final static String tokenFields    = wrapToken("fields");
+    final static String tokenDefine      = wrapToken("define");
+    final static String tokenImport      = wrapToken("import");
+    final static String tokenIncludes    = wrapToken("includes");
+    final static String tokenEnums       = wrapToken("enums");
+    final static String tokenStructs     = wrapToken("structs");
+    final static String tokenFields      = wrapToken("fields");
 
-    final static String tokenSetters   = wrapToken("setters");
-    final static String tokenGetters   = wrapToken("getters");
-    final static String tokenEncoder   = wrapToken("encoder");
-    final static String tokenDecoder   = wrapToken("decoder");
-    final static String tokenBody      = wrapToken("body");
+    final static String tokenConstructor = wrapToken("ctor");
+    final static String tokenSetters     = wrapToken("setters");
+    final static String tokenGetters     = wrapToken("getters");
+    final static String tokenEncoder     = wrapToken("encoder");
+    final static String tokenDecoder     = wrapToken("decoder");
 
-    final static String tokenPack      = wrapToken("pack");
-    final static String tokenType      = wrapToken("type");
-    final static String tokenTypeUpper = wrapToken("typeupper");
-    final static String tokenTypeHost  = wrapToken("typehost");
-    final static String tokenTypeSize  = wrapToken("sizetype");
-    final static String tokenName      = wrapToken("name");
-    final static String tokenNameUpper = wrapToken("nameupper");
-    final static String tokenIndex     = wrapToken("index");
-    final static String tokenLen       = wrapToken("len");
+    final static String tokenPack        = wrapToken("pack");
+    final static String tokenType        = wrapToken("type");
+    final static String tokenTypeUpper   = wrapToken("typeupper");
+    final static String tokenTypeHost    = wrapToken("typehost");
+    final static String tokenTypeSize    = wrapToken("sizetype");
+    final static String tokenName        = wrapToken("name");
+    final static String tokenNameUpper   = wrapToken("nameupper");
+    final static String tokenIndex       = wrapToken("index");
+    final static String tokenLen         = wrapToken("len");
 
     final static String wrapToken (String name)
     {
@@ -198,13 +199,14 @@ public class InvarWriteCode extends InvarWrite
         for (TypeStruct type : structs)
         {
             fileIncludes.add(type.getCodePath());
+            StringBuilder ctor = new StringBuilder();
             StringBuilder fields = new StringBuilder();
             StringBuilder setters = new StringBuilder();
             StringBuilder getters = new StringBuilder();
             StringBuilder encoder = new StringBuilder();
             StringBuilder decoder = new StringBuilder();
 
-            String block = makeStructBlock(type, imps, fields, setters, getters, encoder, decoder);
+            String block = makeStructBlock(type, imps, fields, setters, getters, encoder, decoder, ctor);
             String s = snippetGet(Key.STRUCT);
             s = replace(s, tokenName, type.getName());
             s = replace(s, tokenBody, block);
@@ -214,6 +216,7 @@ public class InvarWriteCode extends InvarWrite
             s = replace(s, tokenGetters, getters.toString());
             s = replace(s, tokenDecoder, decoder.toString());
             s = replace(s, tokenEncoder, encoder.toString());
+            s = replace(s, tokenConstructor, ctor.toString());
             codeStructs.append(s);
         }
 
@@ -280,6 +283,10 @@ public class InvarWriteCode extends InvarWrite
     private String makeCodeAssignment (String type, String name, String value)
     {
         String s = snippetGet(Key.CODE_ASSIGNMENT);
+        if (value.equals(empty))
+        {
+            s = snippetGet(Key.CODE_DEFINITION);
+        }
         s = replace(s, tokenValue, value);
         s = replace(s, tokenType, type != empty ? type + whiteSpace : empty);
         s = replace(s, tokenName, name);
@@ -346,7 +353,8 @@ public class InvarWriteCode extends InvarWrite
                                     StringBuilder setters,
                                     StringBuilder getters,
                                     StringBuilder encoder,
-                                    StringBuilder decoder)
+                                    StringBuilder decoder,
+                                    StringBuilder ctor)
     {
         List<InvarField> fs = type.listFields();
 
@@ -374,24 +382,27 @@ public class InvarWriteCode extends InvarWrite
             }
         }
 
-        for (InvarField f : fs)
+        Iterator<InvarField> i = fs.iterator();
+        while (i.hasNext())
         {
+            InvarField f = i.next();
             f.setWidthType(widthType);
             f.setWidthKey(widthName);
             f.setWidthDefault(widthDeft);
             fields.append(makeStructField(f, type));
             setters.append(makeStructSetter(f, type));
             getters.append(makeStructGetter(f, type));
-            //reads.addAll(codeStreamRead.makeStructStreamBody(f, Key.PREFIX_READ));
+            ctor.append(makeConstructorField(f, type, i.hasNext()));
         }
+
         encoder.append(codeStreamWrite.code(type, fs, imps, useFullName));
         decoder.append(codeStreamRead.code(type, fs, imps, useFullName));
         StringBuilder body = new StringBuilder();
         body.append(fields);
         body.append(setters);
         body.append(getters);
-        body.append(decoder);
         body.append(encoder);
+        body.append(decoder);
         body.append(codeToXml.code(fs, imps));
         return body.toString();
     }
@@ -439,6 +450,18 @@ public class InvarWriteCode extends InvarWrite
         return code;
     }
 
+    private String makeConstructorField (InvarField f, TypeStruct type, Boolean hasNext)
+    {
+        if (snippetTryGet(Key.CONSTRUCT_FIELD).equals(empty))
+            return empty;
+        String s = snippetGet(Key.CONSTRUCT_FIELD);
+        s = replace(s, tokenName, fixedLen(f.getWidthKey(), f.getKey()));
+        s = replace(s, tokenValue, f.getDeftFormatted());
+        if (hasNext)
+            s += snippetGet(Key.CONSTRUCT_FIELD_SPLIT);
+        return s;
+    }
+
     private StringBuilder makeStructSetter (InvarField f, TypeStruct struct)
     {
         StringBuilder code = new StringBuilder();
@@ -473,15 +496,16 @@ public class InvarWriteCode extends InvarWrite
 
     protected String makeStructFieldInit (InvarField f, TypeStruct struct)
     {
-        if (f.getType() == struct)
-        {
-            return snippetTryGet(Key.NULL_STRUCT);
-        }
         String deft = f.getDefault();
         InvarType type = f.getType();
         if (deft != null && !deft.equals(empty))
         {
             return type.getInitPrefix() + deft + type.getInitSuffix();
+        }
+        if (f.isStructSelf())
+        {
+            String s = snippetGet(Key.NULL_STRUCT);
+            return replace(s, tokenType, f.getTypeFormatted());
         }
         String s = null;
         switch (type.getRealId()) {
@@ -1072,8 +1096,6 @@ public class InvarWriteCode extends InvarWrite
             if (TypeID.STRUCT == type && p.needCheck)
             {
                 String sKey = prefix + type.getName() + ".check";
-                if (f != null && f.isStructSelf())
-                    sKey += ".self";
                 s += snippetGet(sKey);
             }
             else

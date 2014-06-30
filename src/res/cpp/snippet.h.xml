@@ -34,11 +34,9 @@
   <template key="code.dir.flatten"><![CDATA[true]]></template>
   <template key="code.dir.prefix"><![CDATA[include/]]></template>
   
-  <template key="null.struct"><![CDATA[NULL]]></template>
+  <template key="null.struct"><![CDATA[*((#type)*)NULL]]></template>
   <template key="null.byte.yes"><![CDATA[(std::int8_t)0x01]]></template>
   <template key="null.byte.no"><![CDATA[(std::int8_t)0x00]]></template>
-  
-  
   
   <template key="type.enum"><![CDATA[int32]]></template>
   
@@ -89,9 +87,15 @@
 	(#tab)public:
 	
 	(#blank)
+	(#tab)(#name)():
+	(#ctor)(#tab)
+	(#tab){
+	(#tab)}
+	
+	(#blank)
 	(#tab)~(#name)();
-	(#tab)(#name)();
-	(#tab)(#name)(const (#name)& from);
+	
+	//(#tab)(#name)(const (#name)& from);
 	(#tab)(#name)& operator = (const (#name)& from);
 	(#tab)bool operator < (const (#name)& other) const;
 	
@@ -108,6 +112,9 @@
 	(#fields)
 	}; //class: (#name)
   ]]></template>
+  <template key="ctor"><![CDATA[]]></template>
+  <template key="ctor.field"><![CDATA[(#tab)(#name)((#value))]]></template>
+  <template key="ctor.field.split"><![CDATA[,(#brk)]]></template>
   
   <template key="struct.meta"><![CDATA[ [InvarRule("(#type)", "(#name)")] ]]></template>
   <template key="struct.field.self"><![CDATA[&]]></template>
@@ -133,8 +140,8 @@
   <template key="import"><![CDATA[using namespace (#body);(#brk)]]></template>
   <template key="import.body"><![CDATA[(#pack)]]></template>
   <template key="import.split"><![CDATA[::]]></template>
-  <template key="init.struct"><![CDATA[new (#type)()]]></template>
-  <template key="init.enum"><![CDATA[(#type).(#name)]]></template>
+  <template key="init.struct"><![CDATA[]]></template>
+  <template key="init.enum"><![CDATA[(#name)]]></template>
   <template key="code.invoker"><![CDATA[.]]></template>
   <template key="code.assignment"><![CDATA[(#type)(#name) = (#value);]]></template>
   <template key="code.definition"><![CDATA[(#type)(#name);]]></template>

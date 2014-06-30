@@ -35,7 +35,7 @@
     <field name="number09" type="Float" doc=""/>
     <field name="number10" type="Double" doc=""/>
     <field name="isReal" type="Bool" doc=""/>
-    <field name="s" type="String" scope="public" doc="a string"/>
+    <field name="s" type="String" value="hello" scope="public" doc="a string"/>
     <field name="gender" type="Gender" doc=""/>
     <field name="next" type="Info" doc=""/>
     <field name="conflict" type="test.abc::Conflict" doc=""/>
