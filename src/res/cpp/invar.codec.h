@@ -18,10 +18,10 @@ class BinaryWriter
 	BinaryWriter& Write(std::uint16_t value);
 	BinaryWriter& Write(std::uint32_t value);
 	BinaryWriter& Write(std::uint64_t value);
-	BinaryWriter& Write(std::string value);
 	BinaryWriter& Write(bool value);
 	BinaryWriter& Write(float value);
 	BinaryWriter& Write(double value);
+	BinaryWriter& Write(const std::string& value);
 };
 
 class BinaryReader

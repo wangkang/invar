@@ -17,8 +17,8 @@
     <float pack="" type="float" initValue="0.0" initSuffix="F"/>
     <double pack="" type="double" initValue="0.00"/>
     <bool pack="" type="bool" initValue="false"/>
-    <vec include="&lt;vector&gt;" pack="" type="std::vector" generic=" &lt; ? &gt;" initValue=""/>
-    <map include="&lt;map&gt;" pack="" type="std::map" generic=" &lt; ?, ? &gt;" initValue=""/>
+    <vec include="&lt;vector&gt;" pack="" type="std::vector" generic="&lt; ? &gt;" initValue=""/>
+    <map include="&lt;map&gt;" pack="" type="std::map" generic="&lt; ?, ? &gt;" initValue=""/>
     <ghost include="&quot;invar.codec.h&quot;" pack="invar" type="BinaryWriter" initValue=""/>
     <ghost include="&quot;invar.codec.h&quot;" pack="invar" type="BinaryReader" initValue=""/>
   </redefine>
