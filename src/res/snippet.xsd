@@ -44,7 +44,7 @@
 	<xs:complexType name="redefine.item">
 		<xs:attribute name="pack" type="xs:string" use="required"/>
 		<xs:attribute name="type" type="xs:string" use="required"/>
-		<xs:attribute name="initValue" type="xs:string" use="required"/>
+		<xs:attribute name="initValue" type="xs:string" use="optional"/>
 		<xs:attribute name="initSuffix" type="xs:string" use="optional"/>
 		<xs:attribute name="initPrefix" type="xs:string" use="optional"/>
 		<xs:attribute name="generic" type="xs:string" use="optional"/>

@@ -4,6 +4,7 @@
   
   <redefine genericOverride="true"/>
   
+  <template key="include.self"><![CDATA[true]]></template>
   <template key="pack.name.nested"><![CDATA[true]]></template>
   <template key="file.name.lowercase"><![CDATA[true]]></template>
   <template key="capitalize.pack.head"><![CDATA[false]]></template>
@@ -12,6 +13,10 @@
   <template key="one.pack.one.file"><![CDATA[false]]></template>
   <template key="code.dir.flatten"><![CDATA[true]]></template>
   <template key="code.dir.prefix"><![CDATA[impl/]]></template>
+  
+  <template key="null.struct"><![CDATA[*((#type)*)NULL]]></template>
+  <template key="null.byte.yes"><![CDATA[(std::int8_t)0x01]]></template>
+  <template key="null.byte.no"><![CDATA[(std::int8_t)0x00]]></template>
   
   <template key="file"><![CDATA[
 	(#blank)

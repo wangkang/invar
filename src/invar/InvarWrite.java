@@ -32,7 +32,11 @@ abstract public class InvarWrite
 
     abstract protected void codeRuntime (String suffix);
 
-    final static String                     typeSplit = "::";
+    final static String                     ruleTypeSplit = "::";
+    final static String                     rulePackSplit = ".";
+    final static private String             GENERIC_LEFT  = "<";
+    final static private String             GENERIC_RIGHT = ">";
+
     final private InvarContext              context;
     final private HashMap<String,String>    exports;
     final private HashMap<String,InvarType> typeForShort;
@@ -156,7 +160,7 @@ abstract public class InvarWrite
     private void startWritting (String suffix) throws Exception
     {
         if (getTraceAllTypes())
-            System.out.println(dumpTypeAll().toString());
+            System.out.println("\n\n" + dumpTypeAll().toString());
         HashMap<File,String> files = new LinkedHashMap<File,String>();
         Iterator<String> i = getContext().getPackNames();
         while (i.hasNext())
@@ -186,7 +190,6 @@ abstract public class InvarWrite
                 else if (TypeID.PROTOCOL == type.getId())
                 {
                     TypeProtocol t = (TypeProtocol)type;
-                    //t.setCodePath(filePath);
                     if (t.hasClient())
                     {
                         structs.add(t.getClient());
@@ -210,8 +213,15 @@ abstract public class InvarWrite
                         fileName = fileName.toLowerCase();
                         filePath = filePath.toLowerCase();
                     }
-                    File codeFile = new File(codeDir, fileName);
-                    files.put(codeFile, codeOneFile(pack.getName(), filePath, enums, structs));
+                    if (enums.size() > 0 || structs.size() > 0)
+                    {
+                        String text = codeOneFile(pack.getName(), filePath, enums, structs);
+                        if (text.length() > 0)
+                        {
+                            File codeFile = new File(codeDir, fileName);
+                            files.put(codeFile, text);
+                        }
+                    }
                     enums.clear();
                     structs.clear();
 
@@ -394,22 +404,26 @@ abstract public class InvarWrite
             {
                 String typeName = iTypeName.next();
                 InvarType type = pack.getType(typeName);
-                s.append(TypeID.GHOST == type.getId() ? " # " : "   ");
-                s.append(fixedLen(" ", 32, pack.getName() + "." + typeName));
+                s.append(TypeID.GHOST == type.getId() ? "  # " : "    ");//4
+                s.append(fixedLen(32, pack.getName() + ruleTypeSplit + typeName));//32
                 if (type.getRedirect() != null)
                 {
                     InvarType typeR = type.getRedirect();
-                    s.append(" --->  ");
+                    s.append(" --->   ");//8
+                    String nameR = typeR.getName() + typeR.getGeneric();
                     String namePack = typeR.getPack().getName();
                     if (!namePack.equals(""))
-                        s.append(namePack + ".");
-                    String nameR = typeR.getName() + typeR.getGeneric();
+                        nameR = (namePack + ruleTypeSplit) + nameR;
                     s.append(fixedLen(32, nameR));
-                    s.append(type.getCodePath());
+                    s.append(fixedLen(32, type.getCodePath()));
                 }
                 s.append("\n");
             }
-            s.append(fixedLen("-", 80));
+            for (int j = 0; j < 6; j++)
+            {
+                s.append(fixedLen("-", 19));
+                s.append("+");
+            }
             s.append("\n");
         }
         return s;
@@ -476,9 +490,6 @@ abstract public class InvarWrite
         }
     }
 
-    final static private String GENERIC_LEFT  = "<";
-    final static private String GENERIC_RIGHT = ">";
-
     final protected String ruleLeft (String rule)
     {
         String name = rule;
@@ -502,11 +513,11 @@ abstract public class InvarWrite
 
     final protected InvarType findType (InvarContext ctx, String fullName)
     {
-        int iEnd = fullName.lastIndexOf(typeSplit);
+        int iEnd = fullName.lastIndexOf(ruleTypeSplit);
         if (iEnd < 0)
             return ctx.findBuildInType(fullName);
         String packName = fullName.substring(0, iEnd);
-        String typeName = fullName.substring(iEnd + typeSplit.length());
+        String typeName = fullName.substring(iEnd + ruleTypeSplit.length());
         InvarPackage pack = ctx.getPack(packName);
         if (pack == null)
             return null;
@@ -540,7 +551,7 @@ abstract public class InvarWrite
                 String typeName = iTypeName.next();
                 InvarType type = pack.getType(typeName);
                 typeForShort.put(type.getName(), type);
-                typeForShort.put(type.fullName(typeSplit), type);
+                typeForShort.put(type.fullName(ruleTypeSplit), type);
             }
         }
     }

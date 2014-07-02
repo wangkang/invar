@@ -2,14 +2,14 @@
 <tns:package name="test.abc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="invar.rule rule.xsd"
   xmlns:tns="invar.rule">
   <protoc name="TestProtoc" doc="">
+    <server>
+      <field name="info" type="Info" doc=""/>
+    </server>
     <client>
       <field name="gender" type="Gender" doc=""/>
       <field name="info" type="Info" doc=""/>
       <field name="message" type="String" doc=""/>
     </client>
-    <server>
-      <field name="info" type="Info" doc=""/>
-    </server>
   </protoc>
   <struct name="Conflict" doc="...">
     <field name="text" type="String" doc=""/>

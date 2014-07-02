@@ -5,31 +5,32 @@
   <export resPath="/res/cpp/invar.codec.h" destDir="" destName="invar.codec.h"/>
   
   <redefine>
-    <int8 include="&lt;cstdint&gt;" pack="" type="std::int8_t" initValue="-1"/>
-    <int16 include="&lt;cstdint&gt;" pack="" type="std::int16_t" initValue="-1"/>
-    <int32 include="&lt;cstdint&gt;" pack="" type="std::int32_t" initValue="-1"/>
-    <int64 include="&lt;cstdint&gt;" pack="" type="std::int64_t" initValue="-1"/>
-    <uint8 include="&lt;cstdint&gt;" pack="" type="std::uint8_t" initValue="0"/>
-    <uint16 include="&lt;cstdint&gt;" pack="" type="std::uint16_t" initValue="0"/>
-    <uint32 include="&lt;cstdint&gt;" pack="" type="std::uint32_t" initValue="0"/>
-    <uint64 include="&lt;cstdint&gt;" pack="" type="std::uint64_t" initValue="0" initSuffix="L"/>
-    <string include="&lt;string&gt;" pack="" type="std::string" initValue="&quot;&quot;" initPrefix="&quot;" initSuffix="&quot;"/>
-    <float pack="" type="float" initValue="0.0" initSuffix="F"/>
-    <double pack="" type="double" initValue="0.00"/>
-    <bool pack="" type="bool" initValue="false"/>
-    <vec include="&lt;vector&gt;" pack="" type="std::vector" generic="&lt; ? &gt;" initValue=""/>
-    <map include="&lt;map&gt;" pack="" type="std::map" generic="&lt; ?, ? &gt;" initValue=""/>
-    <ghost include="&quot;invar.codec.h&quot;" pack="invar" type="BinaryWriter" initValue=""/>
-    <ghost include="&quot;invar.codec.h&quot;" pack="invar" type="BinaryReader" initValue=""/>
+    <int8   pack="std"   type="int8_t"   include="&lt;cstdint&gt;" initValue="-1" />
+    <int16  pack="std"   type="int16_t"  include="&lt;cstdint&gt;" initValue="-1" />
+    <int32  pack="std"   type="int32_t"  include="&lt;cstdint&gt;" initValue="-1" />
+    <int64  pack="std"   type="int64_t"  include="&lt;cstdint&gt;" initValue="-1" />
+    <uint8  pack="std"   type="uint8_t"  include="&lt;cstdint&gt;" initValue="0" />
+    <uint16 pack="std"   type="uint16_t" include="&lt;cstdint&gt;" initValue="0" />
+    <uint32 pack="std"   type="uint32_t" include="&lt;cstdint&gt;" initValue="0" />
+    <uint64 pack="std"   type="uint64_t" include="&lt;cstdint&gt;" initValue="0" />
+    <string pack="std"   type="string"   include="&lt;string&gt;" initValue="&quot;&quot;" initPrefix="&quot;" initSuffix="&quot;"/>
+    <float  pack=""      type="float"  initValue="0.0" initSuffix="F"/>
+    <double pack=""      type="double" initValue="0.00"/>
+    <bool   pack=""      type="bool"   initValue="false"/>
+    <vec    pack="std"   type="vector" generic="&lt; ? &gt;"    include="&lt;vector&gt;"/>
+    <map    pack="std"   type="map"    generic="&lt; ?, ? &gt;" include="&lt;map&gt;"/>
+    <ghost  pack="invar" type="BinaryWriter" include="&quot;invar.codec.h&quot;"/>
+    <ghost  pack="invar" type="BinaryReader" include="&quot;invar.codec.h&quot;"/>
   </redefine>
   
+  
   <template key="trace.all.types"><![CDATA[true]]></template>
+  <template key="include.self"><![CDATA[false]]></template>
   <template key="pack.name.nested"><![CDATA[true]]></template>
   <template key="file.name.lowercase"><![CDATA[true]]></template>
   <template key="capitalize.pack.head"><![CDATA[false]]></template>
   <template key="method.indent.num"><![CDATA[0]]></template>
   <template key="use.full.type.name"><![CDATA[true]]></template>
-  
   <template key="one.pack.one.file"><![CDATA[false]]></template>
   <template key="code.dir.flatten"><![CDATA[true]]></template>
   <template key="code.dir.prefix"><![CDATA[include/]]></template>
