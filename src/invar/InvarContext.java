@@ -65,7 +65,7 @@ final public class InvarContext
             return this;
         }
         InvarType type = packBuildIn.getType(id);
-        InvarType typeGhost = ghostAdd(namePack, nameType, generic, id, false, codePath);
+        InvarType typeGhost = addDialectType(namePack, nameType, generic, id, false, codePath);
         type.setRedirect(typeGhost);
         type.setInitValue(initValue);
         type.setInitSuffix(initSuffix);
@@ -75,7 +75,7 @@ final public class InvarContext
         return this;
     }
 
-    public InvarType ghostAdd (String namePack,
+    public InvarType addDialectType (String namePack,
                                String nameType,
                                String generic,
                                TypeID realId,
@@ -88,7 +88,7 @@ final public class InvarContext
             pack = new InvarPackage(namePack, false);
             packAll.put(namePack, pack);
         }
-        InvarType t = new InvarType(TypeID.GHOST, nameType, pack, "", isBuildin);
+        InvarType t = new InvarType(TypeID.DIALECT, nameType, pack, "", isBuildin);
         t.setGeneric(generic);
         t.setRealId(realId);
         t.setCodePath(codePath);
@@ -96,7 +96,7 @@ final public class InvarContext
         return t;
     }
 
-    public void ghostClear ()
+    public void clearDialectTypes ()
     {
         Iterator<String> i = packAll.keySet().iterator();
         while (i.hasNext())

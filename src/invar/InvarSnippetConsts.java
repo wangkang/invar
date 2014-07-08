@@ -8,6 +8,13 @@ public class InvarSnippetConsts
 
         final static public String METHOD_INDENT_NUM     = "method.indent.num";
 
+        final static public String REFER_SPEC            = "refer.spec";
+        final static public String REFER_INVOKE          = "refer.invoke";
+        final static public String REFER_CONST           = "refer.const";
+        final static public String POINTER_NULL          = "pointer.null";
+        final static public String POINTER_SPEC          = "pointer.spec";
+        final static public String POINTER_INVOKE        = "pointer.invoke";
+
         final static public String FILE                  = "file";
         final static public String FILE_PACK             = "file.pack";
         final static public String FILE_BODY             = "file.body";
@@ -20,7 +27,6 @@ public class InvarSnippetConsts
         final static public String IMPORT_SPLIT          = "import.split";
         final static public String IMPORT_BODY           = "import.body";
 
-        final static public String NULL_STRUCT           = "null.struct";
         final static public String NULL_BYTE_YES         = "null.byte.yes";
         final static public String NULL_BYTE_NO          = "null.byte.no";
         final static public String INIT_STRUCT           = "init.struct";
@@ -47,7 +53,6 @@ public class InvarSnippetConsts
         final static public String STRUCT                = "struct";
         final static public String STRUCT_META           = "struct.meta";
         final static public String STRUCT_FIELD          = "struct.field";
-        final static public String STRUCT_FIELD_SELF     = "struct.field.self";
         final static public String STRUCT_GETTER         = "struct.getter";
         final static public String STRUCT_SETTER         = "struct.setter";
 

@@ -13,14 +13,16 @@
     <uint16 pack="std"   type="uint16_t" include="&lt;cstdint&gt;" initValue="0" />
     <uint32 pack="std"   type="uint32_t" include="&lt;cstdint&gt;" initValue="0" />
     <uint64 pack="std"   type="uint64_t" include="&lt;cstdint&gt;" initValue="0" />
-    <string pack="std"   type="string"   include="&lt;string&gt;" initValue="&quot;&quot;" initPrefix="&quot;" initSuffix="&quot;"/>
+    <string pack="std"   type="string"   include="&lt;string&gt;"  initValue="&quot;&quot;" initPrefix="&quot;" initSuffix="&quot;"/>
     <float  pack=""      type="float"  initValue="0.0" initSuffix="F"/>
     <double pack=""      type="double" initValue="0.00"/>
     <bool   pack=""      type="bool"   initValue="false"/>
     <vec    pack="std"   type="vector" generic="&lt; ? &gt;"    include="&lt;vector&gt;"/>
     <map    pack="std"   type="map"    generic="&lt; ?, ? &gt;" include="&lt;map&gt;"/>
-    <ghost  pack="invar" type="BinaryWriter" include="&quot;invar.codec.h&quot;"/>
-    <ghost  pack="invar" type="BinaryReader" include="&quot;invar.codec.h&quot;"/>
+    
+    <dialect pack="invar" type="BinaryWriter" include="&quot;invar.codec.h&quot;"/>
+    <dialect pack="invar" type="BinaryReader" include="&quot;invar.codec.h&quot;"/>
+  
   </redefine>
   
   
@@ -35,7 +37,14 @@
   <template key="code.dir.flatten"><![CDATA[true]]></template>
   <template key="code.dir.prefix"><![CDATA[include/]]></template>
   
-  <template key="null.struct"><![CDATA[*((#type)*)NULL]]></template>
+  <template key="refer.spec"><![CDATA[&]]></template>
+  <template key="refer.invoke"><![CDATA[.]]></template>
+  <template key="refer.const"><![CDATA[const]]></template>
+  <template key="pointer.spec"><![CDATA[*]]></template>
+  <template key="pointer.invoke"><![CDATA[->]]></template>
+  <template key="pointer.null"><![CDATA[NULL]]></template>
+  
+  <template key="null.struct"><![CDATA[*this]]></template>
   <template key="null.byte.yes"><![CDATA[(std::int8_t)0x01]]></template>
   <template key="null.byte.no"><![CDATA[(std::int8_t)0x00]]></template>
   
@@ -88,22 +97,17 @@
 	(#tab)public:
 	
 	(#blank)
-	(#tab)(#name)():
-	(#ctor)(#tab)
-	(#tab){
-	(#tab)}
-	
-	(#blank)
 	(#tab)~(#name)();
+	(#tab)(#blank) (#name)();
+	(#tab)(#name)(const (#name) &from);
 	
-	//(#tab)(#name)(const (#name)& from);
-	(#tab)(#name)& operator = (const (#name)& from);
-	(#tab)bool operator < (const (#name)& other) const;
+	(#tab)(#name)& operator = (const (#name) &from);
+	(#tab)bool operator < (const (#name) &other) const;
 	
 	(#blank)
-	(#tab)(#name)& CopyFrom(const (#name)& from);
-	(#tab)(#name)& Encode(invar::BinaryWriter& stream);
-	(#tab)(#name)& Decode(invar::BinaryReader& stream);
+	(#tab)(#name)& CopyFrom(const (#name) &from);
+	(#tab)(#name)& Encode(invar::BinaryWriter &stream);
+	(#tab)(#name)& Decode(invar::BinaryReader &stream);
 	
 	(#blank)
 	(#setters)
@@ -113,9 +117,7 @@
 	(#fields)
 	}; //class: (#name)
   ]]></template>
-  <template key="ctor"><![CDATA[]]></template>
-  <template key="ctor.field"><![CDATA[(#tab)(#name)((#value))]]></template>
-  <template key="ctor.field.split"><![CDATA[,(#brk)]]></template>
+
   
   <template key="struct.meta"><![CDATA[ [InvarRule("(#type)", "(#name)")] ]]></template>
   <template key="struct.field.self"><![CDATA[&]]></template>
@@ -128,7 +130,7 @@
   ]]></template>
   
   <template key="struct.getter"><![CDATA[
-	(#tab)const (#type) Get(#nameupper)() const; (#doc)
+	(#tab)(#type) Get(#nameupper)(); (#doc)
   ]]></template>
   
   

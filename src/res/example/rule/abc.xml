@@ -22,7 +22,6 @@
     <option name="NONE" value="10" doc=""/>
   </enum>
   <struct name="Info" short="f" doc="Test comments">
-    <field name="numbers" type="Vec-Vec-Double" doc=""/>
     <field name="key" value="123" type="Int32" doc=""/>
     <field name="number01" type="Int8" doc=""/>
     <field name="number02" type="Int16" doc=""/>
@@ -36,11 +35,12 @@
     <field name="number10" type="Double" doc=""/>
     <field name="isReal" type="Bool" doc=""/>
     <field name="s" type="String" value="hello" scope="public" doc="a string"/>
+    <field name="world" type="Vec-String" doc=""/>
     <field name="gender" type="Gender" doc=""/>
     <field name="next" type="Info" doc=""/>
     <field name="conflict" type="test.abc::Conflict" doc=""/>
     <field name="conflicts" type="Vec-test.xyz::Conflict" doc=""/>
-    <field name="infos" type="Vec-Vec-Vec-Vec-Vec-Info" doc=""/>
+    <field name="numbers" type="Vec-Double" doc=""/>    
     <field name="mapInfoG" type="Map-Info-Gender" doc=""/>
     <field name="mapGenderInfo" type="Map-Gender-Info" doc=""/>
     <field name="mapDouble" type="Map-Double" doc=""/>

@@ -38,6 +38,7 @@ public class InvarWriteCode extends InvarWrite
     final static String tokenKey         = wrapToken("key");
     final static String tokenValue       = wrapToken("value");
     final static String tokenBody        = wrapToken("body");
+    final static String tokenInvoke      = wrapToken("invoke");
 
     final static String tokenDefine      = wrapToken("define");
     final static String tokenImport      = wrapToken("import");
@@ -437,24 +438,22 @@ public class InvarWriteCode extends InvarWrite
         return code;
     }
 
-    private String makeStructFieldType (InvarField f, TypeStruct struct)
-    {
-        String typeName = f.getTypeFormatted();
-        if (f.getType() == struct)
-        {
-            typeName += snippetTryGet(Key.STRUCT_FIELD_SELF);
-        }
-        return typeName;
-    }
-
     private StringBuilder makeStructField (InvarField f, TypeStruct struct)
     {
         StringBuilder code = new StringBuilder();
-
+        String typeName = f.getTypeFormatted();
+        String fieldName = f.isStructSelf() ? snippetTryGet(Key.POINTER_SPEC) : empty;
+        fieldName += f.getKey();
         String s = snippetGet(Key.STRUCT_FIELD);
-        s = replace(s, tokenType, fixedLen(f.getWidthType(), makeStructFieldType(f, struct)));
-        s = replace(s, tokenName, fixedLen(f.getWidthKey(), f.getKey()));
-        s = replace(s, tokenValue, fixedLen(f.getWidthDefault(), f.getDeftFormatted()));
+        int deltaKeyWidth = 0;
+        if (typeName.length() > f.getWidthType())
+            deltaKeyWidth = typeName.length() - f.getWidthType();
+        int deltaValWidth = 0;
+        if (f.getDeftFormatted().length() > f.getWidthDefault())
+            deltaValWidth = f.getDeftFormatted().length() - f.getWidthDefault();
+        s = replace(s, tokenType, fixedLen(f.getWidthType(), typeName));
+        s = replace(s, tokenName, fixedLen(f.getWidthKey() - deltaKeyWidth, fieldName));
+        s = replace(s, tokenValue, fixedLen(f.getWidthDefault() - deltaKeyWidth - deltaValWidth, f.getDeftFormatted()));
         s = replace(s, tokenDoc, makeDocLine(f.getComment()));
         code.append(s);
         return code;
@@ -479,10 +478,11 @@ public class InvarWriteCode extends InvarWrite
             return code;
         if (TypeID.MAP == f.getType().getId())
             return code;
+
         String s = snippetGet(Key.STRUCT_SETTER);
         s = replace(s, tokenTypeHost, struct.getName());
         s = replace(s, tokenMeta, makeStructMeta(f).toString());
-        s = replace(s, tokenType, makeStructFieldType(f, struct));
+        s = replace(s, tokenType, makeStructFieldType(f, struct, true));
         s = replace(s, tokenName, f.getKey());
         s = replace(s, tokenNameUpper, upperHeadChar(f.getKey()));
         s = replace(s, tokenDoc, makeDoc(f.getComment()));
@@ -496,12 +496,28 @@ public class InvarWriteCode extends InvarWrite
         String s = snippetGet(Key.STRUCT_GETTER);
         s = replace(s, tokenTypeHost, struct.getName());
         s = replace(s, tokenMeta, makeStructMeta(f).toString());
-        s = replace(s, tokenType, makeStructFieldType(f, struct));
+        s = replace(s, tokenType, makeStructFieldType(f, struct, false));
         s = replace(s, tokenName, f.getKey());
         s = replace(s, tokenNameUpper, upperHeadChar(f.getKey()));
         s = replace(s, tokenDoc, makeDoc(f.getComment()));
         code.append(s);
         return code;
+    }
+
+    private String makeStructFieldType (InvarField f, TypeStruct struct, Boolean isSetter)
+    {
+        String typeName = f.getTypeFormatted();
+        if (f.isStructSelf())
+        {
+            typeName += snippetTryGet(Key.POINTER_SPEC);
+        }
+        else if (f.getType().getRealId().getUseRefer())
+        {
+            typeName += snippetTryGet(Key.REFER_SPEC);
+            if (isSetter)
+                typeName = snippetTryGet(Key.REFER_CONST) + whiteSpace + typeName;
+        }
+        return typeName;
     }
 
     protected String makeStructFieldInit (InvarField f, TypeStruct struct)
@@ -514,8 +530,8 @@ public class InvarWriteCode extends InvarWrite
         }
         if (f.isStructSelf())
         {
-            String s = snippetGet(Key.NULL_STRUCT);
-            return replace(s, tokenType, f.getTypeFormatted());
+            String s = snippetGet(Key.POINTER_NULL);
+            return s;
         }
         String s = null;
         switch (type.getRealId()) {
@@ -760,7 +776,7 @@ public class InvarWriteCode extends InvarWrite
             InvarType buildInT = c.findBuildInType(typeName);
             if (buildInT == null)
             {
-                getContext().ghostAdd(pack, type, generic, TypeID.GHOST, false, include);
+                getContext().addDialectType(pack, type, generic, TypeID.DIALECT, false, include);
                 continue;
             }
             TypeID id = buildInT.getId();
@@ -1009,7 +1025,6 @@ public class InvarWriteCode extends InvarWrite
         public StreamCoder(String prefix)
         {
             this.prefix = prefix;
-
         }
 
         public String code (TypeStruct type, List<InvarField> fs, TreeSet<String> imps, Boolean fullName)
@@ -1079,7 +1094,7 @@ public class InvarWriteCode extends InvarWrite
                 System.out.println("InvarWriteCode.makeField() " + rule);
             TypeID type = f.getType().getRealId();
             List<String> lines = new ArrayList<String>();
-            CodeForParams params = makeParams(type, false, true, rule, f.getKey(), f.getKey(), rule, empty);
+            CodeForParams params = makeParams(type, false, f.isStructSelf(), rule, f.getKey(), f.getKey(), rule, empty);
             params.numLayer = 1;
             makeField(f, type, rule, params, lines);
             return lines;
@@ -1123,6 +1138,8 @@ public class InvarWriteCode extends InvarWrite
             }
             s = replace(s, tokenName, p.name);
             s = replace(s, tokenType, p.getType());
+            s = replace(s, tokenValue, snippetTryGet(Key.POINTER_NULL));
+            s = replace(s, tokenInvoke, snippetTryGet(Key.POINTER_INVOKE));
             return s;
         }
 

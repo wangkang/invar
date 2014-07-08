@@ -14,6 +14,14 @@
   <template key="code.dir.flatten"><![CDATA[true]]></template>
   <template key="code.dir.prefix"><![CDATA[impl/]]></template>
   
+  
+  <template key="refer.spec"><![CDATA[&]]></template>
+  <template key="refer.invoke"><![CDATA[.]]></template>
+  <template key="refer.const"><![CDATA[const]]></template>
+  <template key="pointer.spec"><![CDATA[*]]></template>
+  <template key="pointer.invoke"><![CDATA[->]]></template>
+  <template key="pointer.null"><![CDATA[NULL]]></template>
+  
   <template key="null.struct"><![CDATA[*((#type)*)NULL]]></template>
   <template key="null.byte.yes"><![CDATA[(std::int8_t)0x01]]></template>
   <template key="null.byte.no"><![CDATA[(std::int8_t)0x00]]></template>
@@ -59,7 +67,7 @@
   <template key="init.enum"><![CDATA[(#name)]]></template>
   
   <template key="code.invoker"><![CDATA[.]]></template>
-  <template key="code.assignment"><![CDATA[(#type)& (#name) = (#value);(#brk)]]></template>
+  <template key="code.assignment"><![CDATA[(#type) (#name) = (#value);(#brk)]]></template>
   <template key="code.definition"><![CDATA[(#type) (#name);(#brk)]]></template>
   <template key="code.indexer"><![CDATA[ (#name)[(#index)] ]]></template>
   <template key="code.fori.itype"><![CDATA[int32]]></template>
@@ -74,6 +82,10 @@
   }
   ]]></template>
 
+  <template key="ctor"><![CDATA[]]></template>
+  <template key="ctor.field"><![CDATA[(#name)((#value))]]></template>
+  <template key="ctor.field.split"><![CDATA[,(#brk)]]></template>
+
   <template key="struct"><![CDATA[
 	(#blank)
 	(#name)::~(#name)()
@@ -81,10 +93,16 @@
 	}
 	
 	(#blank)
-	//(#name)::(#name)(const (#name)& from)
-	//{
-	//	(#tab)if (this != &from) { CopyFrom(from); }
-	//}
+	(#name)::(#name)():
+	(#ctor)
+	{
+	}
+	
+	(#blank)
+	(#name)::(#name)(const (#name)& from)
+	{
+	(#tab)if (this != &from) { CopyFrom(from); }
+	}
 	
 	(#blank)
 	(#name)& (#name)::CopyFrom (const (#name)& from)
@@ -108,12 +126,10 @@
 		(#tab)return true;
 	}
 	
-	(#blank)	
-	
+	(#blank)
 	(#getters)
 	(#setters)
 	
-	//(#copyfrom)
 	(#encoder)
 	(#decoder)
 	
@@ -121,13 +137,13 @@
   <template key="struct.meta"><![CDATA[ [Invar.InvarRule("(#type)", "(#name)")] ]]></template>
   <template key="struct.field.self"><![CDATA[&]]></template>
   <template key="struct.field"><![CDATA[
-  (#tab) (#type) (#name) = (#value);(#doc)(#brk)]]></template>
+	(#tab) (#type) (#name) = (#value);(#doc)(#brk)]]></template>
   <template key="struct.setter"><![CDATA[
-    	(#typehost)& (#typehost)::Set(#nameupper)((#type) value) { (#name) = value; return *this; }
-	]]></template>
+	(#typehost)& (#typehost)::Set(#nameupper)((#type) value) { (#name) = value; return *this; }
+  ]]></template>
   <template key="struct.getter"><![CDATA[
-    	const (#type) (#typehost)::Get(#nameupper)() const { return (#name); }
-	]]></template>
+	(#type) (#typehost)::Get(#nameupper)() { return (#name); }
+  ]]></template>
 
   
   <!-- Read bytes from a Stream -->
@@ -153,11 +169,16 @@
   <template key="read.enum"><![CDATA[(#name) = ((#type))stream.ReadInt32();]]></template>
   <template key="read.struct"><![CDATA[(#name).Decode(stream);]]></template>
   <template key="read.struct.check"><![CDATA[
+  if ((#name) != (#value))
+  {
+	  (#tab)delete (#name);
+	  (#tab)(#name) = (#value);
+  }
   if (stream.ReadByte() == 0x01)
   {
-  (#tab)if (&(#name) == ((#type)*)NULL)
-  (#tab)(#tab)(#name) = * new (#type)();
-  (#tab)(#name).Decode(stream);
+	  (#tab)if ((#name) == (#value))
+	  (#tab)(#tab)(#name) = new (#type)();
+	  (#tab)(#name)->Decode(stream);
   }
   ]]></template>
   <template key="read.size.init"><![CDATA[stream.ReadInt32();]]></template>
@@ -206,10 +227,10 @@
   <template key="write.enum"><![CDATA[stream.Write((std::int32_t)(#name));]]></template>
   <template key="write.struct"><![CDATA[(#name).Encode(stream);]]></template>
   <template key="write.struct.check"><![CDATA[
-  if (&(#name) != ((#type)*)NULL)
+  if ((#name) != (#value))
   {
   (#tab)stream.Write((std::int8_t)0x01);
-  (#tab)(#name).Encode(stream);
+  (#tab)(#name)(#invoke)Encode(stream);
   }
   else
   {
@@ -235,8 +256,6 @@
   {(#body)
   }
   ]]></template>
-  
-  
   
   <template key="write.map.keys"><![CDATA[Keys]]></template>
   <template key="write.map.for"><![CDATA[

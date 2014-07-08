@@ -70,7 +70,7 @@ abstract public class InvarWrite
         if (getContext() == null)
             return;
         if (!merge)
-            context.ghostClear();
+            context.clearDialectTypes();
 
         Boolean bool = beforeWrite(getContext());
         typeForShortReset(context);
@@ -404,7 +404,7 @@ abstract public class InvarWrite
             {
                 String typeName = iTypeName.next();
                 InvarType type = pack.getType(typeName);
-                s.append(TypeID.GHOST == type.getId() ? "  # " : "    ");//4
+                s.append(TypeID.DIALECT == type.getId() ? "  # " : "    ");//4
                 s.append(fixedLen(32, pack.getName() + ruleTypeSplit + typeName));//32
                 if (type.getRedirect() != null)
                 {

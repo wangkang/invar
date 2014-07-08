@@ -13,11 +13,13 @@
 	</struct>
 
 	<struct name="InfoX" doc="Complex data structure">
+	<field name="infos" type="Vec-Vec-Vec-Vec-Vec-Info" doc=""/>
 		<field name="conflict_x" type="test.xyz::Conflict" doc="Two types with the same name." />
 		<field name="conflict_a" type="test.abc::Conflict" doc="Two types with the same name." />
 		<field name="mConflict" type="Map-test.abc::Conflict" doc="" />
 		<field name="info2d" type="Vec-Vec-Info" doc="2 dimension list" />
 		<field name="info3d" type="Vec-Vec-Vec-Info" doc="3 dimension list" />
+		<field name="info5d" type="Vec-Vec-Vec-Vec-Vec-Info" doc=""/>
 		<field name="infovm" type="Vec-Map-Int16-Info" doc="" />
 		<field name="mvei" type="Map-Vec-Gender-Info" doc="" />
 		<field name="mive" type="Map-Info-Vec-Gender" doc="" />

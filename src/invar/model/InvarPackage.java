@@ -87,7 +87,7 @@ public class InvarPackage
         {
             String key = i.next();
             type = typeMap.get(key);
-            if (type.getId() == TypeID.GHOST)
+            if (type.getId() == TypeID.DIALECT)
                 i.remove();
         }
     }
