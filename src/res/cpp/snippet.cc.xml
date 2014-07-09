@@ -186,7 +186,7 @@
   <template key="read.map"><![CDATA[(#nameupper).Add((#name),(#value));]]></template>
   <template key="read.vec.for"><![CDATA[
   int32_t (#len) = stream.ReadInt32();
-  (#name).resize((#len));
+  (#name).reserve((#len));
   for ((#sizetype) (#index) = 0; (#index) < (#len); (#index)++) //read.vec.for
   {(#body)
   (#tab)(#name).push_back((#value));
@@ -198,8 +198,7 @@
   int32_t (#len) = stream.ReadInt32();
   for ((#sizetype) (#index) = 0; (#index) < (#len); (#index)++) //read.map.for
   {(#body)
-  (#tab)(#name)[(#key)] = (#value);
-  (#tab)//(#name).insert((#type)::value_type((#key),(#value)));
+  (#tab)(#name).insert((#type)::value_type((#key),(#value)));
   }
   ]]></template>
   
