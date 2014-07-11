@@ -192,12 +192,13 @@ abstract public class InvarWrite
                     TypeProtocol t = (TypeProtocol)type;
                     if (t.hasClient())
                     {
-                        structs.add(t.getClient());
+                        //structs.add(t.getClient());
                     }
                     if (t.hasServer())
                     {
-                        structs.add(t.getServer());
+                        //structs.add(t.getServer());
                     }
+                    continue;
                 }
                 else
                 {

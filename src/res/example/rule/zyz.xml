@@ -1,9 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tns:package name="test.xyz" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="invar.rule rule.xsd"
-	xmlns:tns="invar.rule">
+<tns:package name="test.xyz"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="invar.rule rule.xsd" xmlns:tns="invar.rule">
+
+	<struct name="TestList" doc="测试基本的列表类型">
+		<field name="listI08" type="Vec-Int8" doc="有符号的8位整数" />
+		<field name="listI16" type="Vec-Int16" doc="有符号的16位整数" />
+		<field name="listI32" type="Vec-Int32" doc="有符号的32位整数" />
+		<field name="listI64" type="Vec-Int64" doc="有符号的64位整数" />
+		<field name="listU08" type="Vec-Uint8" doc="无符号的8位整数" />
+		<field name="listU16" type="Vec-Uint16" doc="无符号的16位整数" />
+		<field name="listU32" type="Vec-Uint32" doc="无符号的32位整数" />
+		<field name="listU64" type="Vec-Uint64" doc="无符号的64位整数" />
+		<field name="listSingle" type="Vec-Float" doc="单精度浮点小数" />
+		<field name="listDouble" type="Vec-Double" doc="双精度浮点小数" />
+		<field name="listBoolean" type="Vec-Bool" doc="布尔值" />
+		<field name="listString" type="Vec-String" doc="字符串" />
+		<field name="listEnum" type="Vec-Gender" doc="枚举值" />
+		<field name="listStruct" type="Vec-Custom" doc="自定义结构" />
+	</struct>
+
+	<struct name="TestDict" doc="测试基本的映射类型">
+		<field name="dictI08" type="Map-Int8-Int8" doc="有符号的8位整数" />
+		<field name="dictI16" type="Map-Int16-Int16" doc="有符号的16位整数" />
+		<field name="dictI32" type="Map-Int32-Int32" doc="有符号的32位整数" />
+		<field name="dictI64" type="Map-Int64-Int64" doc="有符号的64位整数" />
+		<field name="dictU08" type="Map-Uint8-Uint8" doc="无符号的8位整数" />
+		<field name="dictU16" type="Map-Uint16-Uint16" doc="无符号的16位整数" />
+		<field name="dictU32" type="Map-Uint32-Uint32" doc="无符号的32位整数" />
+		<field name="dictU64" type="Map-Uint64-Uint64" doc="无符号的64位整数" />
+		<field name="dictSingle" type="Map-Float-Float" doc="单精度浮点小数" />
+		<field name="dictDouble" type="Map-Double-Double" doc="双精度浮点小数" />
+		<field name="dictBoolean" type="Map-Bool-Bool" doc="布尔值" />
+		<field name="dictString" type="Map-String-String" doc="字符串" />
+		<field name="dictEnum" type="Map-Gender-Gender" doc="枚举值" />
+		<field name="dictStruct" type="Map-Custom-Custom" doc="自定义结构" />
+	</struct>
+
+	<struct name="TestNest" doc="测试泛型相互嵌套">
+		<field name="listDict" type="Vec-Map-String-Custom" doc="" />
+		<field name="dictList" type="Map-Vec-String-Vec-Custom" doc="" />
+		<field name="list5d" type="Vec-Vec-Vec-Vec-Vec-Custom" doc="五维列表" />
+	</struct>
+
 
 	<struct name="ConfigRoot" alias="root" short="f" doc="">
-		<field name="revision" type="String" doc="" />
+		<field name="revision" type="String" value="1.0.0" doc="" />
+		
+		<field name="list" type="TestList" doc=""/>
+		<field name="dict" type="TestDict" doc=""/>
+		<field name="nest" type="TestNest" doc=""/>
+		
 		<field name="info" type="Info" doc="" />
 		<field name="infox" type="InfoX" doc="" />
 	</struct>
@@ -13,13 +60,13 @@
 	</struct>
 
 	<struct name="InfoX" doc="Complex data structure">
-	<field name="infos" type="Vec-Vec-Vec-Vec-Vec-Info" doc=""/>
+		<field name="infos" type="Vec-Vec-Vec-Vec-Vec-Info" doc="" />
 		<field name="conflict_x" type="test.xyz::Conflict" doc="Two types with the same name." />
 		<field name="conflict_a" type="test.abc::Conflict" doc="Two types with the same name." />
 		<field name="mConflict" type="Map-test.abc::Conflict" doc="" />
 		<field name="info2d" type="Vec-Vec-Info" doc="2 dimension list" />
 		<field name="info3d" type="Vec-Vec-Vec-Info" doc="3 dimension list" />
-		<field name="info5d" type="Vec-Vec-Vec-Vec-Vec-Info" doc=""/>
+		<field name="info5d" type="Vec-Vec-Vec-Vec-Vec-Info" doc="" />
 		<field name="infovm" type="Vec-Map-Int16-Info" doc="" />
 		<field name="mvei" type="Map-Vec-Gender-Info" doc="" />
 		<field name="mive" type="Map-Info-Vec-Gender" doc="" />

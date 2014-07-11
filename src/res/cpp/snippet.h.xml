@@ -22,7 +22,7 @@
     
     <dialect pack="invar" type="BinaryWriter" include="&quot;invar.codec.h&quot;"/>
     <dialect pack="invar" type="BinaryReader" include="&quot;invar.codec.h&quot;"/>
-  
+
   </redefine>
   
   
@@ -43,11 +43,8 @@
   <template key="pointer.spec"><![CDATA[*]]></template>
   <template key="pointer.invoke"><![CDATA[->]]></template>
   <template key="pointer.null"><![CDATA[NULL]]></template>
-  
-  <template key="null.struct"><![CDATA[*this]]></template>
   <template key="null.byte.yes"><![CDATA[(std::int8_t)0x01]]></template>
   <template key="null.byte.no"><![CDATA[(std::int8_t)0x00]]></template>
-  
   <template key="type.enum"><![CDATA[int32]]></template>
   
   <template key="file"><![CDATA[
@@ -92,46 +89,39 @@
   
   <template key="struct"><![CDATA[
     (#brk)(#doc)
-	class (#name)
-	{
-	(#tab)public:
-	
+	class (#name) {
 	(#blank)
-	(#tab)~(#name)();
+	(#space)(#space)public:
+	(#blank)
 	(#tab)(#blank) (#name)();
 	(#tab)(#name)(const (#name) &from);
-	
-	(#tab)(#name)& operator = (const (#name) &from);
+	(#space)(#space)(#space)~(#name)();
 	(#tab)bool operator < (const (#name) &other) const;
-	
-	(#blank)
+	(#tab)(#name)& operator = (const (#name) &from);	
 	(#tab)(#name)& CopyFrom(const (#name) &from);
 	(#tab)(#name)& Encode(invar::BinaryWriter &stream);
 	(#tab)(#name)& Decode(invar::BinaryReader &stream);
 	
 	(#blank)
-	(#setters)
 	(#getters)
-	(#tab)private:
+	(#setters)
+	
+	(#space)(#space)private:
+	
 	(#blank)
 	(#fields)
+	
 	}; //class: (#name)
   ]]></template>
 
   
   <template key="struct.meta"><![CDATA[ [InvarRule("(#type)", "(#name)")] ]]></template>
-  <template key="struct.field.self"><![CDATA[&]]></template>
   <template key="struct.field"><![CDATA[
 	(#tab)(#type) (#name); (#doc)
   ]]></template>
   
-  <template key="struct.setter"><![CDATA[
-	(#tab)(#typehost)& Set(#nameupper)((#type) value);
-  ]]></template>
-  
-  <template key="struct.getter"><![CDATA[
-	(#tab)(#type) Get(#nameupper)(); (#doc)
-  ]]></template>
+  <template key="struct.setter"><![CDATA[(#tab)(#typehost)& Set(#nameupper)((#type) (#spec)value);(#brk)]]></template>
+  <template key="struct.getter"><![CDATA[(#tab)(#type)(#spec) Get(#nameupper)(); (#docline)(#brk)]]></template>
   
   
   <template key="read.import"><![CDATA[invar::BinaryReader]]></template>
@@ -143,10 +133,12 @@
   <template key="import"><![CDATA[using namespace (#body);(#brk)]]></template>
   <template key="import.body"><![CDATA[(#pack)]]></template>
   <template key="import.split"><![CDATA[::]]></template>
+  
   <template key="init.struct"><![CDATA[]]></template>
   <template key="init.enum"><![CDATA[(#name)]]></template>
-  <template key="code.invoker"><![CDATA[.]]></template>
-  <template key="code.assignment"><![CDATA[(#type)(#name) = (#value);]]></template>
-  <template key="code.definition"><![CDATA[(#type)(#name);]]></template>
+  
+  
+  
+  
   
 </tns:root>

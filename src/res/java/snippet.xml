@@ -21,6 +21,9 @@
     <bool pack="java.lang" type="Boolean" initValue="false"/>
     <vec pack="java.util" type="LinkedList" generic="&lt;?&gt;" initValue=""/>
     <map pack="java.util" type="LinkedHashMap" generic="&lt;?,?&gt;" initValue=""/>
+    <dialect pack="java.io" type="DataOutput"/>
+    <dialect pack="java.io" type="DataInput"/>
+    <dialect pack="java.io" type="IOException"/>
   </redefine>
   
   
@@ -29,6 +32,8 @@
   <template key="code.dir.flatten"><![CDATA[false]]></template>
   <template key="one.pack.one.file"><![CDATA[false]]></template>
   <template key="method.indent.num"><![CDATA[1]]></template>
+  
+  <template key="pointer.null"><![CDATA[null]]></template>
   
   <!-- (#define)(#pack) -->
   <template key="file"><![CDATA[
@@ -47,6 +52,10 @@
   <template key="import"><![CDATA[import (#body);(#brk)]]></template>
   <template key="import.body"><![CDATA[(#pack)(#name)]]></template>
   <template key="import.split"><![CDATA[.]]></template>
+  <template key="import.exclude.conflict"><![CDATA[true]]></template>
+  <template key="import.exclude.same.pack"><![CDATA[true]]></template>
+  <template key="import.exclude.packs"><![CDATA[java.lang]]></template>
+  
   <template key="doc"><![CDATA[/** (#doc) */]]></template>
   <template key="doc.line"><![CDATA[// (#doc)]]></template>
   <template key="init.struct"><![CDATA[new (#type)()]]></template>

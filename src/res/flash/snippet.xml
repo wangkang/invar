@@ -21,6 +21,8 @@
     <bool pack="" type="Boolean" initValue="false"/>
     <vec pack="" type="Vector" generic=".&lt;?&gt;" initValue=""/>
     <map pack="flash.utils" type="Dictionary" generic="" initValue=""/>
+    <dialect pack="flash.utils" type="IDataOutput"/>
+    <dialect pack="flash.utils" type="IDataInput"/>
   </redefine>
   
   
@@ -35,7 +37,7 @@
   
   <template key="file.body"><![CDATA[
 	(#import)(#enums)(#structs)]]></template>
-  
+  <template key="pointer.null"><![CDATA[null]]></template>
   
   
   <template key="import"><![CDATA[import (#body);(#brk)]]></template>

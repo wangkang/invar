@@ -22,6 +22,9 @@ class BinaryWriter
 	BinaryWriter& Write(float value);
 	BinaryWriter& Write(double value);
 	BinaryWriter& Write(const std::string& value);
+
+	bool HasError();
+	void OnError(std:string hint);
 };
 
 class BinaryReader
@@ -39,6 +42,9 @@ class BinaryReader
     bool   ReadBoolean();
     float  ReadSingle();
     double ReadDouble();
+
+    bool HasError();
+    void OnError(std:string hint);
 };
 
 }; //namespace:invar

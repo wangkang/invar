@@ -8,6 +8,7 @@ import invar.model.TypeEnum;
 import invar.model.TypeStruct;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -32,8 +33,10 @@ public class InvarWriteCode extends InvarWrite
     final static String tokenBr          = wrapToken("brk");
     final static String tokenIndent      = wrapToken("tab");
     final static String tokenBlank       = wrapToken("blank");
+    final static String tokenWhiteSpace  = wrapToken("space");
 
     final static String tokenDoc         = wrapToken("doc");
+    final static String tokenDocLine     = wrapToken("docline");
     final static String tokenMeta        = wrapToken("meta");
     final static String tokenKey         = wrapToken("key");
     final static String tokenValue       = wrapToken("value");
@@ -62,16 +65,21 @@ public class InvarWriteCode extends InvarWrite
     final static String tokenNameUpper   = wrapToken("nameupper");
     final static String tokenIndex       = wrapToken("index");
     final static String tokenLen         = wrapToken("len");
+    final static String tokenSpecifier   = wrapToken("spec");
 
     final static String wrapToken (String name)
     {
         return "\\(#" + name + "\\)";
     }
 
-    private Integer                      methodIndentNum = 1;
-    private Boolean                      packNameNested  = false;
-    private Boolean                      useFullName     = false;
-    private Boolean                      includeSelf     = false;
+    private Integer                      methodIndentNum    = 1;
+    private Boolean                      packNameNested     = false;
+    private Boolean                      useFullName        = false;
+    private Boolean                      includeSelf        = false;
+
+    private Boolean                      impExcludeConflict = false;
+    private Boolean                      impExcludeSamePack = false;
+    private List<String>                 impExcludePacks    = null;
 
     final private TreeSet<String>        fileIncludes;
     final private Document               snippetDoc;
@@ -112,11 +120,15 @@ public class InvarWriteCode extends InvarWrite
 
         methodIndentNum = 1;
         if (!snippetTryGet(Key.METHOD_INDENT_NUM).equals(empty))
-            methodIndentNum = Integer.parseUnsignedInt(snippetTryGet(Key.METHOD_INDENT_NUM));
+            methodIndentNum = Integer.parseInt(snippetTryGet(Key.METHOD_INDENT_NUM));
 
         packNameNested = Boolean.parseBoolean(snippetTryGet("pack.name.nested"));
         useFullName = Boolean.parseBoolean(snippetTryGet("use.full.type.name"));
         includeSelf = Boolean.parseBoolean(snippetTryGet("include.self"));
+
+        impExcludeConflict = Boolean.parseBoolean(snippetTryGet("import.exclude.conflict"));
+        impExcludeSamePack = Boolean.parseBoolean(snippetTryGet("import.exclude.same.pack"));
+        impExcludePacks = Arrays.asList(snippetTryGet("import.exclude.packs").trim().split(","));
 
         super.packNameReset(c, Boolean.parseBoolean(snippetTryGet("capitalize.pack.head")));
         super.setDirPrefix(snippetTryGet("code.dir.prefix"));
@@ -479,10 +491,15 @@ public class InvarWriteCode extends InvarWrite
         if (TypeID.MAP == f.getType().getId())
             return code;
 
+        String type = f.getTypeFormatted();
+        if (f.getType().getRealId().getUseRefer() && !f.isStructSelf())
+            type = snippetTryGet(Key.REFER_CONST) + whiteSpace + type;
+
         String s = snippetGet(Key.STRUCT_SETTER);
         s = replace(s, tokenTypeHost, struct.getName());
         s = replace(s, tokenMeta, makeStructMeta(f).toString());
-        s = replace(s, tokenType, makeStructFieldType(f, struct, true));
+        s = replace(s, tokenType, type);
+        s = replace(s, tokenSpecifier, makeStructFieldSpec(f, struct, empty));//pointer or refer
         s = replace(s, tokenName, f.getKey());
         s = replace(s, tokenNameUpper, upperHeadChar(f.getKey()));
         s = replace(s, tokenDoc, makeDoc(f.getComment()));
@@ -492,32 +509,31 @@ public class InvarWriteCode extends InvarWrite
 
     private StringBuilder makeStructGetter (InvarField f, TypeStruct struct)
     {
+        String type = fixedLen(f.getWidthType(), f.getTypeFormatted());
+        String name = fixedLen(f.getWidthKey(), upperHeadChar(f.getKey()));
+
         StringBuilder code = new StringBuilder();
         String s = snippetGet(Key.STRUCT_GETTER);
         s = replace(s, tokenTypeHost, struct.getName());
         s = replace(s, tokenMeta, makeStructMeta(f).toString());
-        s = replace(s, tokenType, makeStructFieldType(f, struct, false));
+        s = replace(s, tokenType, type);
+        s = replace(s, tokenSpecifier, makeStructFieldSpec(f, struct, whiteSpace));//pointer or refer
         s = replace(s, tokenName, f.getKey());
-        s = replace(s, tokenNameUpper, upperHeadChar(f.getKey()));
+        s = replace(s, tokenNameUpper, name);
         s = replace(s, tokenDoc, makeDoc(f.getComment()));
+        s = replace(s, tokenDocLine, makeDocLine(f.getComment()));
         code.append(s);
         return code;
     }
 
-    private String makeStructFieldType (InvarField f, TypeStruct struct, Boolean isSetter)
+    private String makeStructFieldSpec (InvarField f, TypeStruct struct, String deft)
     {
-        String typeName = f.getTypeFormatted();
         if (f.isStructSelf())
-        {
-            typeName += snippetTryGet(Key.POINTER_SPEC);
-        }
+            return snippetTryGet(Key.POINTER_SPEC);
         else if (f.getType().getRealId().getUseRefer())
-        {
-            typeName += snippetTryGet(Key.REFER_SPEC);
-            if (isSetter)
-                typeName = snippetTryGet(Key.REFER_CONST) + whiteSpace + typeName;
-        }
-        return typeName;
+            return snippetTryGet(Key.REFER_SPEC);
+        else
+            return deft;
     }
 
     protected String makeStructFieldInit (InvarField f, TypeStruct struct)
@@ -678,14 +694,23 @@ public class InvarWriteCode extends InvarWrite
                     fileIncludes.add(include);
             }
         }
-        //if (getContext().findTypes(t.getName()).size() > 1)
-        if (t.getIsConflict())
+        //TODO if (impExcludeConflict && t.getIsConflict())
+        if (impExcludeConflict && getContext().findTypes(t.getName()).size() > 1)
+        {
+            return;
+        }
+        if (impExcludeSamePack && struct != null && t.getPack() == struct.getPack())
+        {
+            return;
+        }
+        if (impExcludePacks != null && impExcludePacks.size() > 0 && impExcludePacks.contains(t.getPack().getName()))
         {
             return;
         }
         String packName = t.getPack().getName();
         String typeName = t.getName();
         String rule = packName + ruleTypeSplit + typeName;
+
         imps.add(rule);
     }
 
@@ -819,6 +844,7 @@ public class InvarWriteCode extends InvarWrite
                 line = line.replaceAll(tokenBr, br);
                 line = line.replaceAll(tokenIndent, indent);
                 line = line.replaceAll(tokenBlank, empty);
+                line = line.replaceAll(tokenWhiteSpace, whiteSpace);
                 code.append(line + (i != len - 1 ? br : empty));
             }
         }
@@ -1012,7 +1038,8 @@ public class InvarWriteCode extends InvarWrite
 
             public void setType (String t)
             {
-                t = t.replace(tokenDot, ruleTypeSplit);
+                String split = snippetGet(Key.IMPORT_SPLIT);
+                t = t.replace(ruleTypeSplit, split);
                 t = t.replaceAll("(^\\s*|\\s*$)", empty);
                 this.type = t;
             }
@@ -1050,16 +1077,16 @@ public class InvarWriteCode extends InvarWrite
                                           String indexer)
         {
             CodeForParams params = new CodeForParams();
+            params.setType(type);
             params.needDefine = needDefine;
             params.needCheck = needCheck;
-            params.setType(type);
             params.name = name;
             params.nameOutter = nameOutter;
             params.typeOutter = typeOutter;
             if (Key.PREFIX_READ.equals(prefix))
             {
                 if (TypeID.STRUCT == typeID || TypeID.VEC == typeID || TypeID.MAP == typeID)
-                    params.init = replace(snippetGet(Key.INIT_STRUCT), tokenType, type);
+                    params.init = replace(snippetGet(Key.INIT_STRUCT), tokenType, params.getType());
                 else
                     params.init = empty;
             }
@@ -1140,6 +1167,8 @@ public class InvarWriteCode extends InvarWrite
             s = replace(s, tokenType, p.getType());
             s = replace(s, tokenValue, snippetTryGet(Key.POINTER_NULL));
             s = replace(s, tokenInvoke, snippetTryGet(Key.POINTER_INVOKE));
+            //if (Key.PREFIX_WRITE.equals(prefix))
+            //    System.out.println("InvarWriteCode.StreamCoder.makeFieldSimple() --- " + s);
             return s;
         }
 

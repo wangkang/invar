@@ -139,17 +139,17 @@
   <template key="struct.field"><![CDATA[
 	(#tab) (#type) (#name) = (#value);(#doc)(#brk)]]></template>
   <template key="struct.setter"><![CDATA[
-	(#typehost)& (#typehost)::Set(#nameupper)((#type) value) { (#name) = value; return *this; }
+	(#typehost)& (#typehost)::Set(#nameupper)((#type) (#spec)value) { (#name) = value; return *this; }
   ]]></template>
   <template key="struct.getter"><![CDATA[
-	(#type) (#typehost)::Get(#nameupper)() { return (#name); }
+	(#type)(#spec) (#typehost)::Get(#nameupper)() { return (#name); }
   ]]></template>
 
   
   <!-- Read bytes from a Stream -->
   <template key="read.import"><![CDATA[invar::BinaryReader]]></template>
   <template key="read.method"><![CDATA[
-  (#type)& (#type)::Decode(BinaryReader& stream)
+  (#type)& (#type)::Decode(BinaryReader &stream)
   {(#body)
   (#tab)return *this;
   }
@@ -187,7 +187,7 @@
   <template key="read.vec.for"><![CDATA[
   int32_t (#len) = stream.ReadInt32();
   (#name).reserve((#len));
-  for ((#sizetype) (#index) = 0; (#index) < (#len); (#index)++) //read.vec.for
+  for ((#sizetype) (#index) = 0; (#index) < (#len); ++(#index)) //read.vec.for
   {(#body)
   (#tab)(#name).push_back((#value));
   }
@@ -196,7 +196,7 @@
   <template key="read.map.keys"><![CDATA[]]></template>
   <template key="read.map.for"><![CDATA[
   int32_t (#len) = stream.ReadInt32();
-  for ((#sizetype) (#index) = 0; (#index) < (#len); (#index)++) //read.map.for
+  for ((#sizetype) (#index) = 0; (#index) < (#len); ++(#index)) //read.map.for
   {(#body)
   (#tab)(#name).insert((#type)::value_type((#key),(#value)));
   }
@@ -206,11 +206,15 @@
   <!-- Write bytes to a Stream -->
   <template key="write.import"><![CDATA[invar::BinaryReader]]></template>
   <template key="write.method"><![CDATA[
-  (#type)& (#type)::Encode(BinaryWriter& stream)
+  (#type)& (#type)::Encode(BinaryWriter &stream)
   {(#body)
   (#tab)return *this;
   }
   ]]></template>
+  
+  
+  <template key="write.err.check"><![CDATA[if (stream.HasError()) { stream.OnError("(#name)"); return *this;}]]></template>
+  
   <template key="write.int8"><![CDATA[stream.Write((#name));]]></template>
   <template key="write.int16"><![CDATA[stream.Write((#name));]]></template>
   <template key="write.int32"><![CDATA[stream.Write((#name));]]></template>
