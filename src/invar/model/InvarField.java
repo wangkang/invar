@@ -12,9 +12,6 @@ public class InvarField
     private final Boolean               isStructSelf;
     private String                      shortName;
     private String                      defaultVal;
-    private Boolean                     encode;
-    private Boolean                     decode;
-
     private String                      typeFormatted = "";
     private String                      deftFormatted = "";
     private int                         widthType     = 1;
@@ -28,14 +25,17 @@ public class InvarField
         this.key = key;
         this.comment = comment;
         this.isStructSelf = isStructSelf;
-        this.setEncode(true);
-        this.setDecode(true);
         this.setDefault("");
     }
 
     public InvarType getType ()
     {
         return type;
+    }
+
+    public String getKey ()
+    {
+        return key;
     }
 
     public LinkedList<InvarType> getGenerics ()
@@ -51,11 +51,6 @@ public class InvarField
     public String getDeftFormatted ()
     {
         return deftFormatted;
-    }
-
-    public String getKey ()
-    {
-        return key;
     }
 
     public String makeTypeFormatted (InvarContext ctx, String split, Boolean fullName)
@@ -111,29 +106,9 @@ public class InvarField
         return typeBasic.fullName(split) + s;
     }
 
-    public void setEncode (Boolean encode)
-    {
-        this.encode = encode;
-    }
-
-    public void setDecode (Boolean decode)
-    {
-        this.decode = decode;
-    }
-
     public void setDefault (String defaultValue)
     {
         this.defaultVal = defaultValue;
-    }
-
-    public Boolean getEncode ()
-    {
-        return encode;
-    }
-
-    public Boolean getDecode ()
-    {
-        return decode;
     }
 
     public String getDefault ()

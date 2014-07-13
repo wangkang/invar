@@ -102,8 +102,6 @@ final public class InvarReadRule
     static private final String ATTR_FIELD_NAME     = "name";
     static private final String ATTR_FIELD_TYPE     = "type";
     static private final String ATTR_FIELD_DEFT     = "value";
-    static private final String ATTR_FIELD_ENC      = "encode";
-    static private final String ATTR_FIELD_DEC      = "decode";
     static private final String ATTR_ENUM_VAL       = "value";
     static private final String XML_NODE_CLIENT     = "client";
     static private final String XML_NODE_SERVER     = "server";
@@ -401,12 +399,6 @@ final public class InvarReadRule
         str = getAttrOptional(node, ATTR_FIELD_DEFT);
         if (!str.equals(""))
             field.setDefault(str);
-        str = getAttrOptional(node, ATTR_FIELD_ENC);
-        if (!str.equals(""))
-            field.setEncode(Boolean.parseBoolean(str));
-        str = getAttrOptional(node, ATTR_FIELD_DEC);
-        if (!str.equals(""))
-            field.setDecode(Boolean.parseBoolean(str));
     }
 
     private String getAttrOptional (Node node, String name)

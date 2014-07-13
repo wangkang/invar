@@ -99,7 +99,7 @@
 	(#tab)bool operator < (const (#name) &other) const;
 	(#tab)(#name)& operator = (const (#name) &from);	
 	(#tab)(#name)& CopyFrom(const (#name) &from);
-	(#tab)(#name)& Encode(invar::BinaryWriter &stream);
+	(#tab)void Encode(invar::BinaryWriter &stream) const;
 	(#tab)(#name)& Decode(invar::BinaryReader &stream);
 	
 	(#blank)

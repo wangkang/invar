@@ -312,7 +312,7 @@ public class InvarWriteCode extends InvarWrite
             s = snippetGet(Key.CODE_DEFINITION);
         }
         s = replace(s, tokenValue, value);
-        s = replace(s, tokenType, type != empty ? type + whiteSpace : empty);
+        s = replace(s, tokenType, !type.equals(empty) ? type + whiteSpace : empty);
         s = replace(s, tokenName, name);
         return s;
     }
@@ -1027,8 +1027,8 @@ public class InvarWriteCode extends InvarWrite
             public String  name       = empty;
             public String  nameOutter = empty;
             public String  typeOutter = empty;
-            public String  init       = empty;
 
+            private String init       = empty;
             private String type       = empty;
 
             public String getType ()
@@ -1042,6 +1042,16 @@ public class InvarWriteCode extends InvarWrite
                 t = t.replace(ruleTypeSplit, split);
                 t = t.replaceAll("(^\\s*|\\s*$)", empty);
                 this.type = t;
+            }
+
+            public String getInit ()
+            {
+                return init;
+            }
+
+            public void setInit (String init)
+            {
+                this.init = init;
             }
         }
 
@@ -1074,7 +1084,8 @@ public class InvarWriteCode extends InvarWrite
                                           String name,
                                           String nameOutter,
                                           String typeOutter,
-                                          String indexer)
+                                          String indexer,
+                                          String iterSnippet)
         {
             CodeForParams params = new CodeForParams();
             params.setType(type);
@@ -1086,18 +1097,37 @@ public class InvarWriteCode extends InvarWrite
             if (Key.PREFIX_READ.equals(prefix))
             {
                 if (TypeID.STRUCT == typeID || TypeID.VEC == typeID || TypeID.MAP == typeID)
-                    params.init = replace(snippetGet(Key.INIT_STRUCT), tokenType, params.getType());
+                    params.setInit(replace(snippetGet(Key.INIT_STRUCT), tokenType, params.getType()));
                 else
-                    params.init = empty;
+                    params.setInit(empty);
             }
             else if (Key.PREFIX_WRITE.equals(prefix))
-                params.init = makeCodeIndexer(nameOutter, indexer);
+            {
+                if (iterSnippet.equals(empty))
+                {
+                    params.setInit(makeCodeIndexer(nameOutter, indexer));
+                }
+                else
+                {
+                    String s = iterSnippet;
+                    s = replace(s, tokenName, nameOutter);
+                    s = replace(s, tokenIndex, indexer);
+                    params.setInit(s);
+                }
+            }
             else
-                params.init = empty;
+            {
+                params.setInit(empty);
+            }
             return params;
         }
 
-        private String makeGeneric (String rule, CodeForParams params, String name, Boolean needDef, String indexer)
+        private String makeGeneric (String rule,
+                                    CodeForParams params,
+                                    String name,
+                                    Boolean needDef,
+                                    String indexer,
+                                    String iterSnippet)
         {
             String L = ruleLeft(rule);
             InvarType t = getTypeByShort(L);
@@ -1107,7 +1137,15 @@ public class InvarWriteCode extends InvarWrite
                 return empty;
             }
             TypeID type = t.getRealId();
-            CodeForParams p = makeParams(type, needDef, false, rule, name, params.name, params.type, indexer);
+            CodeForParams p = makeParams(type,
+                                         needDef,
+                                         false,
+                                         rule,
+                                         name,
+                                         params.name,
+                                         params.type,
+                                         indexer,
+                                         iterSnippet);
             List<String> body = new ArrayList<String>();
             p.numLayer = params.numLayer + 1;
             makeField(null, type, rule, p, body);
@@ -1121,7 +1159,15 @@ public class InvarWriteCode extends InvarWrite
                 System.out.println("InvarWriteCode.makeField() " + rule);
             TypeID type = f.getType().getRealId();
             List<String> lines = new ArrayList<String>();
-            CodeForParams params = makeParams(type, false, f.isStructSelf(), rule, f.getKey(), f.getKey(), rule, empty);
+            CodeForParams params = makeParams(type,
+                                              false,
+                                              f.isStructSelf(),
+                                              rule,
+                                              f.getKey(),
+                                              f.getKey(),
+                                              rule,
+                                              empty,
+                                              empty);
             params.numLayer = 1;
             makeField(f, type, rule, params, lines);
             return lines;
@@ -1139,15 +1185,68 @@ public class InvarWriteCode extends InvarWrite
             lines.addAll(indentLines(code));
         }
 
-        private String makeFieldSimple (CodeForParams p, TypeID type, InvarField f)
+        private String makeFieldSimple (CodeForParams p, TypeID t, InvarField f)
+        {
+            String sKey = prefix + t.getName();
+            if (TypeID.STRUCT == t && p.needCheck)
+                sKey += ".check";
+
+            String init = snippetGet(sKey);
+
+            String s = empty;
+            if (Key.PREFIX_READ == prefix)
+            {
+                if (f == null && TypeID.STRUCT == t)
+                {
+                    //String name = snippetTryGet(Key.REFER_SPEC) + p.name;
+                    init = makeCodeAssignment(p.getType(), p.name, p.getInit()) + init;
+                }
+                if (TypeID.STRUCT == t)
+                {
+                    s = init;
+                }
+                else
+                {
+                    init = replace(init, tokenType, p.getType());
+                    s = makeCodeAssignment(f != null ? empty : p.getType(), p.name, init);
+                }
+            }
+            else if (Key.PREFIX_WRITE == prefix)
+            {
+                if (f == null)
+                {
+                    String name = p.name;
+                    name = snippetTryGet(Key.REFER_SPEC) + name;
+                    // init = makeCodeAssignment(p.getType(), name, p.getInit()) + init;
+                    init = replace(init, tokenName, p.getInit());
+                }
+                s = init;
+            }
+            else
+            {
+            }
+
+            String invoke = snippetTryGet(Key.REFER_INVOKE);
+            if (f != null && f.isStructSelf())
+                invoke = snippetTryGet(Key.POINTER_INVOKE);
+
+            s = replace(s, tokenType, p.getType());
+            s = replace(s, tokenName, p.name);
+            s = replace(s, tokenValue, snippetTryGet(Key.POINTER_NULL));
+            s = replace(s, tokenInvoke, invoke);
+
+            return s;
+        }
+
+        String makeFieldSimple2 (CodeForParams p, TypeID type, InvarField f)
         {
             //non-collection fields
             String s = empty;
             if (p.needDefine)
             {
-                if (!p.init.equals(empty))
+                if (!p.getInit().equals(empty))
                 {
-                    s = makeCodeAssignment(p.getType(), p.name, p.init);
+                    s = makeCodeAssignment(p.getType(), p.name, p.getInit());
                 }
                 else
                 {
@@ -1174,13 +1273,18 @@ public class InvarWriteCode extends InvarWrite
 
         private String makeFieldVec (CodeForParams p, String rule)
         {
-            String R = ruleRight(rule);
-            String indexer = "i" + upperHeadChar(p.name);
-            String nameItem = "v" + p.numLayer;
             String head = empty;
             if (p.needDefine)
-                head += makeCodeAssignment(p.getType(), p.name, p.init);
-            String body = makeGeneric(R, p, nameItem, true, indexer);
+            {
+                String name = p.name;
+                //if (Key.PREFIX_WRITE == prefix)
+                //  name = snippetTryGet(Key.REFER_SPEC) + name;
+                head += makeCodeAssignment(p.getType(), name, p.getInit());
+            }
+            String indexer = "i" + upperHeadChar(p.name);
+            String nameItem = "v" + p.numLayer;
+            String R = ruleRight(rule);
+            String body = makeGeneric(R, p, nameItem, true, indexer, snippetTryGet(prefix + "vec.iter.v"));
             return head + makeCodeFor(TypeID.VEC, body, p, nameItem, empty, empty);
         }
 
@@ -1194,26 +1298,37 @@ public class InvarWriteCode extends InvarWrite
             String nameKey = "k" + p.numLayer;
             String nameVal = "v" + p.numLayer;
             String body = empty;
-            String snippet = snippetGet(prefix + "map.keys").trim();
+            //TODO remove the line following
+            String snippet = snippetTryGet(prefix + "map.keys").trim();
             if (snippet.equals(empty))
             {
-                body += makeGeneric(ruleK, p, nameKey, true, indexer);
-                body += makeGeneric(ruleV, p, nameVal, true, nameKey);
+                body += makeGeneric(ruleK, p, nameKey, true, indexer, snippetTryGet(prefix + "map.iter.k"));
+                body += makeGeneric(ruleV, p, nameVal, true, nameKey, snippetTryGet(prefix + "map.iter.v"));
                 String head = empty;
                 if (p.needDefine)
-                    head += makeCodeAssignment(p.getType(), p.name, p.init);
+                {
+                    String name = p.name;
+                    //if (Key.PREFIX_WRITE == prefix)
+                    //  name = snippetTryGet(Key.REFER_SPEC) + name;
+                    head += makeCodeAssignment(p.getType(), name, p.getInit());
+                }
                 return head + makeCodeFor(TypeID.MAP, body, p, nameVal, nameKey, empty);
             }
             else
             {
-                body += makeGeneric(ruleK, p, nameKey, false, indexer);
-                body += makeGeneric(ruleV, p, nameVal, true, nameKey);
+                body += makeGeneric(ruleK, p, nameKey, false, indexer, snippetTryGet(prefix + "map.iter.k"));
+                body += makeGeneric(ruleV, p, nameVal, true, nameKey, snippetTryGet(prefix + "map.iter.v"));
                 p.typeOutter = p.type;
                 p.nameOutter = p.name;
                 String nameLen = "len" + upperHeadChar(p.nameOutter);
                 String head = empty;
                 if (p.needDefine)
-                    head += makeCodeAssignment(p.getType(), p.nameOutter, p.init);
+                {
+                    String name = p.nameOutter;
+                    //if (Key.PREFIX_WRITE == prefix)
+                    //  name = snippetTryGet(Key.REFER_SPEC) + name;
+                    head += makeCodeAssignment(p.getType(), name, p.getInit());
+                }
                 p.name = nameKey;
                 p.setType(ruleK);
                 return head + makeCodeFor(TypeID.MAP, body, p, nameVal, nameKey, nameLen);

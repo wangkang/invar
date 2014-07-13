@@ -24,7 +24,7 @@ class BinaryWriter
 	BinaryWriter& Write(const std::string& value);
 
 	bool HasError();
-	void OnError(std:string hint);
+	void OnError(std::string hint);
 };
 
 class BinaryReader
@@ -44,7 +44,7 @@ class BinaryReader
     double ReadDouble();
 
     bool HasError();
-    void OnError(std:string hint);
+    void OnError(std::string hint);
 };
 
 }; //namespace:invar
