@@ -20,6 +20,7 @@
     <vec    pack="std"   type="vector" generic="&lt; ? &gt;"    include="&lt;vector&gt;"/>
     <map    pack="std"   type="map"    generic="&lt; ?, ? &gt;" include="&lt;map&gt;"/>
     
+    <dialect pack="std" type="size_t" include="&lt;cstddef&gt;"/>
     <dialect pack="invar" type="BinaryWriter" include="&quot;invar.codec.h&quot;"/>
     <dialect pack="invar" type="BinaryReader" include="&quot;invar.codec.h&quot;"/>
 
@@ -125,7 +126,7 @@
   
   
   <template key="read.import"><![CDATA[invar::BinaryReader]]></template>
-  <template key="write.import"><![CDATA[invar::BinaryReader]]></template>
+  <template key="write.import"><![CDATA[invar::BinaryReader,std::size_t]]></template>
   
   <!-- Common snippet -->
   <template key="doc"><![CDATA[/* (#doc) */]]></template>

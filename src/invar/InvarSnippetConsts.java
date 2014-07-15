@@ -5,8 +5,10 @@ public class InvarSnippetConsts
 
     final public class Key
     {
-
         final static public String METHOD_INDENT_NUM     = "method.indent.num";
+        final static public String PREFIX_WRITE          = "write.";
+        final static public String PREFIX_READ           = "read.";
+        final static public String PREFIX_COPY           = "copy.";
 
         final static public String REFER_SPEC            = "refer.spec";
         final static public String REFER_INVOKE          = "refer.invoke";
@@ -34,11 +36,8 @@ public class InvarSnippetConsts
         final static public String CODE_ASSIGNMENT       = "code.assignment";
         final static public String CODE_DEFINITION       = "code.definition";
 
-        final static public String CODE_INDEXER          = "code.indexer";
         final static public String CODE_FOREACH          = "code.foreach";
         final static public String CODE_FORI             = "code.fori";
-        final static public String PREFIX_READ           = "read.";
-        final static public String PREFIX_WRITE          = "write.";
 
         final static public String RUNTIME_PACK          = "runtime.pack";
         final static public String RUNTIME_NAME          = "runtime.name";

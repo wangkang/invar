@@ -11,18 +11,19 @@ xmlns:tns="invar.rule">
   </struct>
   
   <enum name="Gender" doc="性别的枚举类型">
-    <option name="NONE" value="0" doc=""/>
+    <option name="NONE" value="-1" doc=""/>
     <option name="MALE" value="10" doc="Enum male"/>
     <option name="FEMALE" value="20" doc="Enum female"/>
   </enum>
   
   <struct name="Custom" doc="自定义类型">
   	<field name="x" type="Gender" doc="枚举值"/>
-  	<field name="prev" type="Custom" doc="自身类型"/>
-  	<field name="next" type="Custom" doc="自身类型"/>
     <field name="test" type="TestBasic" doc="其他类型"/>
   	<field name="xyz" type="test.xyz::Conflict" doc="同名的类型"/>
   	<field name="abc" type="test.abc::Conflict" doc="同名的类型"/>
+    <field name="prev" type="Custom" doc="自身类型"/>
+    <field name="next" type="Custom" doc="自身类型"/>
+    <field name="children" type="Vec-Custom" doc="自身类型容器"/>
   </struct>
   
   <struct name="TestBasic" doc="基础类型">

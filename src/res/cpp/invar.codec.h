@@ -22,29 +22,23 @@ class BinaryWriter
 	BinaryWriter& Write(float value);
 	BinaryWriter& Write(double value);
 	BinaryWriter& Write(const std::string& value);
-
-	bool HasError();
-	void OnError(std::string hint);
 };
 
 class BinaryReader
 {
     public:
-	std::int8_t   ReadSByte();
+	std::int8_t   ReadByte();
 	std::int16_t  ReadInt16();
 	std::int32_t  ReadInt32();
 	std::int64_t  ReadInt64();
-	std::uint8_t  ReadByte();
+	std::uint8_t  ReadUByte();
 	std::uint16_t ReadUInt16();
 	std::uint32_t ReadUInt32();
 	std::uint64_t ReadUInt64();
     std::string   ReadString();
-    bool   ReadBoolean();
-    float  ReadSingle();
-    double ReadDouble();
-
-    bool HasError();
-    void OnError(std::string hint);
+    bool          ReadBoolean();
+    float         ReadSingle();
+    double        ReadDouble();
 };
 
 }; //namespace:invar
