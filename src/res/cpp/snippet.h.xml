@@ -1,32 +1,27 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <tns:root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="invar.template ../snippet.xsd"
   xmlns:tns="invar.template" language="cpp">
-  
   <export resPath="/res/cpp/invar.codec.h" destDir="" destName="invar.codec.h"/>
-  
   <redefine>
-    <int8   pack="std"   type="int8_t"   include="&lt;cstdint&gt;" initValue="-1" />
-    <int16  pack="std"   type="int16_t"  include="&lt;cstdint&gt;" initValue="-1" />
-    <int32  pack="std"   type="int32_t"  include="&lt;cstdint&gt;" initValue="-1" />
-    <int64  pack="std"   type="int64_t"  include="&lt;cstdint&gt;" initValue="-1" />
-    <uint8  pack="std"   type="uint8_t"  include="&lt;cstdint&gt;" initValue="0" />
-    <uint16 pack="std"   type="uint16_t" include="&lt;cstdint&gt;" initValue="0" />
-    <uint32 pack="std"   type="uint32_t" include="&lt;cstdint&gt;" initValue="0" />
-    <uint64 pack="std"   type="uint64_t" include="&lt;cstdint&gt;" initValue="0" />
-    <string pack="std"   type="string"   include="&lt;string&gt;"  initValue="&quot;&quot;" initPrefix="&quot;" initSuffix="&quot;"/>
-    <float  pack=""      type="float"  initValue="0.0" initSuffix="F"/>
-    <double pack=""      type="double" initValue="0.00"/>
-    <bool   pack=""      type="bool"   initValue="false"/>
-    <vec    pack="std"   type="vector" generic="&lt; ? &gt;"    include="&lt;vector&gt;"/>
-    <map    pack="std"   type="map"    generic="&lt; ?, ? &gt;" include="&lt;map&gt;"/>
-    
+    <int8 pack="std" type="int8_t" include="&lt;cstdint&gt;" initValue="-1"/>
+    <int16 pack="std" type="int16_t" include="&lt;cstdint&gt;" initValue="-1"/>
+    <int32 pack="std" type="int32_t" include="&lt;cstdint&gt;" initValue="-1"/>
+    <int64 pack="std" type="int64_t" include="&lt;cstdint&gt;" initValue="-1"/>
+    <uint8 pack="std" type="uint8_t" include="&lt;cstdint&gt;" initValue="0"/>
+    <uint16 pack="std" type="uint16_t" include="&lt;cstdint&gt;" initValue="0"/>
+    <uint32 pack="std" type="uint32_t" include="&lt;cstdint&gt;" initValue="0"/>
+    <uint64 pack="std" type="uint64_t" include="&lt;cstdint&gt;" initValue="0"/>
+    <string pack="std" type="string" include="&lt;string&gt;" initValue="&quot;&quot;" initPrefix="&quot;"
+      initSuffix="&quot;"/>
+    <float pack="" type="float" initValue="0.0" initSuffix="F"/>
+    <double pack="" type="double" initValue="0.00"/>
+    <bool pack="" type="bool" initValue="false"/>
+    <vec pack="std" type="vector" generic="&lt; ? &gt;" include="&lt;vector&gt;"/>
+    <map pack="std" type="map" generic="&lt; ?, ? &gt;" include="&lt;map&gt;"/>
     <dialect pack="std" type="size_t" include="&lt;cstddef&gt;"/>
     <dialect pack="invar" type="BinaryWriter" include="&quot;invar.codec.h&quot;"/>
     <dialect pack="invar" type="BinaryReader" include="&quot;invar.codec.h&quot;"/>
-
   </redefine>
-  
-  
   <template key="trace.all.types"><![CDATA[false]]></template>
   <template key="include.self"><![CDATA[false]]></template>
   <template key="pack.name.nested"><![CDATA[true]]></template>
@@ -37,7 +32,6 @@
   <template key="one.pack.one.file"><![CDATA[false]]></template>
   <template key="code.dir.flatten"><![CDATA[true]]></template>
   <template key="code.dir.prefix"><![CDATA[include/]]></template>
-  
   <template key="refer.spec"><![CDATA[&]]></template>
   <template key="refer.invoke"><![CDATA[.]]></template>
   <template key="refer.const"><![CDATA[const]]></template>
@@ -47,7 +41,6 @@
   <template key="null.byte.yes"><![CDATA[(std::int8_t)0x01]]></template>
   <template key="null.byte.no"><![CDATA[(std::int8_t)0x00]]></template>
   <template key="type.enum"><![CDATA[int32]]></template>
-  
   <template key="file"><![CDATA[
 	(#blank)
 	//===----------------------------*  C++  *---------------------------------===//
@@ -64,17 +57,13 @@
 	(#blank)
 	#endif //(#define)_
   ]]></template>
- 
   <template key="file.include"><![CDATA[#include (#name)(#brk)]]></template>
-  
   <template key="file.pack"><![CDATA[
 	namespace (#name) {
 	(#body)
 	}; //namespace: (#name)]]></template>
-  
   <template key="file.body"><![CDATA[
 	(#enums)(#structs)]]></template>
-  
   <template key="enum"><![CDATA[
 	(#brk)(#doc)
 	enum (#name)
@@ -83,11 +72,9 @@
 		(#body)
 	}; //enum: (#name)
   ]]></template>
-	
   <template key="enum.field"><![CDATA[
 	(#tab)(#name) = (#value),(#doc)
   ]]></template>
-  
   <template key="struct"><![CDATA[
     (#brk)(#doc)
 	class (#name) {
@@ -114,17 +101,12 @@
 	
 	}; //class: (#name)
   ]]></template>
-
-  
   <template key="struct.meta"><![CDATA[ [InvarRule("(#type)", "(#name)")] ]]></template>
   <template key="struct.field"><![CDATA[
 	(#tab)(#type) (#name); (#doc)
   ]]></template>
-  
-  <template key="struct.setter"><![CDATA[(#tab)(#typehost)& Set(#nameupper)((#type) (#spec)value);(#brk)]]></template>
-  <template key="struct.getter"><![CDATA[(#tab)(#type)(#spec) Get(#nameupper)(); (#docline)(#brk)]]></template>
-  
-  
+  <template key="struct.setter"><![CDATA[(#tab)(#typehost)& Set(#nameupper) ((#type) (#spec)value);(#brk)]]></template>
+  <template key="struct.getter"><![CDATA[(#tab)(#type)(#spec) Get(#nameupper) (void); (#docline)(#brk)]]></template>
   <template key="read.import"><![CDATA[invar::BinaryReader]]></template>
   <template key="write.import"><![CDATA[invar::BinaryReader,std::size_t]]></template>
   
@@ -134,12 +116,6 @@
   <template key="import"><![CDATA[using namespace (#body);(#brk)]]></template>
   <template key="import.body"><![CDATA[(#pack)]]></template>
   <template key="import.split"><![CDATA[::]]></template>
-  
   <template key="init.struct"><![CDATA[]]></template>
   <template key="init.enum"><![CDATA[(#name)]]></template>
-  
-  
-  
-  
-  
 </tns:root>

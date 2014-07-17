@@ -112,12 +112,11 @@
   <template key="struct.field"><![CDATA[
 	(#tab) (#type) (#name) = (#value);(#doc)(#brk)]]></template>
   <template key="struct.setter"><![CDATA[
-	(#typehost)& (#typehost)::Set(#nameupper)((#type) (#spec)value) { (#name) = value; return *this; }
+	(#typehost)& (#typehost)::Set(#nameupper) ((#type) (#spec)value) { (#name) = value; return *this; }
   ]]></template>
   <template key="struct.getter"><![CDATA[
-	(#type)(#spec) (#typehost)::Get(#nameupper)() { return (#name); }
+	(#type)(#spec) (#typehost)::Get(#nameupper) (void) { return (#name); }
   ]]></template>
-
 
   <!-- CopyFrom Method -->
   <template key="copy.import"><![CDATA[]]></template>
@@ -129,7 +128,6 @@
       (#tab)}
       (#tab)return *this;
     }]]></template>
-  
   <template key="copy.method"><![CDATA[
     (#type)& (#type)::CopyFrom (const (#type)& from)
     {
@@ -165,7 +163,6 @@
       (#tab)}
     }
   ]]></template>
-  
   <template key="copy.vec.field"><![CDATA[const (#type) &(#arg)_(#name) = (#arg).(#name);(#brk)]]></template>
   <template key="copy.vec.define"><![CDATA[(#type) &(#name) = (#nameupper)[(#index)];
     const (#type) &(#arg)_(#name) = (#arg)_(#nameupper)[(#index)];(#brk)]]></template>
@@ -277,7 +274,7 @@
     (#tab)stream.Write(static_cast<int8_t>(0x00));
     }
   ]]></template>
-  <template key="write.vec.define"><![CDATA[const (#type) &(#name) = *(#nameupper)Iter;(#brk)]]></template> 
+  <template key="write.vec.define"><![CDATA[const (#type) &(#name) = *(#nameupper)Iter;(#brk)]]></template>
   <template key="write.vec.iter.n"><![CDATA[(*(#nameupper)Iter)]]></template>
   <template key="write.vec.for"><![CDATA[
     stream.Write(static_cast<(#sizetype)>((#name).size()));
@@ -301,5 +298,4 @@
     (#tab)++(#name)Iter;
     }
   ]]></template>
-
 </tns:root>

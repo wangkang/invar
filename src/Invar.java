@@ -70,7 +70,7 @@ final public class Invar
             {
                 log("");
                 new InvarWriteCode(ctx, ARG_CPP_PATH, a.get(ARG_CPP_PATH), "snippet.h.xml").write(".h");
-                new InvarWriteCode(ctx, ARG_CPP_PATH, a.get(ARG_CPP_PATH), "snippet.cc.xml").write(".cc", true);
+                new InvarWriteCode(ctx, ARG_CPP_PATH, a.get(ARG_CPP_PATH), "snippet.cc.xml").write(".cpp", true);
             }
             log("\nInvar end: " + (System.currentTimeMillis() - startMS) + "ms");
         }
