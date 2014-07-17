@@ -1,10 +1,8 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <tns:root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="invar.template ../snippet.xsd"
   xmlns:tns="invar.template" language="cpp">
-  
   <export resPath="/res/cpp/invar.codec.cpp" destDir="" destName="invar.codec.cpp"/>
   <redefine genericOverride="true"/>
-  
   <template key="include.self"><![CDATA[true]]></template>
   <template key="pack.name.nested"><![CDATA[true]]></template>
   <template key="file.name.lowercase"><![CDATA[true]]></template>
@@ -78,48 +76,36 @@
 	(#name)::~(#name)()
 	{
 	}
-	
 	(#blank)
 	(#name)::(#name)():
 	(#ctor)
 	{
 	}
-	
 	(#blank)
 	(#name)::(#name)(const (#name)& from)
 	{
 	(#tab)if (this != &from) { CopyFrom(from); }
 	}
-	
-	(#blank)
-	(#name)& (#name)::CopyFrom (const (#name)& from)
-	{
-		(#tab)if (this == &from) { return *this; }
-		//TODO CopyFrom Implementation
-		(#tab)return *this;
-	}
-	
 	(#blank)
 	(#name)& (#name)::operator = (const (#name)& from)
 	{
 		(#tab)if (this != &from) { CopyFrom(from); }
 		(#tab)return *this;
 	}
-	
 	(#blank)
 	bool (#name)::operator < (const (#name)& other) const
 	{
 		//TODO operator < Implementation
 		(#tab)return true;
 	}
-	
 	(#blank)
 	(#getters)
 	(#setters)
-	
+    (#copyfrom)
+    (#blank)
 	(#decoder)
+    (#blank)
 	(#encoder)
-	
   ]]></template>
   <template key="struct.meta"><![CDATA[ [Invar.InvarRule("(#type)", "(#name)")] ]]></template>
   <template key="struct.field.self"><![CDATA[&]]></template>
@@ -132,15 +118,80 @@
 	(#type)(#spec) (#typehost)::Get(#nameupper)() { return (#name); }
   ]]></template>
 
+
+  <!-- CopyFrom Method -->
+  <template key="copy.import"><![CDATA[]]></template>
+  <template key="copy.method~"><![CDATA[
+    (#type)& (#type)::CopyFrom (const (#type)& from)
+    {
+      (#tab)if (this == &from) {
+      (#tab)(#tab)return *this;
+      (#tab)}
+      (#tab)return *this;
+    }]]></template>
+  
+  <template key="copy.method"><![CDATA[
+    (#type)& (#type)::CopyFrom (const (#type)& from)
+    {
+      (#tab)if (this == &from) {
+      (#tab)(#tab)return *this;
+      (#tab)}(#body)
+      (#tab)return *this;
+    }]]></template>
+  <template key="copy.int8"><![CDATA[(#name) = from.(#name);]]></template>
+  <template key="copy.int16"><![CDATA[(#name) = from.(#name);]]></template>
+  <template key="copy.int32"><![CDATA[(#name) = from.(#name);]]></template>
+  <template key="copy.int64"><![CDATA[(#name) = from.(#name);]]></template>
+  <template key="copy.uint8"><![CDATA[(#name) = from.(#name);]]></template>
+  <template key="copy.uint16"><![CDATA[(#name) = from.(#name);]]></template>
+  <template key="copy.uint32"><![CDATA[(#name) = from.(#name);]]></template>
+  <template key="copy.uint64"><![CDATA[(#name) = from.(#name);]]></template>
+  <template key="copy.float"><![CDATA[(#name) = from.(#name);]]></template>
+  <template key="copy.double"><![CDATA[(#name) = from.(#name);]]></template>
+  <template key="copy.string"><![CDATA[(#name) = from.(#name);]]></template>
+  <template key="copy.bool"><![CDATA[(#name) = from.(#name);]]></template>
+  <template key="copy.enum"><![CDATA[(#name) = from.(#name);]]></template>
+  <template key="copy.struct"><![CDATA[(#name)(#invoke)CopyFrom(from.(#name));]]></template>
+  <template key="copy.struct.check"><![CDATA[
+    if (from.(#name) != (#value)) {
+      (#tab)if ((#name) == (#value))
+      (#tab)(#tab)(#name) = new (#type)();
+      (#tab)(#name)->CopyFrom(*from.(#name));
+    } else {
+      (#tab)if ((#name) != (#value)) {
+      (#tab)(#tab)delete (#name);
+      (#tab)(#tab)(#name) = (#value);
+      (#tab)}
+    }
+  ]]></template>
+  
+  <template key="copy.vec.iter.v"><![CDATA[(#nameupper)[(#index)] = from.(#nameupper)[(#index)];]]></template>
+  <template key="copy.vec.for"><![CDATA[
+    (#sizetype) (#len) = static_cast<(#sizetype)>((#name).size());
+    (#name).resize((#len));
+    for ((#sizetype) (#index) = 0; (#index) < (#len); ++(#index)) {(#body)
+    }
+  ]]></template>
+  <template key="copy.map.iter.k"><![CDATA[const (#type) &(#key) = (#nameupper)Iter->first;]]></template>
+  <template key="copy.map.iter.v"><![CDATA[const (#type) &(#value) = (#nameupper)Iter->second;]]></template>
+  <template key="copy.map.for"><![CDATA[
+    (#name).clear();
+    (#type)::const_iterator (#name)Iter = from.(#name).begin();
+    (#type)::const_iterator (#name)IterEnd = from.(#name).end();
+    while ((#name)Iter != (#name)IterEnd) {(#body)
+    (#tab)(#name).insert((#type)::value_type((#key),(#value)));
+    (#tab)++(#name)Iter;
+    }
+  ]]></template>
+
   
   <!-- Read bytes from a Stream -->
   <template key="read.import"><![CDATA[invar::BinaryReader]]></template>
   <template key="read.method"><![CDATA[
-  (#type)& (#type)::Decode (BinaryReader &stream)
-  {(#body)
-  (#tab)return *this;
-  }
-  ]]></template>
+    (#type)& (#type)::Decode (BinaryReader &stream)
+    {(#body)
+    (#tab)return *this;
+    }]]></template>
   <template key="read.int8"><![CDATA[(#name) = stream.ReadByte();]]></template>
   <template key="read.int16"><![CDATA[(#name) = stream.ReadInt16();]]></template>
   <template key="read.int32"><![CDATA[(#name) = stream.ReadInt32();]]></template>
@@ -167,9 +218,6 @@
       (#tab)}
   }
   ]]></template>
-  <template key="read.size.init"><![CDATA[stream.ReadInt32();]]></template>
-  <template key="read.vec"><![CDATA[(#name).Add((#value));]]></template>
-  <template key="read.map"><![CDATA[(#nameupper).Add((#name),(#value));]]></template>
   <template key="read.vec.iter.v"><![CDATA[(#name)[(#index)](#blank)]]></template>
   <template key="read.vec.for"><![CDATA[
     uint32_t (#len) = stream.ReadUInt32();
@@ -214,7 +262,7 @@
     (#tab)stream.Write(static_cast<int8_t>(0x00));
     }
   ]]></template>
-  <template key="write.vec.iter.v"><![CDATA[(*(#name)Iter)]]></template>
+  <template key="write.vec.iter.v"><![CDATA[(*(#nameupper)Iter)]]></template>
   <template key="write.vec.for"><![CDATA[
     stream.Write(static_cast<(#sizetype)>((#name).size()));
     (#type)::const_iterator (#name)Iter = (#name).begin();
@@ -223,8 +271,8 @@
     (#tab)++(#name)Iter;
     }
   ]]></template>
-  <template key="write.map.iter.k"><![CDATA[(#name)Iter->first]]></template>
-  <template key="write.map.iter.v"><![CDATA[(#name)Iter->second]]></template>
+  <template key="write.map.iter.k"><![CDATA[(#nameupper)Iter->first]]></template>
+  <template key="write.map.iter.v"><![CDATA[(#nameupper)Iter->second]]></template>
   <template key="write.map.for"><![CDATA[
     stream.Write(static_cast<(#sizetype)>((#name).size()));
     (#type)::const_iterator (#name)Iter = (#name).begin();
@@ -234,19 +282,4 @@
     }
   ]]></template>
 
-  <template key="copy.simple"><![CDATA[(#name) = from.Get(#name)();]]></template>
-  <template key="copy.pointer"><![CDATA[*(#name) = *from.Get(#name)();]]></template>
-  <template key="copy.vec"><![CDATA[]]></template>
-  <template key="copy.map"><![CDATA[std::copy(from.msgs_.Get(#name)(), from.Get(#name).end(), Get(#name).begin());]]></template>
-
-  <!-- Output data to xml -->
-  <template key="toxml.import"><![CDATA[]]></template>
-  <template key="toxml.method"><![CDATA[
-  (#tab)public (#type) ToXML(String nodeName)
-  (#tab){
-  (#tab)(#tab)StringBuilder code = new StringBuilder ();
-  (#body)
-  (#tab)(#tab)return code.ToString();
-  (#tab)}
-  ]]></template>
 </tns:root>

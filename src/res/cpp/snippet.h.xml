@@ -27,7 +27,7 @@
   </redefine>
   
   
-  <template key="trace.all.types"><![CDATA[true]]></template>
+  <template key="trace.all.types"><![CDATA[false]]></template>
   <template key="include.self"><![CDATA[false]]></template>
   <template key="pack.name.nested"><![CDATA[true]]></template>
   <template key="file.name.lowercase"><![CDATA[true]]></template>
