@@ -13,7 +13,7 @@ public class InvarType
         ENUM("enum"), PROTOCOL("protoc"), //
         STRUCT("struct", true), //
         FUNC("func", "<?...>", true), //
-        DIALECT("*", true);
+        DIALECT("~~~", true), VOID("void", true);
 
         private TypeID(String name)
         {
