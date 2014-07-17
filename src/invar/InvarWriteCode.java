@@ -33,7 +33,9 @@ public class InvarWriteCode extends InvarWrite
     final static String tokenBr          = wrapToken("brk");
     final static String tokenIndent      = wrapToken("tab");
     final static String tokenBlank       = wrapToken("blank");
-    final static String tokenWhiteSpace  = wrapToken("space");
+    final static String tokenSpace       = wrapToken("space");
+    final static String tokenNullPtr     = wrapToken("null");
+    final static String tokenSplit       = wrapToken("split");
 
     final static String tokenDoc         = wrapToken("doc");
     final static String tokenDocLine     = wrapToken("docline");
@@ -58,8 +60,9 @@ public class InvarWriteCode extends InvarWrite
     final static String tokenGetters     = wrapToken("getters");
     final static String tokenEncoder     = wrapToken("encoder");
     final static String tokenDecoder     = wrapToken("decoder");
-    final static String tokenCopyFrom    = wrapToken("copyfrom");
+    final static String tokenCopy        = wrapToken("copyfrom");
 
+    final static String tokenArgument    = wrapToken("arg");
     final static String tokenSizeType    = wrapToken("sizetype");
     final static String tokenSize        = wrapToken("len");
     final static String tokenType        = wrapToken("type");
@@ -86,9 +89,7 @@ public class InvarWriteCode extends InvarWrite
     final private Document               snippetDoc;
     final private HashMap<String,String> snippetMap;
     final private String                 snippetPath;
-    final private NestedCoder            codeStreamRead;
-    final private NestedCoder            codeStreamWrite;
-    final private NestedCoder            codeCopyFrom;
+    final private NestedCoder            nestedCoder;
 
     public InvarWriteCode(InvarContext ctx, String langName, String dirRootPath) throws Exception
     {
@@ -96,10 +97,8 @@ public class InvarWriteCode extends InvarWrite
         this.snippetPath = "/res/" + langName + "/snippet.xml";
         this.snippetDoc = getSnippetDoc(snippetPath, ctx);
         this.snippetMap = new LinkedHashMap<String,String>();
-        this.codeStreamRead = new NestedCoder(Key.PREFIX_READ);
-        this.codeStreamWrite = new NestedCoder(Key.PREFIX_WRITE);
-        this.codeCopyFrom = new NestedCoder(Key.PREFIX_COPY);
         this.fileIncludes = new TreeSet<String>();
+        this.nestedCoder = new NestedCoder();
     }
 
     public InvarWriteCode(InvarContext ctx, String langName, String dirRootPath, String snippetName) throws Exception
@@ -108,10 +107,8 @@ public class InvarWriteCode extends InvarWrite
         this.snippetPath = "/res/" + langName + "/" + snippetName;
         this.snippetDoc = getSnippetDoc(snippetPath, ctx);
         this.snippetMap = new LinkedHashMap<String,String>();
-        this.codeCopyFrom = new NestedCoder(Key.PREFIX_COPY);
-        this.codeStreamRead = new NestedCoder(Key.PREFIX_READ);
-        this.codeStreamWrite = new NestedCoder(Key.PREFIX_WRITE);
         this.fileIncludes = new TreeSet<String>();
+        this.nestedCoder = new NestedCoder();
     }
 
     @Override
@@ -385,9 +382,9 @@ public class InvarWriteCode extends InvarWrite
         s = replace(s, tokenFields, fields.toString());
         s = replace(s, tokenSetters, setters.toString());
         s = replace(s, tokenGetters, getters.toString());
-        s = replace(s, tokenCopyFrom, codeCopyFrom.code(type, fs, imps, useFullName));
-        s = replace(s, tokenDecoder, codeStreamRead.code(type, fs, imps, useFullName));
-        s = replace(s, tokenEncoder, codeStreamWrite.code(type, fs, imps, useFullName));
+        s = replace(s, tokenCopy, nestedCoder.code(Key.PREFIX_COPY, useFullName, type, fs, imps));
+        s = replace(s, tokenDecoder, nestedCoder.code(Key.PREFIX_READ, useFullName, type, fs, imps));
+        s = replace(s, tokenEncoder, nestedCoder.code(Key.PREFIX_WRITE, useFullName, type, fs, imps));
         return s;
     }
 
@@ -805,7 +802,7 @@ public class InvarWriteCode extends InvarWrite
                 line = line.replaceAll(tokenBr, br);
                 line = line.replaceAll(tokenIndent, indent);
                 line = line.replaceAll(tokenBlank, empty);
-                line = line.replaceAll(tokenWhiteSpace, whiteSpace);
+                line = line.replaceAll(tokenSpace, whiteSpace);
                 code.append(line + (i != len - 1 ? br : empty));
             }
         }
@@ -900,21 +897,6 @@ public class InvarWriteCode extends InvarWrite
         return s.replaceFirst(token, Matcher.quoteReplacement(replacement));
     }
 
-    private String makeCodeMethod (List<String> lines, String returnType, String snippetKey)
-    {
-        indentLines(lines, methodIndentNum);
-        StringBuilder body = new StringBuilder();
-        for (String line : lines)
-        {
-            body.append(br + line);
-        }
-        String b = body.toString();
-        String s = snippetGet(snippetKey);
-        s = replace(s, tokenType, returnType);
-        s = replace(s, tokenBody, b);
-        return s;
-    }
-
     static private Boolean genericOverride = false; //For C++ template ">>" issue in GCC
 
     static private String createRule (InvarField f, InvarContext ctx, Boolean useFullName)
@@ -959,28 +941,67 @@ public class InvarWriteCode extends InvarWrite
         return s;
     }
 
+    public String makeCodeAssignment (String type, String name, String value, Boolean refer)
+    {
+        name = name.trim();
+        value = value.trim();
+        String s = snippetGet(Key.CODE_ASSIGNMENT);
+        if (value.equals(name))
+        {
+            value = empty;
+        }
+        if (value.equals(empty))
+        {
+            refer = false;
+            s = snippetGet(Key.CODE_DEFINITION);
+        }
+        if (refer)
+            name = snippetTryGet(Key.REFER_SPEC) + name;
+        s = replace(s, tokenValue, value);
+        s = replace(s, tokenType, !type.equals(empty) ? type + whiteSpace : empty);
+        s = replace(s, tokenName, name);
+        return s;
+    }
+
     private class NestedCoder
     {
-        private Boolean useFullName = false;
-        private String  prefix      = empty;
-        private TypeID  sizeType    = TypeID.UINT32;
+        final private TypeID sizeType    = TypeID.UINT32;
+        private Boolean      useFullName = false;
+        private String       prefix      = empty;
+        private String       snippetMet  = empty;
+        private String       snippetArg  = empty;
 
-        public NestedCoder(String prefix)
-        {
-            this.prefix = prefix;
-        }
-
-        public String code (TypeStruct type, List<InvarField> fs, TreeSet<String> imps, Boolean fullName)
+        public String code (String prefix,
+                            Boolean useFullName,
+                            TypeStruct type,
+                            List<InvarField> fs,
+                            TreeSet<String> imps)
         {
             impsCheckAdd(imps, snippetTryGet(prefix + Key.IMPORT), type);
-            String key = prefix + "method";
-            if (empty.equals(snippetTryGet(key)))
+            this.prefix = prefix;
+            this.useFullName = useFullName;
+            this.snippetMet = snippetTryGet(prefix + "method");
+            this.snippetArg = snippetTryGet(prefix + "method.arg");
+            if (empty.equals(snippetMet))
                 return empty;
-            this.useFullName = fullName;
             List<String> lines = new ArrayList<String>();
             for (InvarField f : fs)
                 lines.addAll(makeField(f));
-            return makeCodeMethod(lines, type.getName(), key);
+            return makeCodeMethod(lines, type.getName(), snippetMet);
+        }
+
+        private String makeCodeMethod (List<String> lines, String returnType, String snippet)
+        {
+            indentLines(lines, methodIndentNum);
+            StringBuilder body = new StringBuilder();
+            for (String line : lines)
+            {
+                body.append(br + line);
+            }
+            String s = snippet;
+            s = replace(s, tokenType, returnType);
+            s = replace(s, tokenBody, body.toString());
+            return s;
         }
 
         private List<String> makeField (InvarField f)
@@ -988,7 +1009,7 @@ public class InvarWriteCode extends InvarWrite
             String rule = createRule(f, getContext(), useFullName);
             TypeID type = f.getType().getRealId();
             List<String> lines = new ArrayList<String>();
-            NestedParam params = makeParams(null, rule, f.getKey());
+            NestedParam params = makeParams(null, rule, f.getKey(), empty);
             makeGeneric(f, type, rule, params, lines);
             return lines;
         }
@@ -996,6 +1017,7 @@ public class InvarWriteCode extends InvarWrite
         private void makeGeneric (InvarField f, TypeID type, String rule, NestedParam p, List<String> lines)
         {
             p.field = f;
+            p.type = type;
             String code = null;
             if (TypeID.VEC == type)
                 code = makeUnitVec(p, rule);
@@ -1003,16 +1025,18 @@ public class InvarWriteCode extends InvarWrite
                 code = makeUnitMap(p, rule);
             else
                 code = makeUnitSimple(p, type);
+            code = replace(code, tokenArgument, snippetArg);
             lines.addAll(indentLines(code));
         }
 
         private String makeUnitVec (NestedParam p, String rule)
         {
-            String head = makeGenericDefine(p);
             String ruleV = ruleRight(rule);
-            String nameVal = "v" + p.depth;
-            NestedParam pVal = makeParams(p, ruleV, nameVal);
-            String body = makeUnitGeneric(TypeID.VEC, ruleV, pVal, ".v");
+            String nameVal = "n" + p.depth;
+            NestedParam pVal = makeParams(p, ruleV, nameVal, ".n");
+            String body = empty;
+            body += makeUnitGeneric(TypeID.VEC, ruleV, pVal);
+            String head = makeGenericDefine(p);
             return head + makeUnitIter(TypeID.VEC.getName(), body, p, pVal, null);
         }
 
@@ -1024,16 +1048,16 @@ public class InvarWriteCode extends InvarWrite
             String ruleV = R[1];
             String nameKey = "k" + p.depth;
             String nameVal = "v" + p.depth;
-            NestedParam pKey = makeParams(p, ruleK, nameKey);
-            NestedParam pVal = makeParams(p, ruleV, nameVal);
+            NestedParam pKey = makeParams(p, ruleK, nameKey, ".k");
+            NestedParam pVal = makeParams(p, ruleV, nameVal, ".v");
             String body = empty;
-            body += makeUnitGeneric(TypeID.MAP, ruleK, pKey, ".k");
-            body += makeUnitGeneric(TypeID.MAP, ruleV, pVal, ".v");
+            body += makeUnitGeneric(TypeID.MAP, ruleK, pKey);
+            body += makeUnitGeneric(TypeID.MAP, ruleV, pVal);
             String head = makeGenericDefine(p);
             return head + makeUnitIter(TypeID.MAP.getName(), body, p, pVal, pKey);
         }
 
-        private String makeUnitGeneric (TypeID id, String rule, NestedParam p, String iterSuffix)
+        private String makeUnitGeneric (TypeID id, String rule, NestedParam p)
         {
             String L = ruleLeft(rule);
             InvarType t = getTypeByShort(L);
@@ -1043,10 +1067,37 @@ public class InvarWriteCode extends InvarWrite
                 return empty;
             }
             TypeID type = t.getRealId();
-            p.snippet = snippetTryGet(prefix + id.getName() + ".iter" + iterSuffix);
+            String iterSuffix = p.snippetTag;
+            p.snippetRef = snippetTryGet(prefix + id.getName() + ".iter" + iterSuffix);
+            p.snippetDef = snippetTryGet(prefix + id.getName() + ".def" + iterSuffix);
             List<String> body = new ArrayList<String>();
             makeGeneric(p.field, type, rule, p, body);
             return buildCodeLines(body).toString();
+        }
+
+        private String makeGenericDefine (NestedParam p)
+        {
+            String s0 = empty;
+            String s = empty;
+            if (p.parent == null)
+            {
+                s0 = snippetTryGet(prefix + p.type.getName() + ".field");
+                s0 = replace(s0, tokenType, p.rule);
+                s0 = replace(s0, tokenName, p.name);
+            }
+            if (p.parent != null && p.parent.type != TypeID.VOID)
+            {
+                s = snippetTryGet(prefix + p.parent.type.getName() + ".define");
+                String v = snippetTryGet(prefix + p.parent.type.getName() + ".define" + p.snippetTag);
+                s = replace(s, tokenValue, v);
+
+                s = replace(s, tokenType, p.rule);
+                s = replace(s, tokenName, p.name);
+                s = replace(s, tokenTypeUpper, p.parent.rule);
+                s = replace(s, tokenNameUpper, p.parent.name);
+
+            }
+            return s0 + s;
         }
 
         private String makeUnitIter (String typeName, String body, NestedParam param, NestedParam pv, NestedParam pk)
@@ -1073,85 +1124,49 @@ public class InvarWriteCode extends InvarWrite
             return s;
         }
 
-        private NestedParam makeParams (NestedParam parent, String rule, String name)
+        private NestedParam makeParams (NestedParam parent, String rule, String name, String tag)
         {
             NestedParam p = new NestedParam();
+            p.name = name;
+            p.snippetTag = tag;
             p.parent = parent;
             p.depth = (parent != null ? parent.depth : 0) + 1;
+            p.setRule(rule);
             if (parent != null)
             {
                 p.field = parent.field;
             }
-            p.setType(rule);
-            p.name = name;
             return p;
-        }
-
-        private String makeCodeAssignment (String type, String name, String value, Boolean refer)
-        {
-            name = name.trim();
-            value = value.trim();
-            String s = snippetGet(Key.CODE_ASSIGNMENT);
-            if (value.equals(name))
-            {
-                value = empty;
-            }
-            if (value.equals(empty))
-            {
-                refer = false;
-                s = snippetGet(Key.CODE_DEFINITION);
-            }
-            if (refer)
-                name = snippetTryGet(Key.REFER_SPEC) + name;
-            s = replace(s, tokenValue, value);
-            s = replace(s, tokenType, !type.equals(empty) ? type + whiteSpace : empty);
-            s = replace(s, tokenName, name);
-            return s;
-        }
-
-        private String makeGenericDefine (NestedParam p)
-        {
-            String head = empty;
-            if (p.parent != null)
-            {
-                String name = p.name;
-                String type = p.getRule();
-                //String init = p.getInit();
-                Boolean refer = false;
-                if (Key.PREFIX_READ == prefix)
-                {
-                    refer = true;
-                }
-                else if (Key.PREFIX_WRITE == prefix)
-                {
-                    refer = true;
-                    type = snippetTryGet(Key.REFER_CONST) + whiteSpace + type;
-                }
-                head += makeCodeAssignment(type, name, empty, refer);
-            }
-            return head;
         }
 
         private String makeUnitSimple (NestedParam p, TypeID t)
         {
-            String s = empty;
-            String sKey = prefix + t.getName();
+            String k = prefix + t.getName();
             if (TypeID.STRUCT == t && p.field.isStructSelf())
-                sKey += ".check";
-            s = snippetGet(sKey);
-            String invoke = snippetTryGet(Key.REFER_INVOKE);
-            if (p.field != null && p.field.isStructSelf())
-                invoke = snippetTryGet(Key.POINTER_INVOKE);
-
-            if (!p.snippet.equals(empty))
+                k += ".check";
+            String s = snippetGet(k);
+            String invoke = snippetTryGet(p.field.isStructSelf() ? Key.POINTER_INVOKE : Key.REFER_INVOKE);
+            String split = invoke;
+            if (p.depth > 1)
             {
-                s = p.snippet;
-                //s = replace(s, tokenName, p.snippet);
+                split = "_";
             }
-            s = replace(s, tokenName, p.name);
+            if (!p.snippetRef.equals(empty))
+            {
+                s = replace(s, tokenName, p.snippetRef);
+            }
+            if (!p.snippetDef.equals(empty))
+            {
+                if (p.snippetRef.equals(empty))
+                    s = p.snippetDef;
+                else
+                    s = p.snippetDef + s;
+            }
             s = replace(s, tokenType, p.rule);
+            s = replace(s, tokenName, p.name);
             s = replace(s, tokenInvoke, invoke);
-            //s = replace(s, tokenValue, snippetTryGet(Key.POINTER_NULL));
+            s = replace(s, tokenSplit, split);
+            s = replace(s, tokenNullPtr, snippetTryGet(Key.POINTER_NULL));
             if (p.parent != null)
             {
                 s = replace(s, tokenTypeUpper, p.parent.rule);
@@ -1159,23 +1174,22 @@ public class InvarWriteCode extends InvarWrite
             }
             return s;
         }
+
     }//class
 
     private class NestedParam
     {
-        private NestedParam parent  = null;
-        private InvarField  field   = null;
-        private Integer     depth   = 0;
-        private String      rule    = empty;
-        private String      name    = empty;
-        private String      snippet = empty;
+        private NestedParam parent     = null;
+        private InvarField  field      = null;
+        private Integer     depth      = 0;
+        private TypeID      type       = TypeID.VOID;
+        private String      rule       = empty;
+        private String      name       = empty;
+        private String      snippetRef = empty;
+        private String      snippetDef = empty;
+        private String      snippetTag = empty;
 
-        public String getRule ()
-        {
-            return this.rule;
-        }
-
-        public void setType (String t)
+        public void setRule (String t)
         {
             String split = snippetGet(Key.IMPORT_SPLIT);
             t = t.replace(ruleTypeSplit, split);
