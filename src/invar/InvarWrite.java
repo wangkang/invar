@@ -453,7 +453,7 @@ abstract public class InvarWrite
         return str;
     }
 
-    static protected String fixedLen (Integer len, String str)
+    static public String fixedLen (Integer len, String str)
     {
         return fixedLen(" ", len, str);
     }

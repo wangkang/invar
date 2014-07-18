@@ -7,6 +7,7 @@ import invar.model.InvarType.TypeID;
 import invar.model.TypeEnum;
 import invar.model.TypeStruct;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,6 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -86,30 +88,23 @@ public class InvarWriteCode extends InvarWrite
     private Boolean                      impExcludeSamePack = false;
     private List<String>                 impExcludePacks    = null;
 
+    final private HashMap<String,Method> mapInvoke;
     final private TreeSet<String>        fileIncludes;
     final private Document               snippetDoc;
     final private HashMap<String,String> snippetMap;
     final private String                 snippetPath;
     final private NestedCoder            nestedCoder;
 
-    public InvarWriteCode(InvarContext ctx, String langName, String dirRootPath) throws Exception
+    public InvarWriteCode(InvarContext ctx, String dirRootPath, String snippetPath) throws Exception
     {
         super(ctx, dirRootPath);
-        this.snippetPath = "/res/" + langName + "/snippet.xml";
-        this.snippetDoc = getSnippetDoc(snippetPath, ctx);
+        this.snippetPath = "/res/" + snippetPath;
+        this.snippetDoc = getSnippetDoc(this.snippetPath, ctx);
         this.snippetMap = new LinkedHashMap<String,String>();
         this.fileIncludes = new TreeSet<String>();
         this.nestedCoder = new NestedCoder();
-    }
-
-    public InvarWriteCode(InvarContext ctx, String langName, String dirRootPath, String snippetName) throws Exception
-    {
-        super(ctx, dirRootPath);
-        this.snippetPath = "/res/" + langName + "/" + snippetName;
-        this.snippetDoc = getSnippetDoc(snippetPath, ctx);
-        this.snippetMap = new LinkedHashMap<String,String>();
-        this.fileIncludes = new TreeSet<String>();
-        this.nestedCoder = new NestedCoder();
+        this.mapInvoke = new HashMap<String,Method>(32);
+        mapInvoke.put("fixedLen", InvarWrite.class.getMethod("fixedLen", Integer.class, String.class));
     }
 
     @Override
@@ -188,10 +183,24 @@ public class InvarWriteCode extends InvarWrite
         ifndef = replace(ifndef, "/", "_");
         ifndef = replace(ifndef, tokenDot, "_");
         String s = snippetTryGet(Key.FILE, "//Error: No template named '" + Key.FILE + "' in " + snippetPath);
+
         s = replace(s, tokenDefine, ifndef);
         s = replace(s, tokenIncludes, includes.toString());
         s = replace(s, tokenPack, codeOneFilePack(packNames, body));
+
+        Pattern p = Pattern.compile("\\[#.+\\(.*\\)\\]");
+        Matcher m = p.matcher(s);
+
+        while (m.find())
+        {
+            String result = makEval(s.substring(m.start(), m.end()));
+        }
         return s;
+    }
+
+    private String makEval (String expr)
+    {
+        return empty;
     }
 
     String codeOneFileBody (List<TypeEnum> enums, List<TypeStruct> structs, TreeSet<String> imps)

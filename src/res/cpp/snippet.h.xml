@@ -90,10 +90,11 @@
 	(#tab)void Encode(invar::BinaryWriter &stream) const;
 	(#tab)(#name)& Decode(invar::BinaryReader &stream);
 	
+	[#fixedLen(16, ss)]
 	(#blank)
 	(#getters)
 	(#setters)
-	
+	[#fixedLen(16, aaa)]
 	(#space)(#space)private:
 	
 	(#blank)
