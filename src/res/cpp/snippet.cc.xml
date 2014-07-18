@@ -84,20 +84,20 @@
 	(#blank)
 	(#name)::(#name)(const (#name)& from)
 	{
-	(#tab)if (this != &from) { CopyFrom(from); }
+	(#tab)if (this != &from) {
+	(#tab)(#tab)CopyFrom(from);
+	(#tab)}
 	}
 	(#blank)
 	(#name)& (#name)::operator = (const (#name)& from)
 	{
-		(#tab)if (this != &from) { CopyFrom(from); }
+		(#tab)if (this != &from) {
+		(#tab)(#tab)CopyFrom(from);
+		(#tab)}
 		(#tab)return *this;
 	}
 	(#blank)
-	bool (#name)::operator < (const (#name)& other) const
-	{
-		//TODO operator < Implementation
-		(#tab)return true;
-	}
+	(#less)
 	(#blank)
 	(#getters)
 	(#setters)
@@ -117,6 +117,15 @@
   <template key="struct.getter"><![CDATA[
 	(#type)(#spec) (#typehost)::Get(#nameupper) (void) { return (#name); }
   ]]></template>
+
+  <template key="less.method"><![CDATA[
+    bool (#type)::operator < (const (#type)& other) const
+    {
+    (#body)
+    }]]></template>
+  <template key="less.body.key"><![CDATA[(#tab)return key < other.key;]]></template>
+  <template key="less.body.deft"><![CDATA[(#tab)return false;]]></template>
+
 
   <!-- CopyFrom Method -->
   <template key="copy.import"><![CDATA[]]></template>

@@ -56,6 +56,7 @@ public class InvarWriteCode extends InvarWrite
     final static String tokenSpecifier   = wrapToken("spec");
     final static String tokenTypeHost    = wrapToken("typehost");
     final static String tokenConstructor = wrapToken("ctor");
+    final static String tokenLessCompare = wrapToken("less");
     final static String tokenSetters     = wrapToken("setters");
     final static String tokenGetters     = wrapToken("getters");
     final static String tokenEncoder     = wrapToken("encoder");
@@ -378,6 +379,7 @@ public class InvarWriteCode extends InvarWrite
         String s = snippetGet(Key.STRUCT);
         s = replace(s, tokenName, type.getName());
         s = replace(s, tokenDoc, makeDoc(type.getComment()));
+        s = replace(s, tokenLessCompare, makeLessMethod(type));
         s = replace(s, tokenConstructor, ctor.toString());
         s = replace(s, tokenFields, fields.toString());
         s = replace(s, tokenSetters, setters.toString());
@@ -385,6 +387,16 @@ public class InvarWriteCode extends InvarWrite
         s = replace(s, tokenCopy, nestedCoder.code(Key.PREFIX_COPY, useFullName, type, fs, imps));
         s = replace(s, tokenDecoder, nestedCoder.code(Key.PREFIX_READ, useFullName, type, fs, imps));
         s = replace(s, tokenEncoder, nestedCoder.code(Key.PREFIX_WRITE, useFullName, type, fs, imps));
+        return s;
+    }
+
+    private String makeLessMethod (TypeStruct type)
+    {
+        String s = snippetTryGet("less.method");
+        if (s.equals(empty))
+            return s;
+        s = replace(s, tokenBody, snippetGet(type.getField("key") != null ? "less.body.key" : "less.body.deft"));
+        s = replace(s, tokenType, type.getName());
         return s;
     }
 
