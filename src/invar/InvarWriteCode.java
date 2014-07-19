@@ -89,6 +89,8 @@ public class InvarWriteCode extends InvarWrite
     private List<String>                 impExcludePacks    = null;
 
     final private HashMap<String,Method> mapInvoke;
+    final private Pattern                patternInvoke;
+
     final private TreeSet<String>        fileIncludes;
     final private Document               snippetDoc;
     final private HashMap<String,String> snippetMap;
@@ -103,6 +105,7 @@ public class InvarWriteCode extends InvarWrite
         this.snippetMap = new LinkedHashMap<String,String>();
         this.fileIncludes = new TreeSet<String>();
         this.nestedCoder = new NestedCoder();
+        this.patternInvoke = Pattern.compile("\\[#.+\\(.*\\)\\]");
         this.mapInvoke = new HashMap<String,Method>(32);
         mapInvoke.put("fixedLen", InvarWrite.class.getMethod("fixedLen", Integer.class, String.class));
     }
@@ -187,20 +190,73 @@ public class InvarWriteCode extends InvarWrite
         s = replace(s, tokenDefine, ifndef);
         s = replace(s, tokenIncludes, includes.toString());
         s = replace(s, tokenPack, codeOneFilePack(packNames, body));
-
-        Pattern p = Pattern.compile("\\[#.+\\(.*\\)\\]");
-        Matcher m = p.matcher(s);
-
-        while (m.find())
-        {
-            String result = makEval(s.substring(m.start(), m.end()));
-        }
-        return s;
+        return codeEval(s);
     }
 
-    private String makEval (String expr)
+    private String codeEval (String s)
     {
-        return empty;
+        Matcher m = patternInvoke.matcher(s);
+        StringBuffer sb = new StringBuffer();
+        int mend = 0;
+        while (m.find())
+        {
+            String result = codeInvoke(s.substring(m.start(), m.end()));
+            m.appendReplacement(sb, result);
+            mend = m.end();
+        }
+        return sb.toString() + s.substring(mend);
+    }
+
+    private String codeInvoke (String expr)
+    {
+        expr = replace(expr, "\\[#", empty);
+        expr = replace(expr, "\\]", empty);
+        String key = expr.substring(0, expr.indexOf("("));
+        if (mapInvoke.containsKey(key))
+        {
+            String strParam = expr.substring(expr.indexOf("(") + 1, expr.indexOf(")"));
+            Method m = mapInvoke.get(key);
+            Class<?>[] types = m.getParameterTypes();
+            String[] strParams = strParam.split("\\s*,\\s*");
+            if (types.length != strParams.length)
+            {
+                return makeDoc(expr + " param count mismatch.");
+            }
+            Object[] params = new Object[types.length];
+            for (int i = 0; i < types.length; i++)
+            {
+                Class<?> t = types[i];
+                if (t.equals(String.class))
+                    params[i] = strParams[i];
+                else if (t.equals(Byte.class))
+                    params[i] = Byte.parseByte(strParams[i]);
+                else if (t.equals(Short.class))
+                    params[i] = Short.parseShort(strParams[i]);
+                else if (t.equals(Integer.class))
+                    params[i] = Integer.parseInt(strParams[i]);
+                else if (t.equals(Long.class))
+                    params[i] = Long.parseLong(strParams[i]);
+                else if (t.equals(Float.class))
+                    params[i] = Float.parseFloat(strParams[i]);
+                else if (t.equals(Double.class))
+                    params[i] = Double.parseDouble(strParams[i]);
+                else if (t.equals(Boolean.class))
+                    params[i] = Boolean.parseBoolean(strParams[i]);
+                //else if (t.isEnum())
+                //    params[i] = Enum.valueOf(t, strParams[i]);
+                else
+                    return makeDoc(expr + " type unsupported: " + t);
+            }
+            try
+            {
+                return m.invoke(null, params).toString();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+        return makeDoc(expr);
     }
 
     String codeOneFileBody (List<TypeEnum> enums, List<TypeStruct> structs, TreeSet<String> imps)
