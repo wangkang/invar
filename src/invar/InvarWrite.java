@@ -273,7 +273,7 @@ abstract public class InvarWrite
         exports.put(path + "/" + fileName, content);
     }
 
-    final protected void exportFile (String resPath, String fileDir, String fileName)
+    final public void exportFile (String resPath, String fileDir, String fileName)
     {
         InputStream res = getClass().getResourceAsStream(resPath);
         if (res != null)
