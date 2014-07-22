@@ -96,16 +96,21 @@
 		(#tab)}
 		(#tab)return *this;
 	}
+	
 	(#blank)
-	(#less)
+	[#operatorLess(struct)]
+	
+	
 	(#blank)
 	(#getters)
 	(#setters)
-    (#copyfrom)
+	
+	[#codeNested(copy., useFullName, struct, fields, imports)]
     (#blank)
-	(#decoder)
+    [#codeNested(read., useFullName, struct, fields, imports)]
     (#blank)
-	(#encoder)
+	[#codeNested(write., useFullName, struct, fields, imports)]
+	(#blank)
   ]]></template>
   <template key="struct.meta"><![CDATA[ [Invar.InvarRule("(#type)", "(#name)")] ]]></template>
   <template key="struct.field.self"><![CDATA[&]]></template>

@@ -273,12 +273,8 @@ final public class InvarSnippet
         final static String Specifier   = wrapToken("spec");
         final static String TypeHost    = wrapToken("typehost");
         final static String Constructor = wrapToken("ctor");
-        final static String LessCompare = wrapToken("less");
         final static String Setters     = wrapToken("setters");
         final static String Getters     = wrapToken("getters");
-        final static String Encoder     = wrapToken("encoder");
-        final static String Decoder     = wrapToken("decoder");
-        final static String Copy        = wrapToken("copyfrom");
 
         final static String Argument    = wrapToken("arg");
         final static String SizeType    = wrapToken("sizetype");

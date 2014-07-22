@@ -74,6 +74,7 @@
   <template key="enum.field"><![CDATA[
 	(#tab)(#name) = (#value),(#doc)
   ]]></template>
+  <template key="struct.import"><![CDATA[invar::BinaryReader,invar::BinaryReader,std::size_t]]></template>
   <template key="struct"><![CDATA[
     (#brk)(#doc)
 	class (#name) {
@@ -84,11 +85,11 @@
 	(#tab)(#name)(const (#name) &from);
 	(#space)(#space)(#space)~(#name)();
     (#blank)
-    (#tab)[#fixedLen(16,bool)]operator < (const (#name) &other) const;
-	(#tab)[#fixedLen(16,(#name)&)]operator = (const (#name) &from);	
-    (#tab)[#fixedLen(16,(#name)&)]CopyFrom(const (#name) &from);
-	(#tab)[#fixedLen(16,void)]Encode(invar::BinaryWriter &stream) const;
-	(#tab)[#fixedLen(16,(#name)&)]Decode(invar::BinaryReader &stream);
+    (#tab)[#fixedLen(widthStruct,bool )]operator < (const (#name) &other) const;
+	(#tab)[#fixedLen(widthStruct,(#name) &)]operator = (const (#name) &from);	
+    (#tab)[#fixedLen(widthStruct,(#name) &)]CopyFrom(const (#name) &from);
+	(#tab)[#fixedLen(widthStruct,void)]Encode(invar::BinaryWriter &stream) const;
+	(#tab)[#fixedLen(widthStruct,(#name) &)]Decode(invar::BinaryReader &stream);
 	(#blank)
 	(#getters)
 	(#setters)
@@ -101,10 +102,9 @@
   <template key="struct.field"><![CDATA[
 	(#tab)(#type) (#name); (#doc)
   ]]></template>
-  <template key="struct.setter"><![CDATA[(#tab)(#typehost)& Set(#nameupper) ((#type) (#spec)value);(#brk)]]></template>
+  <template key="struct.setter"><![CDATA[(#tab)(#typehost) & Set(#nameupper) ((#type) (#spec)value);(#brk)]]></template>
   <template key="struct.getter"><![CDATA[(#tab)(#type)(#spec) Get(#nameupper) (void); (#docline)(#brk)]]></template>
-  <template key="read.import"><![CDATA[invar::BinaryReader]]></template>
-  <template key="write.import"><![CDATA[invar::BinaryReader,std::size_t]]></template>
+  
   
   <!-- Common snippet -->
   <template key="doc"><![CDATA[/* (#doc) */]]></template>

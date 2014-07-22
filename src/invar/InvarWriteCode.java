@@ -46,12 +46,15 @@ public class InvarWriteCode extends InvarWrite
         this.snippet = new InvarSnippet(ctx, snippetPath, this);
         this.fileIncludes = new TreeSet<String>();
         this.nestedCoder = new NestedCoder();
-        this.patternInvoke = Pattern.compile("\\[#.+\\(.*\\)\\]");
+        this.patternInvoke = Pattern.compile("\\[#\\S+\\(.*\\)\\]");
         this.mapInvoke = new HashMap<String,Method>(32);
-        mapInvoke.put("fixedLen", InvarWrite.class.getMethod("fixedLen", Integer.class, String.class));
+        funcPublish("fixedLen", Integer.class, String.class);
+        funcPublish("snippetTryGet", String.class);
+        funcPublish("codeNested", String.class, Boolean.class, TypeStruct.class, List.class, TreeSet.class);
+        funcPublish("operatorLess", TypeStruct.class);
     }
 
-    private String snippetGet (String key)
+    public String snippetGet (String key)
     {
         String s = snippet.tryGet(key, null);
         if (s == null)
@@ -62,9 +65,28 @@ public class InvarWriteCode extends InvarWrite
         return s;
     }
 
-    private String snippetTryGet (String key)
+    public String snippetTryGet (String key)
     {
         return snippet.tryGet(key, empty);
+    }
+
+    public String codeNested (String prefix,
+                              Boolean useFullName,
+                              TypeStruct struct,
+                              List<InvarField> fields,
+                              TreeSet<String> imports)
+    {
+        return nestedCoder.code(prefix, useFullName, struct, fields, imports);
+    }
+
+    public String operatorLess (TypeStruct type)
+    {
+        String s = snippetTryGet("less.method");
+        if (s.equals(empty))
+            return s;
+        s = replace(s, Token.Body, snippetGet(type.getField("key") != null ? "less.body.key" : "less.body.deft"));
+        s = replace(s, Token.Type, type.getName());
+        return s;
     }
 
     @Override
@@ -146,77 +168,10 @@ public class InvarWriteCode extends InvarWrite
         ifndef = replace(ifndef, dotToken, "_");
         String s = snippet.tryGet(Key.FILE,
                                   "//Error: No template named '" + Key.FILE + "' in " + snippet.getSnippetPath());
-
         s = replace(s, Token.Define, ifndef);
         s = replace(s, Token.Includes, includes.toString());
         s = replace(s, Token.Pack, codeOneFilePack(packNames, body));
-        return codeEval(s);
-    }
-
-    private String codeEval (String s)
-    {
-        Matcher m = patternInvoke.matcher(s);
-        StringBuffer sb = new StringBuffer();
-        int mend = 0;
-        while (m.find())
-        {
-            String result = codeInvoke(s.substring(m.start(), m.end()));
-            m.appendReplacement(sb, result);
-            mend = m.end();
-        }
-        return sb.toString() + s.substring(mend);
-    }
-
-    private String codeInvoke (String expr)
-    {
-        expr = replace(expr, "\\[#", empty);
-        expr = replace(expr, "\\]", empty);
-        String key = expr.substring(0, expr.indexOf("("));
-        if (mapInvoke.containsKey(key))
-        {
-            String strParam = expr.substring(expr.indexOf("(") + 1, expr.indexOf(")"));
-            Method m = mapInvoke.get(key);
-            Class<?>[] types = m.getParameterTypes();
-            String[] strParams = strParam.split("\\s*,\\s*");
-            if (types.length != strParams.length)
-            {
-                return makeDoc(expr + " param count mismatch.");
-            }
-            Object[] params = new Object[types.length];
-            for (int i = 0; i < types.length; i++)
-            {
-                Class<?> t = types[i];
-                if (t.equals(String.class))
-                    params[i] = strParams[i];
-                else if (t.equals(Byte.class))
-                    params[i] = Byte.parseByte(strParams[i]);
-                else if (t.equals(Short.class))
-                    params[i] = Short.parseShort(strParams[i]);
-                else if (t.equals(Integer.class))
-                    params[i] = Integer.parseInt(strParams[i]);
-                else if (t.equals(Long.class))
-                    params[i] = Long.parseLong(strParams[i]);
-                else if (t.equals(Float.class))
-                    params[i] = Float.parseFloat(strParams[i]);
-                else if (t.equals(Double.class))
-                    params[i] = Double.parseDouble(strParams[i]);
-                else if (t.equals(Boolean.class))
-                    params[i] = Boolean.parseBoolean(strParams[i]);
-                //else if (t.isEnum())
-                //    params[i] = Enum.valueOf(t, strParams[i]);
-                else
-                    return makeDoc(expr + " type unsupported: " + t);
-            }
-            try
-            {
-                return m.invoke(null, params).toString();
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-        }
-        return makeDoc(expr);
+        return s;
     }
 
     String codeOneFileBody (List<TypeEnum> enums, List<TypeStruct> structs, TreeSet<String> imps)
@@ -364,6 +319,9 @@ public class InvarWriteCode extends InvarWrite
 
         if (type.getSuperType() != null)
             impsCheckAdd(imps, type.getSuperType(), type);
+
+        impsCheckAdd(imps, snippetTryGet("struct.import"), type);
+
         int widthType = 1;
         int widthName = 1;
         int widthDeft = 1;
@@ -406,25 +364,18 @@ public class InvarWriteCode extends InvarWrite
         String s = snippetGet(Key.STRUCT);
         s = replace(s, Token.Name, type.getName());
         s = replace(s, Token.Doc, makeDoc(type.getComment()));
-        s = replace(s, Token.LessCompare, makeLessMethod(type));
         s = replace(s, Token.Constructor, ctor.toString());
         s = replace(s, Token.Fields, fields.toString());
         s = replace(s, Token.Setters, setters.toString());
         s = replace(s, Token.Getters, getters.toString());
-        s = replace(s, Token.Copy, nestedCoder.code(Key.PREFIX_COPY, useFullName, type, fs, imps));
-        s = replace(s, Token.Decoder, nestedCoder.code(Key.PREFIX_READ, useFullName, type, fs, imps));
-        s = replace(s, Token.Encoder, nestedCoder.code(Key.PREFIX_WRITE, useFullName, type, fs, imps));
-        return s;
-    }
 
-    private String makeLessMethod (TypeStruct type)
-    {
-        String s = snippetTryGet("less.method");
-        if (s.equals(empty))
-            return s;
-        s = replace(s, Token.Body, snippetGet(type.getField("key") != null ? "less.body.key" : "less.body.deft"));
-        s = replace(s, Token.Type, type.getName());
-        return s;
+        HashMap<String,Object> args = new HashMap<String,Object>();
+        args.put("struct", type);
+        args.put("fields", fs);
+        args.put("imports", imps);
+        args.put("useFullName", useFullName);
+        args.put("widthStruct", Math.max(type.getName().length() + 3, 8));
+        return funcEvalAll(s, args);
     }
 
     private StringBuilder buildCodeLines (List<String> lines)
@@ -680,14 +631,15 @@ public class InvarWriteCode extends InvarWrite
         {
             if (super.getLowerFileName())
                 include = include.toLowerCase();
-            if (t == struct)
+
+            if (includeSelf)
             {
-                if (includeSelf)
+                if (t == struct)
                     fileIncludes.add(include);
             }
             else
             {
-                if (!includeSelf)
+                if (t != struct)
                     fileIncludes.add(include);
             }
         }
@@ -837,6 +789,84 @@ public class InvarWriteCode extends InvarWrite
         s = replace(s, Token.Type, !type.equals(empty) ? type + whiteSpace : empty);
         s = replace(s, Token.Name, name);
         return s;
+    }
+
+    private void funcPublish (String name, Class<?>... argTypes) throws NoSuchMethodException, SecurityException
+    {
+        Method m = InvarWriteCode.class.getMethod(name, argTypes);
+        mapInvoke.put(name, m);
+    }
+
+    private String funcEvalAll (String s, HashMap<String,Object> env)
+    {
+        Matcher m = patternInvoke.matcher(s);
+        StringBuffer sb = new StringBuffer();
+        int mend = 0;
+        while (m.find())
+        {
+            String result = funcEval(s.substring(m.start(), m.end()), env);
+            m.appendReplacement(sb, result);
+            mend = m.end();
+        }
+        return sb.toString() + s.substring(mend);
+    }
+
+    private String funcEval (String expr, HashMap<String,Object> env)
+    {
+        expr = replace(expr, "\\[#", empty);
+        expr = replace(expr, "\\]", empty);
+        String key = expr.substring(0, expr.indexOf("("));
+        if (mapInvoke.containsKey(key))
+        {
+            String strParam = expr.substring(expr.indexOf("(") + 1, expr.indexOf(")"));
+            Method m = mapInvoke.get(key);
+            Class<?>[] types = m.getParameterTypes();
+            String[] strParams = strParam.split("\\s*,\\s*");
+            if (types.length != strParams.length)
+            {
+                return makeDoc(expr + " param count mismatch. " + m.toString());
+            }
+            Object[] params = new Object[types.length];
+            for (int i = 0; i < types.length; i++)
+            {
+                String arg = strParams[i];
+                if (env.containsKey(arg))
+                {
+                    params[i] = env.get(arg);
+                    continue;
+                }
+                Class<?> t = types[i];
+                if (t.equals(String.class))
+                    params[i] = strParams[i];
+                else if (t.equals(Byte.class))
+                    params[i] = Byte.parseByte(strParams[i]);
+                else if (t.equals(Short.class))
+                    params[i] = Short.parseShort(strParams[i]);
+                else if (t.equals(Integer.class))
+                    params[i] = Integer.parseInt(strParams[i]);
+                else if (t.equals(Long.class))
+                    params[i] = Long.parseLong(strParams[i]);
+                else if (t.equals(Float.class))
+                    params[i] = Float.parseFloat(strParams[i]);
+                else if (t.equals(Double.class))
+                    params[i] = Double.parseDouble(strParams[i]);
+                else if (t.equals(Boolean.class))
+                    params[i] = Boolean.parseBoolean(strParams[i]);
+                //else if (t.isEnum())
+                //    params[i] = Enum.valueOf(t, strParams[i]);
+                else
+                    return makeDoc(expr + " type unsupported: " + t);
+            }
+            try
+            {
+                return m.invoke(this, params).toString();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+        return makeDoc(expr);
     }
 
     private class NestedCoder
