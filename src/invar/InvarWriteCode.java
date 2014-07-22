@@ -46,7 +46,7 @@ public class InvarWriteCode extends InvarWrite
         this.snippet = new InvarSnippet(ctx, snippetPath, this);
         this.fileIncludes = new TreeSet<String>();
         this.nestedCoder = new NestedCoder();
-        this.patternInvoke = Pattern.compile("\\[#\\S+\\(.*\\)\\]");
+        this.patternInvoke = Pattern.compile("\\[#\\S+.*\\(.*\\)\\]");
         this.mapInvoke = new HashMap<String,Method>(32);
         funcPublish("fixedLen", Integer.class, String.class);
         funcPublish("snippetTryGet", String.class);
@@ -813,9 +813,11 @@ public class InvarWriteCode extends InvarWrite
 
     private String funcEval (String expr, HashMap<String,Object> env)
     {
+        expr = expr.trim();
         expr = replace(expr, "\\[#", empty);
         expr = replace(expr, "\\]", empty);
         String key = expr.substring(0, expr.indexOf("("));
+        key = key.trim();
         if (mapInvoke.containsKey(key))
         {
             String strParam = expr.substring(expr.indexOf("(") + 1, expr.indexOf(")"));
@@ -829,7 +831,7 @@ public class InvarWriteCode extends InvarWrite
             Object[] params = new Object[types.length];
             for (int i = 0; i < types.length; i++)
             {
-                String arg = strParams[i];
+                String arg = strParams[i].trim();
                 if (env.containsKey(arg))
                 {
                     params[i] = env.get(arg);
@@ -837,23 +839,23 @@ public class InvarWriteCode extends InvarWrite
                 }
                 Class<?> t = types[i];
                 if (t.equals(String.class))
-                    params[i] = strParams[i];
+                    params[i] = arg;
                 else if (t.equals(Byte.class))
-                    params[i] = Byte.parseByte(strParams[i]);
+                    params[i] = Byte.parseByte(arg);
                 else if (t.equals(Short.class))
-                    params[i] = Short.parseShort(strParams[i]);
+                    params[i] = Short.parseShort(arg);
                 else if (t.equals(Integer.class))
-                    params[i] = Integer.parseInt(strParams[i]);
+                    params[i] = Integer.parseInt(arg);
                 else if (t.equals(Long.class))
-                    params[i] = Long.parseLong(strParams[i]);
+                    params[i] = Long.parseLong(arg);
                 else if (t.equals(Float.class))
-                    params[i] = Float.parseFloat(strParams[i]);
+                    params[i] = Float.parseFloat(arg);
                 else if (t.equals(Double.class))
-                    params[i] = Double.parseDouble(strParams[i]);
+                    params[i] = Double.parseDouble(arg);
                 else if (t.equals(Boolean.class))
-                    params[i] = Boolean.parseBoolean(strParams[i]);
+                    params[i] = Boolean.parseBoolean(arg);
                 //else if (t.isEnum())
-                //    params[i] = Enum.valueOf(t, strParams[i]);
+                //    params[i] = Enum.valueOf(t, arg);
                 else
                     return makeDoc(expr + " type unsupported: " + t);
             }
