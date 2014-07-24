@@ -41,6 +41,28 @@ class BinaryReader
     double        ReadDouble();
 };
 
+template <typename T>
+bool CheckSet (T *dest, T *from)
+{
+	if (from == dest) {
+		return false;
+	}
+	if (from != NULL && dest != NULL) {
+		*dest = *from;
+	} else if (from != NULL && dest == NULL) {
+        dest = new T(*from);
+		return true;
+	} else if  (from == NULL && dest != NULL) {
+		delete dest;
+		dest = NULL;
+		return true;
+	}
+	else {
+		return false;
+	}
+	return false;
+}
+
 }; //namespace:invar
 
 #endif /* INVAR_CODEC_H_ */

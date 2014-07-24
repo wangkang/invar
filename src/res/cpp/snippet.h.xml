@@ -22,17 +22,16 @@
     <dialect pack="invar" type="BinaryWriter" include="&quot;invar.codec.h&quot;"/>
     <dialect pack="invar" type="BinaryReader" include="&quot;invar.codec.h&quot;"/>
   </redefine>
-  <template key="trace.all.types"><![CDATA[false]]></template>
-  <template key="include.self"><![CDATA[false]]></template>
-  <template key="pack.name.nested"><![CDATA[true]]></template>
-  <template key="file.name.lowercase"><![CDATA[true]]></template>
+  <template key="trace.all.types">     <![CDATA[false]]></template>
+  <template key="include.self">        <![CDATA[false]]></template>
+  <template key="pack.name.nested">    <![CDATA[true]]></template>
+  <template key="file.name.lowercase"> <![CDATA[true]]></template>
   <template key="capitalize.pack.head"><![CDATA[false]]></template>
-  <template key="method.indent.num"><![CDATA[0]]></template>
-  <template key="use.full.type.name"><![CDATA[true]]></template>
-  <template key="one.pack.one.file"><![CDATA[false]]></template>
-  <template key="code.dir.flatten"><![CDATA[true]]></template>
-  <template key="code.dir.prefix"><![CDATA[include/]]></template>
-  
+  <template key="method.indent.num">   <![CDATA[0]]></template>
+  <template key="use.full.type.name">  <![CDATA[true]]></template>
+  <template key="one.pack.one.file">   <![CDATA[false]]></template>
+  <template key="code.dir.flatten">    <![CDATA[true]]></template>
+  <template key="code.dir.prefix">     <![CDATA[include/]]></template>
   <template key="file"><![CDATA[
 	//===----------------------------*  C++  *---------------------------------===//
 	//
@@ -66,7 +65,6 @@
   <template key="enum.field"><![CDATA[
 	(#tab)(#name) = (#value),(#doc)
   ]]></template>
-  
   <template key="struct"><![CDATA[
     (#brk)(#doc)
 	class (#name) {
@@ -106,20 +104,20 @@
   
   
   <!-- Common snippet -->
-  <template key="doc"><![CDATA[/* (#doc) */]]></template>
-  <template key="doc.line"><![CDATA[(#space)//(#doc)]]></template>
-  <template key="import"><![CDATA[using namespace (#body);(#brk)]]></template>
-  <template key="import.body"><![CDATA[(#pack)]]></template>
-  <template key="import.split"><![CDATA[::]]></template>
-  <template key="init.struct"><![CDATA[]]></template>
-  <template key="init.enum"><![CDATA[(#name)]]></template>
-  <template key="refer.spec"><![CDATA[&]]></template>
-  <template key="refer.invoke"><![CDATA[.]]></template>
-  <template key="refer.const"><![CDATA[const]]></template>
-  <template key="pointer.spec"><![CDATA[*]]></template>
-  <template key="pointer.invoke"><![CDATA[->]]></template>
-  <template key="pointer.null"><![CDATA[NULL]]></template>
-  <template key="null.byte.yes"><![CDATA[(std::int8_t)0x01]]></template>
-  <template key="null.byte.no"><![CDATA[(std::int8_t)0x00]]></template>
-  <template key="type.enum"><![CDATA[int32]]></template>
+  <template key="doc">           <![CDATA[/* (#doc) */]]></template>
+  <template key="doc.line">      <![CDATA[(#space)//(#doc)]]></template>
+  <template key="import">        <![CDATA[using namespace (#body);(#brk)]]></template>
+  <template key="import.body">   <![CDATA[(#pack)]]></template>
+  <template key="import.split">  <![CDATA[::]]></template>
+  <template key="init.struct">   <![CDATA[]]></template>
+  <template key="init.enum">     <![CDATA[(#name)]]></template>
+  <template key="refer.spec">    <![CDATA[&]]>    </template>
+  <template key="refer.invoke">  <![CDATA[.]]>    </template>
+  <template key="refer.const">   <![CDATA[const]]></template>
+  <template key="pointer.spec">  <![CDATA[*]]>    </template>
+  <template key="pointer.invoke"><![CDATA[->]]>   </template>
+  <template key="pointer.null">  <![CDATA[NULL]]> </template>
+  <template key="type.enum">     <![CDATA[int32]]></template>
+  <template key="null.byte.yes"> <![CDATA[(std::int8_t)0x01]]></template>
+  <template key="null.byte.no">  <![CDATA[(std::int8_t)0x00]]></template>
 </tns:root>
