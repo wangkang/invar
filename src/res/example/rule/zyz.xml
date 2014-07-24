@@ -16,7 +16,7 @@
 		<field name="listDouble" type="Vec-Double" doc="双精度浮点小数" />
 		<field name="listBoolean" type="Vec-Bool" doc="布尔值" />
 		<field name="listString" type="Vec-String" doc="字符串" />
-		<field name="listEnum" type="Vec-Gender" doc="枚举值" />
+		<field name="listEnum" type="Vec-Gender" doc="枚举值" nosetter="false" />
 		<field name="listStruct" type="Vec-Custom" doc="自定义结构" />
 	</struct>
 
@@ -44,13 +44,55 @@
 	</struct>
 
 
+	<struct name="TestRefer" doc="引用类型测试">
+		<field name="numberi08" type="Int8" useref="true" doc="" />
+		<field name="numberi16" type="Int16" useref="true" doc="" />
+		<field name="numberi32" type="Int32" useref="true" doc="" />
+		<field name="numberi64" type="Int64" useref="true" doc="" />
+		<field name="numberu08" type="Uint8" useref="true" doc="" />
+		<field name="numberu16" type="Uint16" useref="true" doc="" />
+		<field name="numberu32" type="Uint32" useref="true" doc="" />
+		<field name="numberu64" type="Uint64" useref="true" doc="" />
+		<field name="numberSingle" type="Float" useref="true" doc="" />
+		<field name="numberDouble" type="Double" useref="true" doc="" />
+		<field name="boolValue" type="Bool" useref="true" doc="" />
+		<field name="stringValue" type="String" useref="false" doc="" />
+		<field name="enumValue" type="Gender" useref="true" doc="" />
+		<field name="other" type="Custom" useref="false" doc=""/>
+		<field name="self" type="TestRefer" useref="true" doc="" />
+		<field name="listI08" type="Vec-Int8" useref="false" doc="" />
+		<field name="dictI08" type="Map-Int8-Int8" useref="false" doc="" />
+	</struct>
+	
+	
+	<struct name="TestPointer" doc="指针类型测试">
+		<field name="numberi08" type="Int8" useptr="true" doc="" />
+		<field name="numberi16" type="Int16" useptr="true" doc="" />
+		<field name="numberi32" type="Int32" useptr="true" doc="" />
+		<field name="numberi64" type="Int64" useptr="true" doc="" />
+		<field name="numberu08" type="Uint8" useptr="true" doc="" />
+		<field name="numberu16" type="Uint16" useptr="true" doc="" />
+		<field name="numberu32" type="Uint32" useptr="true" doc="" />
+		<field name="numberu64" type="Uint64" useptr="true" doc="" />
+		<field name="numberSingle" type="Float" useptr="true" doc="" />
+		<field name="numberDouble" type="Double" useptr="true" doc="" />
+		<field name="boolValue" type="Bool" useptr="true" doc="" />
+		<field name="stringValue" type="String" useptr="true" doc="" />
+		<field name="enumValue" type="Gender" useptr="true" doc="" />
+		<field name="other" type="Custom" useptr="true" doc=""/>
+		<field name="self" type="TestPointer" useptr="false" doc="" />
+		<field name="listI08" type="Vec-Int8" useptr="true" doc="" />
+		<field name="dictI08" type="Map-Int8-Int8" useptr="true" doc="" />
+	</struct>
+
+
 	<struct name="ConfigRoot" alias="root" short="f" doc="">
 		<field name="revision" type="String" value="1.0.0" doc="" />
-		
-		<field name="list" type="TestList" doc=""/>
-		<field name="dict" type="TestDict" doc=""/>
-		<field name="nest" type="TestNest" doc=""/>
-		
+
+		<field name="list" type="TestList" doc="" />
+		<field name="dict" type="TestDict" doc="" />
+		<field name="nest" type="TestNest" doc="" />
+
 		<field name="info" type="Info" doc="" />
 		<field name="infox" type="InfoX" doc="" />
 	</struct>

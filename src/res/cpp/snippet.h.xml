@@ -92,11 +92,11 @@
   ]]></template>
   <template key="struct.meta"><![CDATA[]]></template>
   <template key="struct.field"><![CDATA[
-    (#tab)[#clampLen(lenFieldType; 64; (#type))]
+    (#tab)[#clampLen(lenFieldType; 64; (#type))] (#spec)
 	(#concat) [#clampLen(lenFieldName; 16; (#name))];(#docline)
   ]]></template>
   <template key="struct.setter"><![CDATA[
-    (#tab)(#typeupper) & Set[#clampLen(lenFieldName; 16; [#upperHeadChar( (#name) )] )] ((#type)(#spec));
+    (#tab)(#typeupper) & Set[#clampLen(lenFieldName; 16; [#upperHeadChar( (#name) )] )] ((#type) (#spec));
   ]]></template>
   <template key="struct.getter"><![CDATA[
     (#tab)[#clampLen(lenFieldType; 64; (#type))] (#spec)

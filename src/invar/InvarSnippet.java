@@ -191,11 +191,6 @@ final public class InvarSnippet
 
     static public class Key
     {
-
-        final static public String PREFIX_WRITE          = "write.";
-        final static public String PREFIX_READ           = "read.";
-        final static public String PREFIX_COPY           = "copy.";
-
         final static public String REFER_SPEC            = "refer.spec";
         final static public String REFER_INVOKE          = "refer.invoke";
         final static public String REFER_CONST           = "refer.const";
@@ -270,16 +265,17 @@ final public class InvarSnippet
         final static String Enums     = wrapToken("enums");
         final static String Structs   = wrapToken("structs");
 
-        final static String Specifier = wrapToken("spec");
-
         final static String Argument  = wrapToken("arg");
         final static String SizeType  = wrapToken("sizetype");
         final static String Size      = wrapToken("len");
+        final static String Index     = wrapToken("index");
+
         final static String Type      = wrapToken("type");
         final static String TypeUpper = wrapToken("typeupper");
+        final static String Specifier = wrapToken("spec");
+        final static String SpecUpper = wrapToken("specupper");
         final static String Name      = wrapToken("name");
         final static String NameUpper = wrapToken("nameupper");
-        final static String Index     = wrapToken("index");
 
         final static String wrapToken (String name)
         {

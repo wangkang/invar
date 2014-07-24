@@ -90,25 +90,30 @@ final public class InvarReadRule
         System.out.println(txt);
     }
 
-    static private final String SPLIT_PACK_TYPE     = "::";
-    static private final String SPLIT_GNERICS       = "-";
-    static private final String ATTR_COMMENT        = "doc";
-    static private final String ATTR_PACK_NAME      = "name";
-    static private final String ATTR_STRUCT_NAME    = "name";
-    static private final String ATTR_STRUCT_CHARSET = "charset";
-    static private final String ATTR_STRUCT_ALIAS   = "alias";
-    static private final String ATTR_STRUCT_SUPER   = "super";
-    static private final String ATTR_STRUCT_SHORT   = "short";
-    static private final String ATTR_FIELD_NAME     = "name";
-    static private final String ATTR_FIELD_TYPE     = "type";
-    static private final String ATTR_FIELD_DEFT     = "value";
-    static private final String ATTR_ENUM_VAL       = "value";
-    static private final String XML_NODE_CLIENT     = "client";
-    static private final String XML_NODE_SERVER     = "server";
+    static private final String SPLIT_PACK_TYPE      = "::";
+    static private final String SPLIT_GNERICS        = "-";
+    static private final String ATTR_COMMENT         = "doc";
+    static private final String ATTR_PACK_NAME       = "name";
+    static private final String ATTR_STRUCT_NAME     = "name";
+    static private final String ATTR_STRUCT_CHARSET  = "charset";
+    static private final String ATTR_STRUCT_ALIAS    = "alias";
+    static private final String ATTR_STRUCT_SUPER    = "super";
+    static private final String ATTR_STRUCT_SHORT    = "short";
+
+    static private final String ATTR_FIELD_NAME      = "name";
+    static private final String ATTR_FIELD_TYPE      = "type";
+    static private final String ATTR_FIELD_DEFT      = "value";
+    static private final String ATTR_FIELD_NO_SETTER = "nosetter";
+    static private final String ATTR_FIELD_USE_REF   = "useref";
+    static private final String ATTR_FIELD_USE_PTR   = "useptr";
+
+    static private final String ATTR_ENUM_VAL        = "value";
+    static private final String XML_NODE_CLIENT      = "client";
+    static private final String XML_NODE_SERVER      = "server";
     //User custom types, will be write to code file.
-    static private final String EXT_ENUM            = "Enum";
-    static private final String EXT_STRUCT          = "Struct";
-    static private final String EXT_PROTOCOL        = "Protoc";
+    static private final String EXT_ENUM             = "Enum";
+    static private final String EXT_STRUCT           = "Struct";
+    static private final String EXT_PROTOCOL         = "Protoc";
 
     static public TreeMap<TypeID,String> makeTypeIdMap ()
     {
@@ -364,25 +369,58 @@ final public class InvarReadRule
         }
         String key = getAttr(n, ATTR_FIELD_NAME);
         String comment = getAttrOptional(n, ATTR_COMMENT);
-        InvarField field = null;
+
         boolean isStructSelf = (typeBasic == type);
+        boolean useRef = typeBasic.getId().getUseRefer();
+        boolean usePtr = isStructSelf;
+        boolean disableSetter = false;
         switch (typeBasic.getId()) {
-        case ENUM:
-            field = new InvarField(typeBasic, key, comment, isStructSelf);
-            break;
-        case STRUCT:
-            field = new InvarField(typeBasic, key, comment, isStructSelf);
+        case VEC:
+        case MAP:
+            disableSetter = true;
             break;
         default:
-            field = new InvarField(typeBasic, key, comment, isStructSelf);
+            break;
         }
+        Node attr = n.getAttributes().getNamedItem(ATTR_FIELD_NO_SETTER);
+        if (attr != null)
+        {
+            disableSetter = Boolean.parseBoolean(attr.getNodeValue());
+        }
+        attr = n.getAttributes().getNamedItem(ATTR_FIELD_USE_PTR);
+        if (attr != null)
+        {
+            usePtr = Boolean.parseBoolean(attr.getNodeValue());
+        }
+        attr = n.getAttributes().getNamedItem(ATTR_FIELD_USE_REF);
+        if (attr != null)
+        {
+            useRef = Boolean.parseBoolean(attr.getNodeValue());
+        }
+
+        InvarField field = null;
+
+        switch (typeBasic.getId()) {
+        case ENUM:
+            field = new InvarField(typeBasic, key, comment, isStructSelf, false);
+            break;
+        case STRUCT:
+            field = new InvarField(typeBasic, key, comment, isStructSelf, disableSetter);
+            break;
+        default:
+            field = new InvarField(typeBasic, key, comment, isStructSelf, disableSetter);
+        }
+
+        field.setUseReference(useRef);
+        field.setUsePointer(usePtr);
+
         List<String> names = fixNameTypes(nameTypes, n);
         parseGenerics(field.getGenerics(), names, 1, n);
         setFieldCommonAttrs(n, field);
         type.addField(field);
     }
 
-    private void parseGenerics (LinkedList<InvarType> generics, List<String> nameTypes, int i, Node n) throws Exception
+    private void parseGenerics (List<InvarType> generics, List<String> nameTypes, int i, Node n) throws Exception
     {
         int len = nameTypes.size();
         if (i >= len)

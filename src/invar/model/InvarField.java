@@ -2,6 +2,7 @@ package invar.model;
 
 import invar.InvarContext;
 import java.util.LinkedList;
+import java.util.List;
 
 public class InvarField
 {
@@ -10,21 +11,26 @@ public class InvarField
     private final String                key;
     private final String                comment;
     private final Boolean               isStructSelf;
-    private String                      shortName;
-    private String                      defaultVal;
+    private final Boolean               disableSetter;
+
+    private Boolean                     useReference  = false;
+    private Boolean                     usePointer    = false;
+    private String                      shortName     = "";
+    private String                      defaultVal    = "";
     private String                      typeFormatted = "";
     private String                      deftFormatted = "";
     private int                         widthType     = 1;
     private int                         widthKey      = 1;
     private int                         widthDefault  = 1;
 
-    public InvarField(InvarType type, String key, String comment, Boolean isStructSelf)
+    public InvarField(InvarType type, String key, String comment, Boolean isStructSelf, Boolean disableSetter)
     {
         this.type = type;
         this.generics = new LinkedList<InvarType>();
         this.key = key;
         this.comment = comment;
         this.isStructSelf = isStructSelf;
+        this.disableSetter = disableSetter;
         this.setDefault("");
     }
 
@@ -38,7 +44,7 @@ public class InvarField
         return key;
     }
 
-    public LinkedList<InvarType> getGenerics ()
+    public List<InvarType> getGenerics ()
     {
         return generics;
     }
@@ -167,9 +173,33 @@ public class InvarField
         this.deftFormatted = deftFormatted;
     }
 
-    public Boolean isStructSelf ()
+    public Boolean getDisableSetter ()
     {
-        return isStructSelf;
+        return disableSetter;
+    }
+
+    public Boolean getUseReference ()
+    {
+        return !isStructSelf && useReference;
+    }
+
+    public void setUseReference (Boolean useReference)
+    {
+        this.useReference = (useReference && !isStructSelf);
+        if (this.useReference)
+            this.usePointer = false;
+    }
+
+    public Boolean getUsePointer ()
+    {
+        return isStructSelf || usePointer;
+    }
+
+    public void setUsePointer (Boolean usePointer)
+    {
+        this.usePointer = (isStructSelf || usePointer);
+        if (this.usePointer)
+            this.useReference = false;
     }
 
 }
