@@ -72,17 +72,17 @@
   <template key="ctor.field"><![CDATA[(#tab)(#name)((#value))]]></template>
   <template key="ctor.field.split"><![CDATA[,(#brk)]]></template>
   <template key="struct"><![CDATA[
-	(#blank)
-	(#name)::~(#name)()
+	(#blank)[#addImport(struct; imports; invar::BinaryReader)]
+	(#name)::~(#name) ()
 	{
 	}
 	(#blank)
-	(#name)::(#name)():
-	(#ctor)
+	(#name)::(#name) ():
+	[#codeInits(struct; fields)]
 	{
 	}
 	(#blank)
-	(#name)::(#name)(const (#name)& from)
+	(#name)::(#name) (const (#name)& from)
 	{
 	(#tab)if (this != &from) {
 	(#tab)(#tab)CopyFrom(from);
@@ -99,21 +99,28 @@
 	(#blank)
 	[#operatorLess(struct)]
 	(#blank)
-	(#getters)
-	(#setters)
-	[#codeNested(copy.,  useFullName, struct, fields, imports)](#brk)
-    [#codeNested(read.,  useFullName, struct, fields, imports)](#brk)
-	[#codeNested(write., useFullName, struct, fields, imports)](#brk)
+	[#codeNested (copy.;  useFullName; struct; fields; imports)](#brk)
+    [#codeNested (read.;  useFullName; struct; fields; imports)](#brk)
+	[#codeNested (write.; useFullName; struct; fields; imports)](#brk)
+	[#codeGetters(struct; fields)]
+	[#codeSetters(struct; fields)]
   ]]></template>
   <template key="struct.meta"><![CDATA[ [Invar.InvarRule("(#type)", "(#name)")] ]]></template>
   <template key="struct.field.self"><![CDATA[&]]></template>
   <template key="struct.field"><![CDATA[
 	(#tab) (#type) (#name) = (#value);(#doc)(#brk)]]></template>
   <template key="struct.setter"><![CDATA[
-	(#typehost)& (#typehost)::Set(#nameupper) ((#type) (#spec)value) { (#name) = value; return *this; }
+	(#typeupper)& (#typeupper)::Set[#upperHeadChar( (#name) )] ((#type) (#spec)value)
+	{
+	(#tab)(#name) = value;
+	(#tab)return *this;
+	}
   ]]></template>
   <template key="struct.getter"><![CDATA[
-	(#type)(#spec) (#typehost)::Get(#nameupper) (void) { return (#name); }
+	(#type)(#spec)(#typeupper)::Get[#upperHeadChar( (#name) )] ()
+	{
+	(#tab)return (#name);
+	}
   ]]></template>
 
   <template key="less.method"><![CDATA[

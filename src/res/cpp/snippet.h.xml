@@ -32,15 +32,7 @@
   <template key="one.pack.one.file"><![CDATA[false]]></template>
   <template key="code.dir.flatten"><![CDATA[true]]></template>
   <template key="code.dir.prefix"><![CDATA[include/]]></template>
-  <template key="refer.spec"><![CDATA[&]]></template>
-  <template key="refer.invoke"><![CDATA[.]]></template>
-  <template key="refer.const"><![CDATA[const]]></template>
-  <template key="pointer.spec"><![CDATA[*]]></template>
-  <template key="pointer.invoke"><![CDATA[->]]></template>
-  <template key="pointer.null"><![CDATA[NULL]]></template>
-  <template key="null.byte.yes"><![CDATA[(std::int8_t)0x01]]></template>
-  <template key="null.byte.no"><![CDATA[(std::int8_t)0x00]]></template>
-  <template key="type.enum"><![CDATA[int32]]></template>
+  
   <template key="file"><![CDATA[
 	//===----------------------------*  C++  *---------------------------------===//
 	//
@@ -74,44 +66,60 @@
   <template key="enum.field"><![CDATA[
 	(#tab)(#name) = (#value),(#doc)
   ]]></template>
-  <template key="struct.import"><![CDATA[invar::BinaryReader,invar::BinaryReader,std::size_t]]></template>
+  
   <template key="struct"><![CDATA[
     (#brk)(#doc)
 	class (#name) {
-	(#blank)
+	[#addImport(struct; imports; invar::BinaryReader)]
 	(#space)(#space)public:
 	(#blank)
-	(#tab)(#blank) (#name)();
-	(#tab)(#name)(const (#name) &from);
-	(#space)(#space)(#space)~(#name)();
+	(#space)(#space)(#space)~(#name) ();
+	(#tab)(#blank) (#name) ();
+	(#tab)(#name) (const (#name) &from);
     (#blank)
-    (#tab)[#fixedLen(widthStruct,bool )]operator < (const (#name) &other) const;
-	(#tab)[#fixedLen(widthStruct,(#name) &)]operator = (const (#name) &from);	
-    (#tab)[#fixedLen(widthStruct,(#name) &)]CopyFrom(const (#name) &from);
-	(#tab)[#fixedLen(widthStruct,void)]Encode(invar::BinaryWriter &stream) const;
-	(#tab)[#fixedLen(widthStruct,(#name) &)]Decode(invar::BinaryReader &stream);
+    (#tab)[#clampLen(lenStruct; 16; [#clampLen(32;32;bool)]    )]   operator < (const (#name) &other) const;
+	(#tab)[#clampLen(lenStruct; 16; (#name) )] & operator = (const (#name) &from);	
+    (#tab)[#clampLen(lenStruct; 16; (#name) )] & CopyFrom   (const (#name) &from);
+	(#tab)[#clampLen(lenStruct; 16; void    )]   Encode     (invar::BinaryWriter &stream) const;
+	(#tab)[#clampLen(lenStruct; 16; (#name) )] & Decode     (invar::BinaryReader &stream);
 	(#blank)
-	(#getters)
-	(#setters)
+	[#codeGetters(struct; fields)]
+	[#codeSetters(struct; fields)]
 	(#space)(#space)private:
 	(#blank)
-	(#fields)
+	[#codeFields(struct; fields)]
 	}; //class: (#name)
   ]]></template>
-  <template key="struct.meta"><![CDATA[ [InvarRule("(#type)", "(#name)")] ]]></template>
+  <template key="struct.meta"><![CDATA[]]></template>
   <template key="struct.field"><![CDATA[
-	(#tab)(#type) (#name); (#doc)
+    (#tab)[#clampLen(lenFieldType; 64; (#type))]
+	(#concat) [#clampLen(lenFieldName; 16; (#name))];(#docline)
   ]]></template>
-  <template key="struct.setter"><![CDATA[(#tab)(#typehost) & Set(#nameupper) ((#type) (#spec)value);(#brk)]]></template>
-  <template key="struct.getter"><![CDATA[(#tab)(#type)(#spec) Get(#nameupper) (void); (#docline)(#brk)]]></template>
+  <template key="struct.setter"><![CDATA[
+    (#tab)(#typeupper) & Set[#clampLen(lenFieldName; 16; [#upperHeadChar( (#name) )] )] ((#type)(#spec));
+  ]]></template>
+  <template key="struct.getter"><![CDATA[
+    (#tab)[#clampLen(lenFieldType; 64; (#type))] (#spec)
+    (#concat) Get[#clampLen(lenFieldName; 16; [#upperHeadChar( (#name) )] )]
+    (#concat) (void);(#docline)
+  ]]></template>
   
   
   <!-- Common snippet -->
   <template key="doc"><![CDATA[/* (#doc) */]]></template>
-  <template key="doc.line"><![CDATA[// (#doc)]]></template>
+  <template key="doc.line"><![CDATA[(#space)//(#doc)]]></template>
   <template key="import"><![CDATA[using namespace (#body);(#brk)]]></template>
   <template key="import.body"><![CDATA[(#pack)]]></template>
   <template key="import.split"><![CDATA[::]]></template>
   <template key="init.struct"><![CDATA[]]></template>
   <template key="init.enum"><![CDATA[(#name)]]></template>
+  <template key="refer.spec"><![CDATA[&]]></template>
+  <template key="refer.invoke"><![CDATA[.]]></template>
+  <template key="refer.const"><![CDATA[const]]></template>
+  <template key="pointer.spec"><![CDATA[*]]></template>
+  <template key="pointer.invoke"><![CDATA[->]]></template>
+  <template key="pointer.null"><![CDATA[NULL]]></template>
+  <template key="null.byte.yes"><![CDATA[(std::int8_t)0x01]]></template>
+  <template key="null.byte.no"><![CDATA[(std::int8_t)0x00]]></template>
+  <template key="type.enum"><![CDATA[int32]]></template>
 </tns:root>

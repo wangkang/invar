@@ -32,10 +32,15 @@ abstract public class InvarWrite
 
     abstract protected void codeRuntime (String suffix);
 
-    final static String                     ruleTypeSplit = "::";
-    final static String                     rulePackSplit = ".";
-    final static private String             GENERIC_LEFT  = "<";
-    final static private String             GENERIC_RIGHT = ">";
+    final static String                     empty              = "";
+    final static String                     whiteSpace         = " ";
+    final static String                     br                 = "\n";
+    final static String                     indent             = whiteSpace + whiteSpace + whiteSpace + whiteSpace;
+    final static String                     dotToken           = "\\.";
+    final static String                     ruleTypeSplit      = "::";
+    final static String                     rulePackSplit      = ".";
+    final static private String             GENERIC_LEFT       = "<";
+    final static private String             GENERIC_RIGHT      = ">";
 
     final private InvarContext              context;
     final private HashMap<String,String>    exports;
@@ -44,11 +49,19 @@ abstract public class InvarWrite
 
     private File                            dirRoot;
     private String                          suffix;
-    private String                          dirPrefix;
-    private Boolean                         flattenCodeDir;
-    private Boolean                         onePackOneFile;
-    private Boolean                         lowerFileName;
-    private Boolean                         traceAllTypes;
+
+    String                                  dirPrefix          = empty;
+    Boolean                                 traceAllTypes      = false;
+    Boolean                                 flattenCodeDir     = false;
+    Boolean                                 onePackOneFile     = false;
+    Boolean                                 lowerFileName      = false;
+    Boolean                                 packNameNested     = false;
+    Boolean                                 useFullName        = false;
+    Boolean                                 includeSelf        = false;
+    Boolean                                 impExcludeConflict = false;
+    Boolean                                 impExcludeSamePack = false;
+    Integer                                 methodIndentNum    = 1;
+    List<String>                            impExcludePacks    = null;
 
     public InvarWrite(InvarContext context, String dirRootPath)
     {
@@ -76,9 +89,9 @@ abstract public class InvarWrite
         typeForShortReset(context);
 
         String dir = dirRootPath;
-        if (getDirPrefix() != null && !getDirPrefix().equals(""))
+        if (dirPrefix != null && !dirPrefix.equals(empty))
         {
-            dir += getDirPrefix();
+            dir += dirPrefix;
         }
         File file = new File(dir);
         if (file.exists())
@@ -159,7 +172,7 @@ abstract public class InvarWrite
 
     private void startWritting (String suffix) throws Exception
     {
-        if (getTraceAllTypes())
+        if (traceAllTypes)
             System.out.println("\n\n" + dumpTypeAll().toString());
         HashMap<File,String> files = new LinkedHashMap<File,String>();
         Iterator<String> i = getContext().getPackNames();
@@ -430,11 +443,6 @@ abstract public class InvarWrite
         return s;
     }
 
-    static protected String upperHeadChar (String s)
-    {
-        return s.substring(0, 1).toUpperCase() + s.substring(1, s.length());
-    }
-
     static protected String fixedLenBackward (String blank, Integer len, String str)
     {
         int delta = len - str.length();
@@ -453,7 +461,7 @@ abstract public class InvarWrite
         return str;
     }
 
-    static public String fixedLen (Integer len, String str)
+    static protected String fixedLen (Integer len, String str)
     {
         return fixedLen(" ", len, str);
     }
@@ -561,51 +569,6 @@ abstract public class InvarWrite
     {
         key = key.trim();
         return typeForShort.get(key);
-    }
-
-    final protected void setFlattenDir (Boolean flatten)
-    {
-        flattenCodeDir = flatten;
-    }
-
-    final protected void setOnePackOneFile (Boolean p1f1)
-    {
-        onePackOneFile = p1f1;
-    }
-
-    final protected boolean getOnePackOneFile ()
-    {
-        return onePackOneFile;
-    }
-
-    public String getDirPrefix ()
-    {
-        return dirPrefix;
-    }
-
-    public void setDirPrefix (String dirPrefix)
-    {
-        this.dirPrefix = dirPrefix;
-    }
-
-    public Boolean getLowerFileName ()
-    {
-        return lowerFileName;
-    }
-
-    public void setLowerFileName (Boolean lowerFileName)
-    {
-        this.lowerFileName = lowerFileName;
-    }
-
-    public Boolean getTraceAllTypes ()
-    {
-        return traceAllTypes;
-    }
-
-    public void setTraceAllTypes (Boolean traceAllTypes)
-    {
-        this.traceAllTypes = traceAllTypes;
     }
 
 }
