@@ -77,8 +77,8 @@
 		<field name="numberSingle" type="Float" useptr="true" doc="" />
 		<field name="numberDouble" type="Double" useptr="true" doc="" />
 		<field name="boolValue" type="Bool" useptr="true" doc="" />
-		<field name="stringValue" type="String" useptr="true" doc="" />
 		<field name="enumValue" type="Gender" useptr="true" doc="" />
+		<field name="stringValue" type="String" useptr="true" doc="" />
 		<field name="other" type="Custom" useptr="true" doc=""/>
 		<field name="self" type="TestPointer" useptr="false" doc="" />
 		<field name="listI08" type="Vec-Int8" useptr="true" doc="" />

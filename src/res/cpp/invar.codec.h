@@ -42,25 +42,47 @@ class BinaryReader
 };
 
 template <typename T>
-bool CheckSet (T *dest, T *from)
+T* CheckSet (T *dest, T *from)
 {
-	if (from == dest) {
-		return false;
-	}
 	if (from != NULL && dest != NULL) {
-		*dest = *from;
+		if (from != dest) {
+			*dest = *from;
+		}
 	} else if (from != NULL && dest == NULL) {
         dest = new T(*from);
-		return true;
 	} else if  (from == NULL && dest != NULL) {
 		delete dest;
 		dest = NULL;
-		return true;
 	}
 	else {
-		return false;
 	}
-	return false;
+	return dest;
+}
+
+template <typename T>
+T* CheckSet (T *dest, T from)
+{
+	if (dest != NULL) {
+		*dest = from;
+	}
+	else {
+        dest = new T(from);
+	}
+	return dest;
+}
+
+template <typename T>
+bool NewOrDel (T *dest, bool new_)
+{
+	if (new_ && dest == NULL) {
+        dest = new T();
+	} else if (!new_ && dest != NULL) {
+		delete dest;
+		dest = NULL;
+	}
+	else {
+	}
+	return dest != NULL;
 }
 
 }; //namespace:invar
