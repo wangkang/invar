@@ -69,17 +69,20 @@
     (#brk)(#doc)
 	class (#name) {
 	[#addImport(struct; imports; invar::BinaryReader)]
-	(#space)(#space)public:
+    [#addImport(struct; imports; std::string)]
+	(#concat)
+    (#space)(#space)public:
 	(#blank)
 	(#space)(#space)(#space)~(#name) ();
 	(#tab)(#blank) (#name) ();
 	(#tab)(#name) (const (#name) &from);
     (#blank)
-    (#tab)[#clampLen(lenStruct; 16; bool    )]   operator < (const (#name) &other) const;
-	(#tab)[#clampLen(lenStruct; 16; (#name) )] & operator = (const (#name) &from);	
-    (#tab)[#clampLen(lenStruct; 16; (#name) )] & CopyFrom   (const (#name) &from);
-	(#tab)[#clampLen(lenStruct; 16; void    )]   Encode     (invar::BinaryWriter &stream) const;
-	(#tab)[#clampLen(lenStruct; 16; (#name) )] & Decode     (invar::BinaryReader &stream);
+    (#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; bool    )]   operator <  (const (#name) &other) const;
+	(#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; (#name) )] & operator =  (const (#name) &from);	
+    (#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; (#name) )] & CopyFrom    (const (#name) &from);
+	(#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; (#name) )] & Decode      (invar::BinaryReader &stream);
+	(#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; void    )]   Encode      (invar::BinaryWriter &stream) const;
+    (#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; void    )]   ToXmlString (const std::string &name, std::string &result) const;
 	(#blank)
 	[#codeGetters(struct; fields)]
 	[#codeSetters(struct; fields)]
@@ -101,7 +104,6 @@
     (#concat) Get[#clampLen(lenFieldName; 16; [#upperHeadChar( (#name) )] )]
     (#concat) (void);(#docline)
   ]]></template>
-  
   
   <!-- Common snippet -->
   <template key="doc">           <![CDATA[/* (#doc) */]]></template>

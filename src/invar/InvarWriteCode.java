@@ -40,6 +40,7 @@ public final class InvarWriteCode extends InvarWrite
         funcPublish("clampLen", Integer.class, Integer.class, String.class);
         funcPublish("snippetTryGet", String.class);
         funcPublish("addImport", TypeStruct.class, TreeSet.class, String.class);
+        funcPublish("mathMax", Integer.class, Integer.class);
 
         funcPublish("operatorLess", TypeStruct.class);
         funcPublish("codeInits", TypeStruct.class, List.class);
@@ -48,6 +49,11 @@ public final class InvarWriteCode extends InvarWrite
         funcPublish("codeSetters", TypeStruct.class, List.class);
         funcPublish("codeSetterBody", List.class, Integer.class, String.class);
         funcPublish("codeNested", String.class, Boolean.class, TypeStruct.class, List.class, TreeSet.class);
+    }
+
+    static public Integer mathMax (Integer a, Integer b)
+    {
+        return Math.max(a, b);
     }
 
     static public String upperHeadChar (String s)

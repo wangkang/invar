@@ -60,7 +60,9 @@
   <template key="ctor.field"><![CDATA[(#tab)(#name)((#value))]]></template>
   <template key="ctor.field.split"><![CDATA[,(#brk)]]></template>
   <template key="struct"><![CDATA[
-	(#blank)[#addImport(struct; imports; invar::BinaryReader)]
+    [#addImport(struct; imports; invar::BinaryReader)]
+    [#addImport(struct; imports; std::string)]
+    (#concat)
 	(#name)::~(#name) ()
 	{
 	}
@@ -90,6 +92,7 @@
 	[#codeNested (copy.;  useFullName; struct; fields; imports)](#brk)
     [#codeNested (read.;  useFullName; struct; fields; imports)](#brk)
 	[#codeNested (write.; useFullName; struct; fields; imports)](#brk)
+    [#codeNested (toxml.; useFullName; struct; fields; imports)](#brk)
 	[#codeGetters(struct; fields)]
 	[#codeSetters(struct; fields)]
   ]]></template>
@@ -229,7 +232,6 @@
   <template key="read.ptr.map"><![CDATA[
     if (NewOrDel< (#type) > ((#name), (#arg).ReadByte() == 0x01)) {(#bodyindent)}
   ]]></template>
-  
   <template key="read.vec.head">  <![CDATA[(#type) &(#name) = ((#specupper)(#nameupper))[(#indexupper)]; //read.vec.head(#brk)]]></template>
   <template key="read.vec.for"><![CDATA[
     uint32_t (#len) = stream.ReadUInt32();
@@ -286,5 +288,74 @@
     while ((#name)Iter != (#name)IterEnd) {(#body)
     (#tab)++(#name)Iter;
     }
+  ]]></template>
+  
+  <!-- To XML String -->
+  <template key="toxml.import"><![CDATA[std::string]]></template>
+  <template key="toxml.method.arg"><![CDATA[name]]></template>
+  <template key="toxml.method"><![CDATA[ void (#type)::ToXmlString (const string &name, string &result) const
+    {
+    (#tab)string attrs;
+    (#tab)string nodes;(#body)
+    (#tab)result.append("<"); result.append(name); result.append(attrs); result.append(">");
+    (#tab)result.append(nodes);
+    (#tab)result.append("</"); result.append(name); result.append(">");
+    } //(#type)::ToXmlString(...) ]]></template>
+  <template key="toxml.int8">  <![CDATA[ std::to_string(static_cast<int>((#spec)(#name))) ]]></template>
+  <template key="toxml.int16"> <![CDATA[ std::to_string(static_cast<int>((#spec)(#name))) ]]></template>
+  <template key="toxml.int32"> <![CDATA[ std::to_string((#spec)(#name)) ]]></template>
+  <template key="toxml.int64"> <![CDATA[ std::to_string(static_cast<long long>((#spec)(#name))) ]]></template>
+  <template key="toxml.uint8"> <![CDATA[ std::to_string(static_cast<unsigned>((#spec)(#name)))  ]]></template>
+  <template key="toxml.uint16"><![CDATA[ std::to_string(static_cast<unsigned>((#spec)(#name))) ]]></template>
+  <template key="toxml.uint32"><![CDATA[ std::to_string((#spec)(#name)) ]]></template>
+  <template key="toxml.uint64"><![CDATA[ std::to_string(static_cast<unsigned long long>((#spec)(#name))) ]]></template>
+  <template key="toxml.float"> <![CDATA[ std::to_string((#spec)(#name)) ]]></template>
+  <template key="toxml.double"><![CDATA[ std::to_string((#spec)(#name)) ]]></template>
+  <template key="toxml.bool">  <![CDATA[ (#spec)(#name) ? "true" : "false" ]]></template>
+  <template key="toxml.enum">  <![CDATA[ std::to_string(static_cast<int32_t>((#spec)(#name))) ]]></template>
+  <template key="toxml.string"><![CDATA[ (#spec)(#name) ]]></template>
+  <template key="toxml.struct"><![CDATA[ ((#spec)(#name)).ToXmlString("(#name)", nodes) ]]></template>
+  <template key="toxml.ref.any"><![CDATA[ attrs.append(" (#name)=\\"");
+    attrs.append((#body)); attrs.append("\\""); ]]></template>
+  <template key="toxml.ref.struct"><![CDATA[ (#body); ]]></template>
+  <template key="toxml.ref.vec"><![CDATA[ (#body) ]]></template>
+  <template key="toxml.ref.map"><![CDATA[ (#body) ]]></template>
+  <template key="toxml.ptr.any"><![CDATA[ attrs.append(" (#name)=\\"");
+    attrs.append((#body)); attrs.append("\\""); ]]></template>
+  <template key="toxml.ptr.struct"><![CDATA[ (#body); ]]></template>
+  <template key="toxml.ptr.vec"><![CDATA[ (#body) ]]></template>
+  <template key="toxml.ptr.map"><![CDATA[ (#body) ]]></template>
+  <template key="toxml.nest.n"><![CDATA[ const (#type) &(#name) = *(#nameupper)Iter;
+    nodes.append("<(#name) value=\\"");
+    nodes.append((#body)); nodes.append("\\">"); ]]></template>
+  <template key="toxml.nest.k"><![CDATA[ const (#type) &(#name) = (#nameupper)Iter->first;
+    nodes.append("<(#name) value=\\"");
+    nodes.append((#body)); nodes.append("\\">"); ]]></template>
+  <template key="toxml.nest.v"><![CDATA[ const (#type) &(#name) = (#nameupper)Iter->second;
+    nodes.append("<(#name) value=\\"");
+    nodes.append((#body)); nodes.append("\\">"); ]]></template>
+  <template key="toxml.nest.n.struct"><![CDATA[ const (#type) &(#name) = *(#nameupper)Iter;(#brk)(#body); ]]></template>
+  <template key="toxml.nest.k.struct"><![CDATA[ const (#type) &(#name) = (#nameupper)Iter->first;(#brk)(#body); ]]></template>
+  <template key="toxml.nest.v.struct"><![CDATA[ const (#type) &(#name) = (#nameupper)Iter->second;(#brk)(#body); ]]></template>
+  <template key="toxml.vec.head"><![CDATA[ const (#type) &(#name) = *(#nameupper)Iter;(#brk) ]]></template>
+  <template key="toxml.vec.for"><![CDATA[
+    nodes.append("<(#name)>");
+    (#type)::const_iterator (#name)Iter = (#name)(#invoke)begin();
+    (#type)::const_iterator (#name)IterEnd = (#name)(#invoke)end();
+    while ((#name)Iter != (#name)IterEnd) {(#body)
+    (#tab)++(#name)Iter;
+    }
+    nodes.append("</(#name)>");
+  ]]></template>
+  <template key="toxml.map.head.k"><![CDATA[const (#type) &(#name) = (#nameupper)Iter->first;(#brk)]]></template>
+  <template key="toxml.map.head.v"><![CDATA[const (#type) &(#name) = (#nameupper)Iter->second;(#brk)]]></template>
+  <template key="toxml.map.for"><![CDATA[
+    nodes.append("<(#name)>");
+    (#type)::const_iterator (#name)Iter = (#name)(#invoke)begin();
+    (#type)::const_iterator (#name)IterEnd = (#name)(#invoke)end();
+    while ((#name)Iter != (#name)IterEnd) {(#body)
+    (#tab)++(#name)Iter;
+    }
+    nodes.append("</(#name)>");
   ]]></template>
 </tns:root>
