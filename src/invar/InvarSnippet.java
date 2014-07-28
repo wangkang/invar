@@ -242,40 +242,43 @@ final public class InvarSnippet
 
     static public class Token
     {
-        final static String Br        = wrapToken("brk");
-        final static String Concat    = wrapToken("concat");
-        final static String Indent    = wrapToken("tab");
-        final static String Blank     = wrapToken("blank");
-        final static String Space     = wrapToken("space");
-        final static String NullPtr   = wrapToken("null");
-        final static String Split     = wrapToken("split");
+        final static String Br         = wrapToken("brk");
+        final static String Concat     = wrapToken("concat");
+        final static String Indent     = wrapToken("tab");
+        final static String Blank      = wrapToken("blank");
+        final static String Space      = wrapToken("space");
+        final static String NullPtr    = wrapToken("null");
+        final static String Split      = wrapToken("split");
 
-        final static String Doc       = wrapToken("doc");
-        final static String DocLine   = wrapToken("docline");
-        final static String Meta      = wrapToken("meta");
-        final static String Key       = wrapToken("key");
-        final static String Value     = wrapToken("value");
-        final static String Body      = wrapToken("body");
-        final static String Invoke    = wrapToken("invoke");
+        final static String Doc        = wrapToken("doc");
+        final static String DocLine    = wrapToken("docline");
+        final static String Meta       = wrapToken("meta");
+        final static String Key        = wrapToken("key");
+        final static String Value      = wrapToken("value");
+        final static String Body       = wrapToken("body");
+        final static String BodyIndent = wrapToken("bodyindent");
+        final static String Invoke     = wrapToken("invoke");
 
-        final static String Define    = wrapToken("define");
-        final static String Pack      = wrapToken("pack");
-        final static String Import    = wrapToken("import");
-        final static String Includes  = wrapToken("includes");
-        final static String Enums     = wrapToken("enums");
-        final static String Structs   = wrapToken("structs");
+        final static String Define     = wrapToken("define");
+        final static String Pack       = wrapToken("pack");
+        final static String Import     = wrapToken("import");
+        final static String Includes   = wrapToken("includes");
+        final static String Enums      = wrapToken("enums");
+        final static String Structs    = wrapToken("structs");
+        final static String Const      = wrapToken("const");
 
-        final static String Argument  = wrapToken("arg");
-        final static String SizeType  = wrapToken("sizetype");
-        final static String Size      = wrapToken("len");
-        final static String Index     = wrapToken("index");
+        final static String Argument   = wrapToken("arg");
+        final static String SizeType   = wrapToken("sizetype");
+        final static String Size       = wrapToken("len");
 
-        final static String Type      = wrapToken("type");
-        final static String TypeUpper = wrapToken("typeupper");
-        final static String Specifier = wrapToken("spec");
-        final static String SpecUpper = wrapToken("specupper");
-        final static String Name      = wrapToken("name");
-        final static String NameUpper = wrapToken("nameupper");
+        final static String Index      = wrapToken("index");
+        final static String IndexUpper = wrapToken("indexupper");
+        final static String Type       = wrapToken("type");
+        final static String TypeUpper  = wrapToken("typeupper");
+        final static String Specifier  = wrapToken("spec");
+        final static String SpecUpper  = wrapToken("specupper");
+        final static String Name       = wrapToken("name");
+        final static String NameUpper  = wrapToken("nameupper");
 
         final static String wrapToken (String name)
         {

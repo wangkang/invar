@@ -42,7 +42,7 @@ class BinaryReader
 };
 
 template <typename T>
-T* CheckSet (T *dest, T *from)
+T* CheckSet (T *dest, const T *from)
 {
 	if (from != NULL && dest != NULL) {
 		if (from != dest) {

@@ -19,7 +19,6 @@
   <template key="pointer.invoke"><![CDATA[->]]></template>
   <template key="pointer.null">  <![CDATA[NULL]]></template>
   <template key="pointer.copy">  <![CDATA[CheckSet< (#type) > ((#name), (#arg));]]></template>
-  <template key="null.struct">   <![CDATA[*((#type)*)NULL]]></template>
   <template key="null.byte.yes"> <![CDATA[(std::int8_t)0x01]]></template>
   <template key="null.byte.no">  <![CDATA[(std::int8_t)0x00]]></template>
   <template key="file"><![CDATA[
@@ -99,14 +98,14 @@
   <template key="struct.field"><![CDATA[
 	(#tab) (#type) (#name) = (#value);(#doc)(#brk)]]></template>
   <template key="struct.setter"><![CDATA[
-	(#typeupper)& (#typeupper)::Set[#upperHeadChar( (#name) )] ((#type) (#spec)value)
+	(#typeupper)& (#typeupper)::Set[#upperHeadChar( (#name) )] ((#const)(#type) (#spec)value)
 	{
 	(#tab)[#codeSetterBody(fields; (#index); value)]
 	(#tab)return *this;
 	}
   ]]></template>
   <template key="struct.getter"><![CDATA[
-	(#type)(#spec)(#typeupper)::Get[#upperHeadChar( (#name) )] ()
+	(#const)(#type)(#spec) (#typeupper)::Get[#upperHeadChar( (#name) )] ()
 	{
 	(#tab)return (#name);
 	}
@@ -129,6 +128,7 @@
       (#tab)}(#body)
       (#tab)return *this;
     } //(#type)::CopyFrom(...)]]></template>
+  <template key="copy.any"><![CDATA[ (#arg)(#split)(#name) ]]></template>
   <template key="copy.ref.any"><![CDATA[ (#name) = (#body); ]]></template>
   <template key="copy.ref.vec"><![CDATA[ const (#type) &(#arg)_(#name) = (#arg).(#name);
     (#body) ]]></template>
@@ -147,20 +147,17 @@
   ]]></template>
   <template key="copy.ptr.vec"><![CDATA[
     if (NewOrDel< (#type) > ((#name), (#arg).(#name) != (#null))) {
-     const (#type) &(#arg)_(#name) = *(#arg).(#name);
-    (#body)}
+    (#tab)const (#type) &(#arg)_(#name) = *(#arg).(#name);(#bodyindent)}
   ]]></template>
   <template key="copy.ptr.map"><![CDATA[
     if (NewOrDel< (#type) > ((#name), (#arg).(#name) != (#null))) {
-    const (#type) &(#arg)_(#name) = *(#arg).(#name);
-    (#body)}
+    (#tab)const (#type) &(#arg)_(#name) = *(#arg).(#name);(#bodyindent)}
   ]]></template>
-  <template key="copy.nest.n"><![CDATA[ const (#type) &(#name) = ((#specupper)(#nameupper))[(#index)]; ]]></template>
+  <template key="copy.nest.n"><![CDATA[ const (#type) &(#name) = (#arg)_(#nameupper)[(#index)]; ]]></template>
   <template key="copy.nest.k"><![CDATA[ const (#type) &(#name) = (#nameupper)Iter->first; ]]></template>
   <template key="copy.nest.v"><![CDATA[ const (#type) &(#name) = (#nameupper)Iter->second; ]]></template>
-  <template key="copy.any"><![CDATA[ (#arg)(#split)(#name) ]]></template>
-  <template key="copy.vec.nest"><![CDATA[(#type) &(#name) = (#nameupper)[(#index)];
-    const (#type) &(#arg)_(#name) = (#arg)_(#nameupper)[(#index)]; //copy.vec.nest(#brk)]]></template>
+  <template key="copy.vec.head"><![CDATA[(#type) &(#name) = ((#specupper)(#nameupper))[(#indexupper)];
+    const (#type) &(#arg)_(#name) = (#arg)_(#nameupper)[(#indexupper)]; //copy.vec.head(#brk)]]></template>
   <template key="copy.vec.for"><![CDATA[
     (#sizetype) (#len) = static_cast<(#sizetype)>((#arg)_(#name).size());
     (#name)(#invoke)reserve((#len));
@@ -168,11 +165,12 @@
     (#tab)(#name)(#invoke)push_back((#value));
     }
   ]]></template>
-  <template key="copy.map.nest"><![CDATA[(#type) (#name);
-  	const (#type) &(#arg)_(#name) = (#value);
+  <template key="copy.map.head.k"><![CDATA[(#type) (#name);
+  	const (#type) &(#arg)_(#name) = (#nameupper)Iter->first; //copy.map.head.k
   ]]></template>
-  <template key="copy.map.nest.k"><![CDATA[(#nameupper)Iter->first]]></template>
-  <template key="copy.map.nest.v"><![CDATA[(#nameupper)Iter->second]]></template>
+  <template key="copy.map.head.v"><![CDATA[(#type) (#name);
+  	const (#type) &(#arg)_(#name) = (#nameupper)Iter->second; //copy.map.head.v
+  ]]></template>
   <template key="copy.map.for"><![CDATA[
     (#name)(#invoke)clear();
     (#type)::const_iterator (#name)Iter = (#arg)_(#name).begin();
@@ -184,6 +182,13 @@
   ]]></template>
   
   <!-- Read bytes from a Stream -->
+  <template key="read.import"><![CDATA[invar::BinaryReader]]></template>
+  <template key="read.method.arg"><![CDATA[stream]]></template>
+  <template key="read.method"><![CDATA[
+    (#type)& (#type)::Decode (BinaryReader &stream)
+    {(#body)
+    (#tab)return *this;
+    } //(#type)::Decode(...)]]></template>
   <template key="read.int8">  <![CDATA[ (#arg).ReadByte()    ]]></template>
   <template key="read.int16"> <![CDATA[ (#arg).ReadInt16()   ]]></template>
   <template key="read.int32"> <![CDATA[ (#arg).ReadInt32()   ]]></template>
@@ -196,25 +201,18 @@
   <template key="read.double"><![CDATA[ (#arg).ReadDouble()  ]]></template>
   <template key="read.string"><![CDATA[ (#arg).ReadString()  ]]></template>
   <template key="read.bool">  <![CDATA[ (#arg).ReadBoolean() ]]></template>
-  <template key="read.enum">  <![CDATA[ static_cast<(#type)>((#arg).ReadInt32())]]></template>
-  <template key="read.struct"><![CDATA[ (#name)(#invoke)Decode((#arg));]]></template>
+  <template key="read.enum">  <![CDATA[ static_cast<(#type)>((#arg).ReadInt32()) ]]></template>
+  <template key="read.struct"><![CDATA[ (#name)(#invoke)Decode((#arg)) ]]></template>
   <template key="read.nest.n">       <![CDATA[ ((#specupper)(#nameupper))[(#index)] = (#body); ]]></template>
   <template key="read.nest.k">       <![CDATA[ const (#type) &(#name) = (#body); ]]></template>
   <template key="read.nest.v">       <![CDATA[ const (#type) &(#name) = (#body); ]]></template>
   <template key="read.nest.n.struct"><![CDATA[ (#type) &(#name) = (#nameupper)[(#index)]; (#body); ]]></template>
   <template key="read.nest.k.struct"><![CDATA[ (#type) (#name); (#body); ]]></template>
   <template key="read.nest.v.struct"><![CDATA[ (#type) (#name); (#body); ]]></template>
-  <template key="read.import"><![CDATA[invar::BinaryReader]]></template>
-  <template key="read.method"><![CDATA[
-    (#type)& (#type)::Decode (BinaryReader &stream)
-    {(#body)
-    (#tab)return *this;
-    } //(#type)::Decode(...)]]></template>
-  <template key="read.method.arg"><![CDATA[stream]]></template>
   <template key="read.ref.any"><![CDATA[ (#name) = (#body); ]]></template>
   <template key="read.ref.vec"><![CDATA[ (#body) ]]></template>
   <template key="read.ref.map"><![CDATA[ (#body) ]]></template>
-  <template key="read.ptr.any">  <![CDATA[ CheckSet< (#type) > ((#name), (#body));  ]]></template>
+  <template key="read.ptr.any"><![CDATA[ CheckSet< (#type) > ((#name), (#body)); ]]></template>
   <template key="read.ptr.string"><![CDATA[
     if (NewOrDel< (#type) > ((#name), (#arg).ReadByte() == 0x01)) {
     (#tab)*(#name) = (#body);
@@ -222,26 +220,24 @@
   ]]></template>
   <template key="read.ptr.struct"><![CDATA[
     if (NewOrDel< (#type) > ((#name), (#arg).ReadByte() == 0x01)) {
-    (#body)
+    (#tab)(#body);
     }
   ]]></template>
   <template key="read.ptr.vec"><![CDATA[
-    if (NewOrDel< (#type) > ((#name),  (#arg).ReadByte() == 0x01)) {
-    (#body)}
+    if (NewOrDel< (#type) > ((#name), (#arg).ReadByte() == 0x01)) {(#bodyindent)}
   ]]></template>
   <template key="read.ptr.map"><![CDATA[
-    if (NewOrDel< (#type) > ((#name),  (#arg).ReadByte() == 0x01)) {
-    (#body)}
+    if (NewOrDel< (#type) > ((#name), (#arg).ReadByte() == 0x01)) {(#bodyindent)}
   ]]></template>
-  <template key="read.vec.nest">  <![CDATA[(#type) &(#name) = (#nameupper)[(#index)];(#brk)]]></template>
-  <template key="read.vec.iter.n"><![CDATA[((#specupper)(#nameupper))[(#index)] ]]></template>
+  
+  <template key="read.vec.head">  <![CDATA[(#type) &(#name) = ((#specupper)(#nameupper))[(#indexupper)]; //read.vec.head(#brk)]]></template>
   <template key="read.vec.for"><![CDATA[
     uint32_t (#len) = stream.ReadUInt32();
     (#name)(#invoke)resize((#len));
     for ((#sizetype) (#index) = 0; (#index) < (#len); ++(#index)) {(#body)
     }
   ]]></template>
-  <template key="read.map.nest">  <![CDATA[(#type) (#name);(#brk)]]></template>
+  <template key="read.map.head"> <![CDATA[(#type) (#name);(#brk)]]></template>
   <template key="read.map.for"><![CDATA[
     uint32_t (#len) = stream.ReadUInt32();
     (#name)(#invoke)clear();
@@ -252,9 +248,9 @@
   
   <!-- Write bytes to a Stream -->
   <template key="write.import"><![CDATA[ invar::BinaryReader ]]></template>
+  <template key="write.method.arg"><![CDATA[stream]]></template>
   <template key="write.method"><![CDATA[ void (#type)::Encode (BinaryWriter &stream) const
     {(#body)(#brk)} //(#type)::Encode(...) ]]></template>
-  <template key="write.method.arg"><![CDATA[stream]]></template>
   <template key="write.nest.n"><![CDATA[ const (#type) &(#name) = *(#nameupper)Iter; (#body) ]]></template>
   <template key="write.nest.k"><![CDATA[ const (#type) &(#name) = (#nameupper)Iter->first; (#body) ]]></template>
   <template key="write.nest.v"><![CDATA[ const (#type) &(#name) = (#nameupper)Iter->second; (#body) ]]></template>
@@ -272,15 +268,7 @@
   <template key="write.bool">  <![CDATA[ (#arg).Write((#spec)(#name)); ]]></template>
   <template key="write.enum">  <![CDATA[ (#arg).Write(static_cast<int32_t>((#spec)(#name))); ]]></template>
   <template key="write.struct"><![CDATA[ (#name)(#invoke)Encode((#arg)); ]]></template>
-  <template key="write.struct.check"><![CDATA[
-    if ((#name) != (#null)) {
-      (#tab)stream.Write(static_cast<int8_t>(0x01));
-      (#tab)(#name)(#invoke)Encode((#arg));
-    } else {
-      (#tab)stream.Write(static_cast<int8_t>(0x00));
-    }
-  ]]></template>
-  <template key="write.vec.nest">  <![CDATA[ const (#type) &(#name) = *(#nameupper)Iter;(#brk) ]]></template>
+  <template key="write.vec.head">  <![CDATA[ const (#type) &(#name) = *(#nameupper)Iter;(#brk) ]]></template>
   <template key="write.vec.for"><![CDATA[
     stream.Write(static_cast<(#sizetype)>((#name)(#invoke)size()));
     (#type)::const_iterator (#name)Iter = (#name)(#invoke)begin();
@@ -289,9 +277,8 @@
     (#tab)++(#name)Iter;
     }
   ]]></template>
-  <template key="write.map.nest"><![CDATA[const (#type) &(#name) = (#value);(#brk)]]></template>
-  <template key="write.map.nest.k"><![CDATA[(#nameupper)Iter->first]]></template>
-  <template key="write.map.nest.v"><![CDATA[(#nameupper)Iter->second]]></template>
+  <template key="write.map.head.k"><![CDATA[const (#type) &(#name) = (#nameupper)Iter->first;(#brk)]]></template>
+  <template key="write.map.head.v"><![CDATA[const (#type) &(#name) = (#nameupper)Iter->second;(#brk)]]></template>
   <template key="write.map.for"><![CDATA[
     stream.Write(static_cast<(#sizetype)>((#name)(#invoke)size()));
     (#type)::const_iterator (#name)Iter = (#name)(#invoke)begin();

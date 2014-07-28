@@ -47,11 +47,6 @@ xmlns:tns="invar.rule">
     <field name="enumValue" type="Gender" doc="枚举值"/>
   </struct>
   
-  
-  
-  
-  
-  
   <protoc name="TestProtoc" doc="">
     <server>
       <field name="info" type="Info" doc=""/>

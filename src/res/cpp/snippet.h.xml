@@ -75,7 +75,7 @@
 	(#tab)(#blank) (#name) ();
 	(#tab)(#name) (const (#name) &from);
     (#blank)
-    (#tab)[#clampLen(lenStruct; 16; [#clampLen(32;32;bool)]    )]   operator < (const (#name) &other) const;
+    (#tab)[#clampLen(lenStruct; 16; bool    )]   operator < (const (#name) &other) const;
 	(#tab)[#clampLen(lenStruct; 16; (#name) )] & operator = (const (#name) &from);	
     (#tab)[#clampLen(lenStruct; 16; (#name) )] & CopyFrom   (const (#name) &from);
 	(#tab)[#clampLen(lenStruct; 16; void    )]   Encode     (invar::BinaryWriter &stream) const;
@@ -94,10 +94,10 @@
 	(#concat) [#clampLen(lenFieldName; 16; (#name))];(#docline)
   ]]></template>
   <template key="struct.setter"><![CDATA[
-    (#tab)(#typeupper) & Set[#clampLen(lenFieldName; 16; [#upperHeadChar( (#name) )] )] ((#type) (#spec));
+    (#tab)(#typeupper) & Set[#clampLen(lenFieldName; 16; [#upperHeadChar( (#name) )] )] ((#const)(#type) (#spec));
   ]]></template>
   <template key="struct.getter"><![CDATA[
-    (#tab)[#clampLen(lenFieldType; 64; (#type))] (#spec)
+    (#tab)[#clampLen(lenFieldType; 64; (#const)(#type) )] (#spec)
     (#concat) Get[#clampLen(lenFieldName; 16; [#upperHeadChar( (#name) )] )]
     (#concat) (void);(#docline)
   ]]></template>

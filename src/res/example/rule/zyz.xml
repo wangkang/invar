@@ -43,7 +43,6 @@
 		<field name="list5d" type="Vec-Vec-Vec-Vec-Vec-Custom" doc="五维列表" />
 	</struct>
 
-
 	<struct name="TestRefer" doc="引用类型测试">
 		<field name="numberi08" type="Int8" useref="true" doc="" />
 		<field name="numberi16" type="Int16" useref="true" doc="" />
@@ -64,7 +63,6 @@
 		<field name="dictI08" type="Map-Int8-Int8" useref="false" doc="" />
 	</struct>
 	
-	
 	<struct name="TestPointer" doc="指针类型测试">
 		<field name="numberi08" type="Int8" useptr="true" doc="" />
 		<field name="numberi16" type="Int16" useptr="true" doc="" />
@@ -83,6 +81,7 @@
 		<field name="self" type="TestPointer" useptr="false" doc="" />
 		<field name="listI08" type="Vec-Int8" useptr="true" doc="" />
 		<field name="dictI08" type="Map-Int8-Int8" useptr="true" doc="" />
+		<field name="listNested" type="Vec-Vec-Vec-Vec-TestPointer" useptr="true" doc="" />
 	</struct>
 
 
