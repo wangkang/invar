@@ -258,6 +258,7 @@ final public class InvarSnippet
         final static String Body       = wrapToken("body");
         final static String BodyIndent = wrapToken("bodyindent");
         final static String Invoke     = wrapToken("invoke");
+        final static String Default    = wrapToken("deft");
 
         final static String Define     = wrapToken("define");
         final static String Pack       = wrapToken("pack");

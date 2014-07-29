@@ -407,7 +407,7 @@ public final class InvarWriteCode extends InvarWrite
         for (InvarField f : fs)
         {
             f.makeTypeFormatted(getContext(), snippetGet(Key.IMPORT_SPLIT), useFullName);
-            f.setDeftFormatted(makeStructFieldInit(f, type));
+            f.setDeftFormatted(makeStructFieldInit(f, false));
 
             if (f.getDeftFormatted().length() > widthDeft)
                 widthDeft = f.getDeftFormatted().length();
@@ -517,6 +517,7 @@ public final class InvarWriteCode extends InvarWrite
 
     private StringBuilder makeStructGetter (InvarField f, TypeStruct struct)
     {
+        Boolean bConst = f.getUsePointer() || (f.getUseReference() && f.getGenerics().size() == 0);
         String sConst = snippetTryGet("refer.const") + whiteSpace;
         StringBuilder code = new StringBuilder();
         String s = snippetGet(Key.STRUCT_GETTER);
@@ -527,7 +528,7 @@ public final class InvarWriteCode extends InvarWrite
         s = replace(s, Token.Name, f.getKey());
         s = replace(s, Token.Doc, makeDoc(f.getComment()));
         s = replace(s, Token.DocLine, makeDocLine(f.getComment()));
-        s = replace(s, Token.Const, (f.getUseReference() && f.getGenerics().size() == 0) ? sConst : empty);
+        s = replace(s, Token.Const, bConst ? sConst : empty);
         code.append(s);
         return code;
     }
@@ -542,7 +543,7 @@ public final class InvarWriteCode extends InvarWrite
             return deft;
     }
 
-    protected String makeStructFieldInit (InvarField f, TypeStruct struct)
+    protected String makeStructFieldInit (InvarField f, Boolean ignorePointer)
     {
         String deft = f.getDefault();
         InvarType type = f.getType();
@@ -550,7 +551,7 @@ public final class InvarWriteCode extends InvarWrite
         {
             return type.getInitPrefix() + deft + type.getInitSuffix();
         }
-        if (f.getUsePointer())
+        if (f.getUsePointer() && !ignorePointer)
         {
             String s = snippetGet(Key.POINTER_NULL);
             return s;
@@ -1001,12 +1002,14 @@ public final class InvarWriteCode extends InvarWrite
             code = replace(code, Token.Invoke, invoke);
             if (p.isRoot())
             {
+                String spec = empty;
                 String s = empty;
                 if (p.field.getUsePointer())
                 {
                     s = snippetTryGet(prefix + "ptr." + p.type.getName());
                     if (s.equals(empty))
                         s = snippetTryGet(prefix + "ptr.any");
+                    spec = snippetTryGet(Key.POINTER_SPEC);
                 }
                 else
                 {
@@ -1029,6 +1032,8 @@ public final class InvarWriteCode extends InvarWrite
                     s = replace(s, Token.Argument, snippetArg);
                     s = replace(s, Token.NullPtr, snippetTryGet(Key.POINTER_NULL));
                     s = replace(s, Token.Split, snippetTryGet(Key.REFER_INVOKE));
+                    s = replace(s, Token.Specifier, spec);
+                    s = replace(s, Token.Default, makeStructFieldInit(p.field, true));
                     lines.addAll(indentLines(s));
                     return;
                 }
