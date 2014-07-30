@@ -44,6 +44,7 @@ public final class InvarWriteCode extends InvarWrite
 
         funcPublish("operatorLess", TypeStruct.class);
         funcPublish("codeInits", TypeStruct.class, List.class);
+        funcPublish("codeDeletes", List.class);
         funcPublish("codeFields", TypeStruct.class, List.class);
         funcPublish("codeGetters", TypeStruct.class, List.class);
         funcPublish("codeSetters", TypeStruct.class, List.class);
@@ -169,6 +170,23 @@ public final class InvarWriteCode extends InvarWrite
         {
             InvarField f = i.next();
             code.append(makeConstructorField(f, struct, i.hasNext()));
+        }
+        return code;
+    }
+
+    public StringBuilder codeDeletes (List<InvarField> fields)
+    {
+        StringBuilder code = new StringBuilder();
+        Iterator<InvarField> i = fields.iterator();
+        while (i.hasNext())
+        {
+            InvarField f = i.next();
+            if (!f.getUsePointer())
+                continue;
+            String s = snippetTryGet("struct.field.del");
+            s = replace(s, Token.Name, f.getKey());
+            s = replace(s, Token.NullPtr, snippetGet(Key.POINTER_NULL));
+            code.append(s);
         }
         return code;
     }
@@ -1101,6 +1119,11 @@ public final class InvarWriteCode extends InvarWrite
 
         private String makeUnitVec (NestedParam p, String rule)
         {
+            String s = snippetTryGet(prefix + TypeID.VEC.getName());
+            if (!s.equals(empty))
+            {
+                return s;
+            }
             String ruleV = ruleRight(rule);
             String nameVal = "n" + p.depth;
             NestedParam pVal = makeParams(p, ruleV, nameVal, ".n");
@@ -1112,6 +1135,11 @@ public final class InvarWriteCode extends InvarWrite
 
         private String makeUnitMap (NestedParam p, String rule)
         {
+            String s = snippetTryGet(prefix + TypeID.MAP.getName());
+            if (!s.equals(empty))
+            {
+                return s;
+            }
             String r = ruleRight(rule);
             String[] R = r.split(",");
             String ruleK = R[0];

@@ -80,7 +80,8 @@
     (#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; bool    )]   operator <  (const (#name) &other) const;
 	(#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; (#name) )] & operator =  (const (#name) &from);	
     (#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; (#name) )] & CopyFrom    (const (#name) &from);
-	(#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; (#name) )] & Decode      (invar::BinaryReader &stream);
+	(#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; (#name) )] & Reuse       (void);
+    (#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; (#name) )] & Decode      (invar::BinaryReader &stream);
 	(#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; void    )]   Encode      (invar::BinaryWriter &stream) const;
     (#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; void    )]   ToXmlString (const std::string &name, std::string &result) const;
 	(#blank)
