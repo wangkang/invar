@@ -86,7 +86,7 @@ final public class InvarSnippet
         return genericOverride;
     }
 
-    private String getAttrOptional (Node node, String name)
+    static private String getAttrOptional (Node node, String name)
     {
         Node n = node.getAttributes().getNamedItem(name);
         String v = empty;
@@ -98,14 +98,25 @@ final public class InvarSnippet
     private void buildTemplates (Node node)
     {
         String key = getAttrOptional(node, "key");
+        key = key.replaceAll("\\s", empty);
+        if (key.equals(empty))
+            return;
         NodeList nodes = node.getChildNodes();
         int len = nodes.getLength();
+        String cdada = empty;
         for (int i = 0; i < len; i++)
         {
             Node n = nodes.item(i);
             if (Node.CDATA_SECTION_NODE != n.getNodeType())
                 continue;
-            snippetAdd(key, n.getTextContent());
+            cdada = n.getTextContent();
+        }
+        String[] keys = key.split("\\|");
+        for (String k : keys)
+        {
+            if (k.equals(empty))
+                continue;
+            snippetAdd(k, cdada);
         }
     }
 
@@ -203,7 +214,6 @@ final public class InvarSnippet
         final static public String FILE_BODY             = "file.body";
         final static public String FILE_INCLUDE          = "file.include";
 
-        final static public String PACK                  = "pack";
         final static public String DOC                   = "doc";
         final static public String DOC_LINE              = "doc.line";
         final static public String IMPORT                = "import";
@@ -242,44 +252,44 @@ final public class InvarSnippet
 
     static public class Token
     {
-        final static String Br         = wrapToken("brk");
-        final static String Concat     = wrapToken("concat");
-        final static String Indent     = wrapToken("tab");
-        final static String Blank      = wrapToken("blank");
-        final static String Space      = wrapToken("space");
-        final static String NullPtr    = wrapToken("null");
-        final static String Split      = wrapToken("split");
+        final static String Br          = wrapToken("brk");
+        final static String Concat      = wrapToken("concat");
+        final static String Indent      = wrapToken("tab");
+        final static String Blank       = wrapToken("blank");
+        final static String Space       = wrapToken("space");
+        final static String NullPtr     = wrapToken("null");
+        final static String ByteNull    = wrapToken("bytenon");
+        final static String ByteNotNull = wrapToken("byteyes");
+        final static String Doc         = wrapToken("doc");
 
-        final static String Doc        = wrapToken("doc");
-        final static String DocLine    = wrapToken("docline");
-        final static String Meta       = wrapToken("meta");
-        final static String Key        = wrapToken("key");
-        final static String Value      = wrapToken("value");
-        final static String Body       = wrapToken("body");
-        final static String BodyIndent = wrapToken("bodyindent");
-        final static String Invoke     = wrapToken("invoke");
-        final static String Default    = wrapToken("deft");
+        final static String Define      = wrapToken("define");
+        final static String Pack        = wrapToken("pack");
+        final static String Import      = wrapToken("import");
+        final static String Includes    = wrapToken("includes");
+        final static String Enums       = wrapToken("enums");
+        final static String Structs     = wrapToken("structs");
+        final static String Const       = wrapToken("const");
+        final static String ConstBlock  = wrapToken("constblock");
 
-        final static String Define     = wrapToken("define");
-        final static String Pack       = wrapToken("pack");
-        final static String Import     = wrapToken("import");
-        final static String Includes   = wrapToken("includes");
-        final static String Enums      = wrapToken("enums");
-        final static String Structs    = wrapToken("structs");
-        final static String Const      = wrapToken("const");
-
-        final static String Argument   = wrapToken("arg");
-        final static String SizeType   = wrapToken("sizetype");
-        final static String Size       = wrapToken("len");
-
-        final static String Index      = wrapToken("index");
-        final static String IndexUpper = wrapToken("indexupper");
-        final static String Type       = wrapToken("type");
-        final static String TypeUpper  = wrapToken("typeupper");
-        final static String Specifier  = wrapToken("spec");
-        final static String SpecUpper  = wrapToken("specupper");
-        final static String Name       = wrapToken("name");
-        final static String NameUpper  = wrapToken("nameupper");
+        final static String Argument    = wrapToken("arg");
+        final static String SizeType    = wrapToken("sizetype");
+        final static String Size        = wrapToken("len");
+        final static String Key         = wrapToken("key");
+        final static String Value       = wrapToken("value");
+        final static String Body        = wrapToken("body");
+        final static String BodyIndent  = wrapToken("bodyindent");
+        final static String Invoke      = wrapToken("invoke");
+        final static String Default     = wrapToken("deft");
+        final static String Split       = wrapToken("split");
+        final static String Index       = wrapToken("index");
+        final static String IndexUpper  = wrapToken("indexupper");
+        final static String Specifier   = wrapToken("spec");
+        final static String SpecUpper   = wrapToken("specupper");
+        final static String Name        = wrapToken("name");
+        final static String NameUpper   = wrapToken("nameupper");
+        final static String Type        = wrapToken("type");
+        final static String TypeUpper   = wrapToken("typeupper");
+        final static String RuleRight   = wrapToken("typer");
 
         final static String wrapToken (String name)
         {

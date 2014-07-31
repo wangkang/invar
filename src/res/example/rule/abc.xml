@@ -22,7 +22,7 @@ xmlns:tns="invar.rule">
   	<field name="xyz" type="test.xyz::Conflict" doc="同名的类型"/>
   	<field name="abc" type="test.abc::Conflict" doc="同名的类型"/>
     <field name="children" type="Vec-Custom" doc="自身类型容器"/>
-    <field name="noSetter" type="Int32" doc="屏蔽Setter" nosetter="true"/>
+    <field name="noSetter" type="Int32" doc="屏蔽Setter" nosetter="true" deprecated="true"/>
     <field name="useRef" type="Int32" doc="使用引用" useref="true"/>
     <field name="usePtr" type="Int32" doc="使用指针" useptr="true"/>
     <field name="prev" type="Custom" doc="自身类型"/>

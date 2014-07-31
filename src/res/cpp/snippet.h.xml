@@ -74,15 +74,15 @@
     (#space)(#space)public:
 	(#blank)
 	(#space)(#space)(#space)~(#name) ();
-	(#tab)(#blank) (#name) ();
+	(#tab)(#name) ();
 	(#tab)(#name) (const (#name) &from);
     (#blank)
     (#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; bool    )]   operator <  (const (#name) &other) const;
 	(#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; (#name) )] & operator =  (const (#name) &from);	
     (#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; (#name) )] & CopyFrom    (const (#name) &from);
 	(#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; (#name) )] & Reuse       (void);
-    (#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; (#name) )] & Decode      (invar::BinaryReader &stream);
-	(#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; void    )]   Encode      (invar::BinaryWriter &stream) const;
+    (#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; (#name) )] & Read        (const invar::BinaryReader &from);
+	(#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; void    )]   Write       (invar::BinaryWriter &dest) const;
     (#tab)[#clampLen([#mathMax(8;lenStruct)]; 24; void    )]   ToXmlString (const std::string &name, std::string &result) const;
 	(#blank)
 	[#codeGetters(struct; fields)]
@@ -95,15 +95,17 @@
   <template key="struct.meta"><![CDATA[]]></template>
   <template key="struct.field"><![CDATA[
     (#tab)[#clampLen(lenFieldType; 64; (#type))] (#spec)
-	(#concat) [#clampLen(lenFieldName; 16; (#name))];(#docline)
+	(#concat) [#clampLen(lenFieldName; 16; (#name))];
+    (#concat)[#codeLineDoc(fields; (#index))]
   ]]></template>
   <template key="struct.setter"><![CDATA[
-    (#tab)(#typeupper) & Set[#clampLen(lenFieldName; 16; [#upperHeadChar( (#name) )] )] ((#const)(#type) (#spec));
+    (#tab)(#typeupper) & Set[#clampLen(lenFieldName; 16; [#upperHeadChar( (#name) )] )]
+    (#concat) ((#const)(#type)(#spec));
   ]]></template>
   <template key="struct.getter"><![CDATA[
-    (#tab)[#clampLen(lenFieldType; 64; (#const)(#type) )] (#spec)
+    (#tab)[#clampLen(lenFieldType; 64; (#const)(#type) )](#spec)
     (#concat) Get[#clampLen(lenFieldName; 16; [#upperHeadChar( (#name) )] )]
-    (#concat) (void);(#docline)
+    (#concat) (void)(#constblock);[#codeLineDoc(fields; (#index))]
   ]]></template>
   
   <!-- Common snippet -->
@@ -121,6 +123,4 @@
   <template key="pointer.invoke"><![CDATA[->]]>   </template>
   <template key="pointer.null">  <![CDATA[NULL]]> </template>
   <template key="type.enum">     <![CDATA[int32]]></template>
-  <template key="null.byte.yes"> <![CDATA[(std::int8_t)0x01]]></template>
-  <template key="null.byte.no">  <![CDATA[(std::int8_t)0x00]]></template>
 </tns:root>

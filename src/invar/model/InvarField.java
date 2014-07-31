@@ -1,6 +1,7 @@
 package invar.model;
 
 import invar.InvarContext;
+import invar.model.InvarType.TypeID;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -10,8 +11,9 @@ public class InvarField
     private final LinkedList<InvarType> generics;
     private final String                key;
     private final String                comment;
-    private final Boolean               isStructSelf;
+
     private final Boolean               disableSetter;
+    private final Integer               index;
 
     private Boolean                     useReference  = false;
     private Boolean                     usePointer    = false;
@@ -23,13 +25,14 @@ public class InvarField
     private int                         widthKey      = 1;
     private int                         widthDefault  = 1;
 
-    public InvarField(InvarType type, String key, String comment, Boolean isStructSelf, Boolean disableSetter)
+    public InvarField(Integer index, InvarType type, String key, String comment, Boolean disableSetter)
     {
+        this.index = index;
         this.type = type;
         this.generics = new LinkedList<InvarType>();
         this.key = key;
         this.comment = comment;
-        this.isStructSelf = isStructSelf;
+
         this.disableSetter = disableSetter;
         this.setDefault("");
     }
@@ -65,8 +68,8 @@ public class InvarField
         String tName = t.getName();
         if (fullName || ctx.findTypes(t.getName(), true).size() > 1)
             tName = t.fullName(split);
-
         typeFormatted = tName + evalGenerics(ctx, t, split, fullName);
+        typeFormatted = typeFormatted.trim();
         return typeFormatted;
     }
 
@@ -180,26 +183,41 @@ public class InvarField
 
     public Boolean getUseReference ()
     {
-        return !isStructSelf && useReference;
+        return useReference;
     }
 
     public void setUseReference (Boolean useReference)
     {
-        this.useReference = (useReference && !isStructSelf);
+        this.useReference = useReference;
         if (this.useReference)
             this.usePointer = false;
     }
 
     public Boolean getUsePointer ()
     {
-        return isStructSelf || usePointer;
+        return usePointer;
     }
 
     public void setUsePointer (Boolean usePointer)
     {
-        this.usePointer = (isStructSelf || usePointer);
+        this.usePointer = usePointer;
         if (this.usePointer)
             this.useReference = false;
+    }
+
+    public Integer getIndex ()
+    {
+        return index;
+    }
+
+    public Boolean isVec ()
+    {
+        return type.getId() == TypeID.VEC;
+    }
+
+    public Boolean isMap ()
+    {
+        return type.getId() == TypeID.MAP;
     }
 
 }

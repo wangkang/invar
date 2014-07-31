@@ -302,12 +302,13 @@ final public class InvarReadRule
     private void decStruct (Node node, TypeStruct type) throws Exception
     {
         NodeList nodes = node.getChildNodes();
+        int index = 0;
         for (int i = 0; i < nodes.getLength(); i++)
         {
             Node n = nodes.item(i);
             if (Node.ELEMENT_NODE != n.getNodeType())
                 continue;
-            decStructField(n, type);
+            decStructField(n, type, index++);
         }
     }
 
@@ -353,7 +354,7 @@ final public class InvarReadRule
         }
     }
 
-    private void decStructField (Node n, TypeStruct type) throws Exception
+    private void decStructField (Node n, TypeStruct type, int i) throws Exception
     {
         String nodeName = getAttr(n, ATTR_FIELD_TYPE);
         String[] nameTypes = nodeName.split(SPLIT_GNERICS);
@@ -372,7 +373,7 @@ final public class InvarReadRule
 
         boolean isStructSelf = (typeBasic == type);
         boolean useRef = typeBasic.getId().getUseRefer();
-        boolean usePtr = isStructSelf;
+        boolean usePtr = false;
         boolean disableSetter = false;
         switch (typeBasic.getId()) {
         case VEC:
@@ -402,17 +403,17 @@ final public class InvarReadRule
 
         switch (typeBasic.getId()) {
         case ENUM:
-            field = new InvarField(typeBasic, key, comment, isStructSelf, false);
+            field = new InvarField(i, typeBasic, key, comment, false);
             break;
         case STRUCT:
-            field = new InvarField(typeBasic, key, comment, isStructSelf, disableSetter);
+            field = new InvarField(i, typeBasic, key, comment, disableSetter);
             break;
         default:
-            field = new InvarField(typeBasic, key, comment, isStructSelf, disableSetter);
+            field = new InvarField(i, typeBasic, key, comment, disableSetter);
         }
 
         field.setUseReference(useRef);
-        field.setUsePointer(usePtr);
+        field.setUsePointer(isStructSelf || typeBasic.getId().getNullable() && usePtr);
 
         List<String> names = fixNameTypes(nameTypes, n);
         parseGenerics(field.getGenerics(), names, 1, n);

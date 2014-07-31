@@ -6,34 +6,29 @@ public class InvarType
     {
         INT08("int8"), INT16("int16"), INT32("int32"), INT64("int64"), //
         UINT08("uint8"), UINT16("uint16"), UINT32("uint32"), UINT64("uint64"), //
-        FLOAT("float"), DOUBLE("double"), BOOL("bool"), //
-        STRING("string", true), //
-        VEC("vec", "<?>", true), //
-        MAP("map", "<?,?>", true), //
-        ENUM("enum"), PROTOCOL("protoc"), //
-        STRUCT("struct", true), //
-        FUNC("func", "<?...>", true), //
-        DIALECT("~~~", true), VOID("void", true);
+        FLOAT("float"), DOUBLE("double"), BOOL("bool"), ENUM("enum"), //
+        STRING("string", "", true, true), //
+        VEC("vec", "<?>", true, true), //
+        MAP("map", "<?,?>", true, true), //
+        STRUCT("struct", "", true, true), //
+        FUNC("func", "<?...>", true, false), //
+        DIALECT("~~~", "", true, false), //
+        PROTOCOL("protoc"), VOID("---");
 
         private TypeID(String name)
         {
             this.name = name;
+            this.generic = "";
             this.useRefer = false;
-            this.generic = "";
+            this.nullable = false;
         }
 
-        private TypeID(String name, Boolean refer)
-        {
-            this.name = name;
-            this.useRefer = refer;
-            this.generic = "";
-        }
-
-        private TypeID(String name, String generic, Boolean refer)
+        private TypeID(String name, String generic, Boolean refer, Boolean nullable)
         {
             this.name = name;
             this.generic = generic;
             this.useRefer = refer;
+            this.nullable = nullable;
         }
 
         public String getName ()
@@ -51,9 +46,15 @@ public class InvarType
             return useRefer;
         }
 
+        public Boolean getNullable ()
+        {
+            return nullable;
+        }
+
         final private String  name;
         final private String  generic;
         final private Boolean useRefer;
+        final private Boolean nullable;
     };
 
     private final TypeID       id;

@@ -27,18 +27,18 @@ class BinaryWriter
 class BinaryReader
 {
     public:
-	std::int8_t   ReadByte();
-	std::int16_t  ReadInt16();
-	std::int32_t  ReadInt32();
-	std::int64_t  ReadInt64();
-	std::uint8_t  ReadUByte();
-	std::uint16_t ReadUInt16();
-	std::uint32_t ReadUInt32();
-	std::uint64_t ReadUInt64();
-    std::string   ReadString();
-    bool          ReadBoolean();
-    float         ReadSingle();
-    double        ReadDouble();
+	std::int8_t   ReadByte() const;
+	std::int16_t  ReadInt16() const;
+	std::int32_t  ReadInt32() const;
+	std::int64_t  ReadInt64() const;
+	std::uint8_t  ReadUByte() const;
+	std::uint16_t ReadUInt16() const;
+	std::uint32_t ReadUInt32() const;
+	std::uint64_t ReadUInt64() const;
+    std::string   ReadString() const;
+    bool          ReadBoolean() const;
+    float         ReadSingle() const;
+    double        ReadDouble() const;
 };
 
 template <typename T>

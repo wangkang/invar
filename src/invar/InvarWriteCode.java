@@ -50,6 +50,9 @@ public final class InvarWriteCode extends InvarWrite
         funcPublish("codeSetters", TypeStruct.class, List.class);
         funcPublish("codeSetterBody", List.class, Integer.class, String.class);
         funcPublish("codeNested", String.class, Boolean.class, TypeStruct.class, List.class, TreeSet.class);
+        funcPublish("codeDoc", List.class, Integer.class);
+        funcPublish("codeLineDoc", List.class, Integer.class);
+        funcPublish("codeMetaData", List.class, Integer.class);
     }
 
     static public Integer mathMax (Integer a, Integer b)
@@ -139,7 +142,7 @@ public final class InvarWriteCode extends InvarWrite
         for (int i = 0; i < len; i++)
         {
             InvarField f = fields.get(i);
-            code.append(makeStructSetter(f, struct, i));
+            code.append(makeStructSetter(f, struct));
         }
         return code;
     }
@@ -189,6 +192,24 @@ public final class InvarWriteCode extends InvarWrite
             code.append(s);
         }
         return code;
+    }
+
+    public String codeMetaData (List<InvarField> fields, Integer index)
+    {
+        InvarField f = fields.get(index);
+        return makeStructMeta(f).toString();
+    }
+
+    public String codeDoc (List<InvarField> fields, Integer index)
+    {
+        InvarField f = fields.get(index);
+        return makeDoc(f.getComment());
+    }
+
+    public String codeLineDoc (List<InvarField> fields, Integer index)
+    {
+        InvarField f = fields.get(index);
+        return makeDocLine(f.getComment());
     }
 
     @Override
@@ -340,12 +361,9 @@ public final class InvarWriteCode extends InvarWrite
             return;
         String fileDir = snippetGet(Key.RUNTIME_PACK);
         TreeSet<String> imps = new TreeSet<String>();
-        String block = makeRuntimeBlock(imps);
-        String s = snippetGet(Key.STRUCT);
-        s = replace(s, Token.Name, typeName);
-        s = replace(s, Token.Body, block);
-        s = replace(s, Token.Doc, empty);
-        addExportFile(fileDir, typeName + suffix, makePack(fileDir, Key.RUNTIME_NAME, s, imps));
+        String s = makeRuntimeBlock(imps);
+        s = replace(s, Token.Import, makeImorts(imps));
+        addExportFile(fileDir, typeName + suffix, s);
     }
 
     protected String makeDocLine (String comment)
@@ -363,20 +381,6 @@ public final class InvarWriteCode extends InvarWrite
             return empty;
         String s = snippetGet(Key.DOC);
         s = replace(s, Token.Doc, comment);
-        return s;
-    }
-
-    protected String makePack (String packName, String typeName, String blockCode, TreeSet<String> imps)
-    {
-        String m = packName + "_" + typeName;
-        m = m.toUpperCase();
-        m = replace(m, "\\.", "_");
-
-        String s = snippetGet(Key.PACK);
-        s = replace(s, Token.Define, m);
-        s = replace(s, Token.Name, packName);
-        s = replace(s, Token.Body, blockCode);
-        s = replace(s, Token.Import, makeImorts(imps));
         return s;
     }
 
@@ -481,6 +485,7 @@ public final class InvarWriteCode extends InvarWrite
         String s = snippetGet(Key.STRUCT_META);
         s = replace(s, Token.Type, f.createAliasRule(getContext(), "."));
         s = replace(s, Token.Name, f.getShortName());
+        s = replace(s, Token.Index, f.getIndex().toString());
         code.append(s);
         return code;
     }
@@ -506,13 +511,12 @@ public final class InvarWriteCode extends InvarWrite
         s = replace(s, Token.Specifier, spec);
         s = replace(s, Token.Name, f.getKey());
         s = replace(s, Token.Value, f.getDeftFormatted());
-        s = replace(s, Token.Doc, makeDoc(f.getComment()));
-        s = replace(s, Token.DocLine, makeDocLine(f.getComment()));
+        s = replace(s, Token.Index, f.getIndex().toString());
         code.append(s);
         return code;
     }
 
-    private StringBuilder makeStructSetter (InvarField f, TypeStruct struct, Integer index)
+    private StringBuilder makeStructSetter (InvarField f, TypeStruct struct)
     {
         StringBuilder code = new StringBuilder();
         if (f.getDisableSetter())
@@ -520,14 +524,11 @@ public final class InvarWriteCode extends InvarWrite
         String sConst = snippetTryGet(Key.REFER_CONST) + whiteSpace;
         String s = snippetGet(Key.STRUCT_SETTER);
         s = replace(s, Token.TypeUpper, struct.getName());
-        s = replace(s, Token.Meta, makeStructMeta(f).toString());
         s = replace(s, Token.Type, f.getTypeFormatted());
-        s = replace(s, Token.Specifier, makeStructFieldSpec(f, whiteSpace));
+        s = replace(s, Token.Specifier, makeStructFieldSpec(f, empty));
         s = replace(s, Token.Name, f.getKey());
         s = replace(s, Token.NameUpper, f.getKey());
-        s = replace(s, Token.Index, index.toString());
-        s = replace(s, Token.Doc, makeDoc(f.getComment()));
-        s = replace(s, Token.DocLine, makeDocLine(f.getComment()));
+        s = replace(s, Token.Index, f.getIndex().toString());
         s = replace(s, Token.Const, (f.getUseReference() || f.getUsePointer()) ? sConst : empty);
         code.append(s);
         return code;
@@ -535,18 +536,18 @@ public final class InvarWriteCode extends InvarWrite
 
     private StringBuilder makeStructGetter (InvarField f, TypeStruct struct)
     {
-        Boolean bConst = f.getUsePointer() || (f.getUseReference() && f.getGenerics().size() == 0);
+        Boolean bConst = !f.isMap() && !f.isVec() && (f.getUsePointer() || f.getUseReference());
+        Boolean bConstBlock = !f.isMap() && !f.isVec();
         String sConst = snippetTryGet("refer.const") + whiteSpace;
         StringBuilder code = new StringBuilder();
         String s = snippetGet(Key.STRUCT_GETTER);
         s = replace(s, Token.TypeUpper, struct.getName());
-        s = replace(s, Token.Meta, makeStructMeta(f).toString());
         s = replace(s, Token.Type, f.getTypeFormatted());
-        s = replace(s, Token.Specifier, makeStructFieldSpec(f, whiteSpace));
+        s = replace(s, Token.Specifier, makeStructFieldSpec(f, whiteSpace + whiteSpace));
         s = replace(s, Token.Name, f.getKey());
-        s = replace(s, Token.Doc, makeDoc(f.getComment()));
-        s = replace(s, Token.DocLine, makeDocLine(f.getComment()));
+        s = replace(s, Token.Index, f.getIndex().toString());
         s = replace(s, Token.Const, bConst ? sConst : empty);
+        s = replace(s, Token.ConstBlock, bConstBlock ? whiteSpace + snippetTryGet("refer.const") : empty);
         code.append(s);
         return code;
     }
@@ -554,9 +555,9 @@ public final class InvarWriteCode extends InvarWrite
     private String makeStructFieldSpec (InvarField f, String deft)
     {
         if (f.getUsePointer())
-            return snippetTryGet(Key.POINTER_SPEC);
+            return whiteSpace + snippetTryGet(Key.POINTER_SPEC);
         else if (f.getUseReference())
-            return snippetTryGet(Key.REFER_SPEC);
+            return whiteSpace + snippetTryGet(Key.REFER_SPEC);
         else
             return deft;
     }
@@ -982,6 +983,9 @@ public final class InvarWriteCode extends InvarWrite
             String s = snippet;
             s = replace(s, Token.Type, returnType);
             s = replace(s, Token.Body, body.toString());
+            s = replace(s, Token.NullPtr, snippetTryGet(Key.POINTER_NULL));
+            s = replace(s, Token.ByteNull, snippetTryGet("byte.non"));
+            s = replace(s, Token.ByteNotNull, snippetTryGet("byte.yes"));
             return s;
         }
 
@@ -1048,7 +1052,6 @@ public final class InvarWriteCode extends InvarWrite
                     s = replace(s, Token.Type, p.rule);
                     s = replace(s, Token.Name, p.name);
                     s = replace(s, Token.Argument, snippetArg);
-                    s = replace(s, Token.NullPtr, snippetTryGet(Key.POINTER_NULL));
                     s = replace(s, Token.Split, snippetTryGet(Key.REFER_INVOKE));
                     s = replace(s, Token.Specifier, spec);
                     s = replace(s, Token.Default, makeStructFieldInit(p.field, true));
@@ -1180,6 +1183,7 @@ public final class InvarWriteCode extends InvarWrite
             s = replace(s, Token.Size, "len" + iName);
             s = replace(s, Token.Index, "i" + iName);
             s = replace(s, Token.Type, p.rule);
+            s = replace(s, Token.RuleRight, ruleRight(p.rule));
             s = replace(s, Token.Name, p.name);
             s = replace(s, Token.Value, pv.name);
             if (pk != null)
