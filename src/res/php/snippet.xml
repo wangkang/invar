@@ -19,10 +19,6 @@
     <bool pack="java.lang" type="Boolean" initValue="FALSE"/>
     <vec pack="java.util" type="LinkedList" generic="&lt;?&gt;" initValue=""/>
     <map pack="java.util" type="LinkedHashMap" generic="&lt;?,?&gt;" initValue=""/>
-    <dialect pack="java.util" type="Map"/>
-    <dialect pack="java.io" type="DataOutput"/>
-    <dialect pack="java.io" type="DataInput"/>
-    <dialect pack="java.io" type="IOException"/>
   </redefine>
   <template key="include.self">        <![CDATA[false]]></template>
   <template key="pack.name.nested">    <![CDATA[false]]></template>
@@ -109,10 +105,6 @@
   <template key="init.vec">    <![CDATA[array()]]></template>
   <template key="init.map">    <![CDATA[array()]]></template>
   <template key="struct"><![CDATA[
-    [#addImport(struct; imports; java.io::DataInput)]
-    [#addImport(struct; imports; java.io::DataOutput)]
-    [#addImport(struct; imports; java.io::IOException)]
-    (#concat)
     final public class (#name)
     {
     [#codeFields (struct; fields)]
@@ -326,7 +318,7 @@
     (#tab)(#tab)(#tab)\$result .= '>';
     (#tab)(#tab)}
     (#tab)(#tab)return \$result;
-    (#tab)} //(#type)::toStringXml (\$name_) ]]></template>
+    (#tab)} //(#type)::toStringXml(\$name_) ]]></template>
   <template key="toxml.any">   <![CDATA[ (#name) ]]></template>
   <template key="toxml.string"><![CDATA[ (#name) ]]></template>
   <template key="toxml.struct"><![CDATA[ \$(#name)->toStringXml('(#name)') ]]></template>
@@ -391,7 +383,7 @@
     (#tab)(#tab)\$result .= get_class(\$this);(#body)
     (#tab)(#tab)\$result .= ' }';
     (#tab)(#tab)return \$result;
-    (#tab)} //(#type)::toString () ]]></template>
+    (#tab)} //(#type)::toString() ]]></template>
   <template key="tostr.any">   <![CDATA[ (#name).toString() ]]></template>
   <template key="tostr.struct"><![CDATA[ '<(#type)>' ]]></template>
   <template key="tostr.vec">   <![CDATA[ '(' . count(\$(#name)) . ')' ]]></template>
