@@ -16,6 +16,7 @@ final public class Invar
     static final String ARG_FLASH_PATH  = "flash";
     static final String ARG_CSHARP_PATH = "csharp";
     static final String ARG_CPP_PATH    = "cpp";
+    static final String ARG_PHP_PATH    = "php";
 
     static public void main (String[] args)
     {
@@ -26,6 +27,7 @@ final public class Invar
         a.addDefault(ARG_FLASH_PATH, "code/flash/");
         a.addDefault(ARG_CSHARP_PATH, "code/csharp/");
         a.addDefault(ARG_CPP_PATH, "code/cpp/");
+        a.addDefault(ARG_PHP_PATH, "code/php/");
         a.parseArguments(args);
 
         if (a.has(ARG_HELP))
@@ -71,6 +73,11 @@ final public class Invar
                 log("");
                 new InvarWriteCode(ctx, a.get(ARG_CPP_PATH), "cpp/snippet.h.xml").write(".h");
                 new InvarWriteCode(ctx, a.get(ARG_CPP_PATH), "cpp/snippet.cc.xml").write(".cpp", true);
+            }
+            if (a.has(ARG_PHP_PATH))
+            {
+                log("");
+                new InvarWriteCode(ctx, a.get(ARG_PHP_PATH), "php/snippet.xml").write(".php");
             }
             log("\nInvar end: " + (System.currentTimeMillis() - startMS) + "ms");
         }

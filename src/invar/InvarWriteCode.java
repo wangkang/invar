@@ -564,6 +564,7 @@ public final class InvarWriteCode extends InvarWrite
 
     protected String makeStructFieldInit (InvarField f, Boolean ignorePointer)
     {
+        //TODO make inits from templates
         String deft = f.getDefault();
         InvarType type = f.getType();
         if (deft != null && !deft.equals(empty))
@@ -930,6 +931,7 @@ public final class InvarWriteCode extends InvarWrite
             }
             catch (Exception e)
             {
+                System.out.println(m);
                 e.printStackTrace();
             }
         }
