@@ -71,7 +71,7 @@ public class InvarReadData
     {
         if (o == null)
             OnError (debug + " is null. rule: " + rule, n);
-        Type ClsO = LoadGenericClass (rule, n);
+        //Type ClsO = LoadGenericClass (rule, n);
         if (o is IList)
             ParseVec (o as IList, n, rule, debug);
         else if (o is IDictionary)
