@@ -211,6 +211,7 @@ final public class InvarSnippet
 
         final static public String FILE                  = "file";
         final static public String FILE_PACK             = "file.pack";
+        final static public String FILE_PACK_SPLIT       = "file.pack.split";
         final static public String FILE_BODY             = "file.body";
         final static public String FILE_INCLUDE          = "file.include";
 

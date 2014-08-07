@@ -289,8 +289,8 @@ public final class InvarWriteCode extends InvarWrite
         String s = snippet.tryGet(Key.FILE,
                                   "//Error: No template named '" + Key.FILE + "' in " + snippet.getSnippetPath());
         s = replace(s, Token.Define, ifndef);
-        s = replace(s, Token.Includes, includes.toString());
         s = replace(s, Token.Pack, codeOneFilePack(packNames, body));
+        s = replace(s, Token.Includes, includes.toString());
         return s;
     }
 
@@ -330,6 +330,7 @@ public final class InvarWriteCode extends InvarWrite
         s = replace(s, Token.Import, makeImorts(imps));
         s = replace(s, Token.Enums, blockEnums);
         s = replace(s, Token.Structs, blockStructs);
+        s = replace(s, "[\n|\r\n]*" + Token.Concat, empty);
         return s;
     }
 
@@ -345,6 +346,11 @@ public final class InvarWriteCode extends InvarWrite
         if (name.equals(empty))
         {
             return body;
+        }
+        String split = snippet.tryGet(Key.FILE_PACK_SPLIT, null);
+        if (split != null)
+        {
+            name = replace(name, dotToken, split);
         }
         String s = snippet.tryGet(Key.FILE_PACK,
                                   "//Error: No template named '" + Key.FILE_PACK + "' in " + snippet.getSnippetPath());
@@ -465,7 +471,6 @@ public final class InvarWriteCode extends InvarWrite
         args.put("lenFieldName", widthName);
         args.put("env", args);
         s = funcEvalAll(s, args);
-        s = replace(s, "[\n|\r\n]*" + Token.Concat, empty);
         return s;
     }
 

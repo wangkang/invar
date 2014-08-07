@@ -1,5 +1,7 @@
 package invar.model;
 
+import java.util.regex.Matcher;
+
 public class InvarType
 {
     static public enum TypeID
@@ -90,7 +92,7 @@ public class InvarType
 
     final public String fullName (String splitter)
     {
-        String packName = pack.getName().replaceAll("\\.", splitter);
+        String packName = pack.getName().replaceAll("\\.", Matcher.quoteReplacement(splitter));
         return !isBuildin() && !packName.equals("") ? packName + splitter + name : name;
     }
 
