@@ -7,6 +7,13 @@ import java.util.List;
 
 public class InvarField
 {
+    private static String prefix = null;
+
+    public static void setPrefix (String prefix)
+    {
+        InvarField.prefix = prefix;
+    }
+
     private final InvarType             type;
     private final LinkedList<InvarType> generics;
     private final String                key;
@@ -43,6 +50,11 @@ public class InvarField
     }
 
     public String getKey ()
+    {
+        return prefix == null ? key : prefix + key;
+    }
+
+    public String getRealKey ()
     {
         return key;
     }

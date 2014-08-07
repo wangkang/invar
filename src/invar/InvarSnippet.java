@@ -291,6 +291,7 @@ final public class InvarSnippet
         final static String Type        = wrapToken("type");
         final static String TypeUpper   = wrapToken("typeupper");
         final static String RuleRight   = wrapToken("typer");
+        final static String NameReal    = wrapToken("namer");
 
         final static String wrapToken (String name)
         {

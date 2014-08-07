@@ -110,7 +110,7 @@ public final class InvarWriteCode extends InvarWrite
                               List<InvarField> fields,
                               TreeSet<String> imports)
     {
-        return nestedCoder.code(prefix, useFullName, struct, fields, imports);
+        return nestedCoder.code(prefix, useFullName, struct, fields);
     }
 
     public String operatorLess (TypeStruct type)
@@ -234,6 +234,7 @@ public final class InvarWriteCode extends InvarWrite
         onePackOneFile = (Boolean.parseBoolean(snippetTryGet("one.pack.one.file")));
         flattenCodeDir = (Boolean.parseBoolean(snippetTryGet("code.dir.flatten")));
         traceAllTypes = (Boolean.parseBoolean(snippetTryGet("trace.all.types")));
+        InvarField.setPrefix(snippet.tryGet("struct.field.prefix", null));
         return true;
     }
 
@@ -514,7 +515,7 @@ public final class InvarWriteCode extends InvarWrite
         String s = snippetGet(Key.STRUCT_FIELD);
         s = replace(s, Token.Type, f.getTypeFormatted());
         s = replace(s, Token.Specifier, spec);
-        s = replace(s, Token.Name, f.getKey());
+        s = replace(s, Token.Name, f.getRealKey());
         s = replace(s, Token.Value, f.getDeftFormatted());
         s = replace(s, Token.Index, f.getIndex().toString());
         code.append(s);
@@ -961,16 +962,12 @@ public final class InvarWriteCode extends InvarWrite
         private String       snippetMet  = empty;
         private String       snippetArg  = empty;
 
-        public String code (String prefix,
-                            Boolean useFullName,
-                            TypeStruct type,
-                            List<InvarField> fs,
-                            TreeSet<String> imps)
+        public String code (String prefix, Boolean useFullName, TypeStruct type, List<InvarField> fs)
         {
             this.prefix = prefix;
             this.useFullName = useFullName;
-            this.snippetMet = snippetGet(prefix + "method");
-            this.snippetArg = snippetGet(prefix + "method.arg");
+            this.snippetMet = snippetTryGet(prefix + "method", empty);
+            this.snippetArg = snippetTryGet(prefix + "method.arg", empty);
             if (empty.equals(snippetMet))
                 return empty;
             List<String> lines = new ArrayList<String>();
@@ -1001,7 +998,7 @@ public final class InvarWriteCode extends InvarWrite
             String rule = createRule(f, getContext(), useFullName);
             TypeID type = f.getType().getRealId();
             List<String> lines = new ArrayList<String>();
-            NestedParam params = makeParams(null, rule, f.getKey(), empty);
+            NestedParam params = makeParams(null, rule, f.getKey(), f.getRealKey(), empty);
             makeGeneric(f, type, rule, params, lines);
             return lines;
         }
@@ -1058,6 +1055,7 @@ public final class InvarWriteCode extends InvarWrite
                     s = replace(s, Token.BodyIndent, body.toString());
                     s = replace(s, Token.Type, p.rule);
                     s = replace(s, Token.Name, p.name);
+                    s = replace(s, Token.NameReal, p.nameReal);
                     s = replace(s, Token.Argument, snippetArg);
                     s = replace(s, Token.Split, snippetTryGet(Key.REFER_INVOKE));
                     s = replace(s, Token.Specifier, spec);
@@ -1098,6 +1096,7 @@ public final class InvarWriteCode extends InvarWrite
             body = replace(body, Token.Specifier, spec);
             body = replace(body, Token.Type, p.rule);
             body = replace(body, Token.Name, p.name);
+            body = replace(body, Token.NameReal, p.nameReal);
             return body;
         }
 
@@ -1113,6 +1112,7 @@ public final class InvarWriteCode extends InvarWrite
             s = replace(s, Token.Specifier, empty);
             s = replace(s, Token.Type, p.rule);
             s = replace(s, Token.Name, p.name);
+            s = replace(s, Token.NameReal, p.nameReal);
             if (p.parent != null)
             {
                 String specUpper = empty;
@@ -1136,7 +1136,7 @@ public final class InvarWriteCode extends InvarWrite
             }
             String ruleV = ruleRight(rule);
             String nameVal = "n" + p.depth;
-            NestedParam pVal = makeParams(p, ruleV, nameVal, ".n");
+            NestedParam pVal = makeParams(p, ruleV, nameVal, nameVal, ".n");
             String body = empty;
             body += makeUnitGeneric(TypeID.VEC, ruleV, pVal);
             String block = makeUnitIter(TypeID.VEC.getName(), body, p, pVal, null);
@@ -1156,8 +1156,8 @@ public final class InvarWriteCode extends InvarWrite
             String ruleV = R[1];
             String nameKey = "k" + p.depth;
             String nameVal = "v" + p.depth;
-            NestedParam pKey = makeParams(p, ruleK, nameKey, ".k");
-            NestedParam pVal = makeParams(p, ruleV, nameVal, ".v");
+            NestedParam pKey = makeParams(p, ruleK, nameKey, nameKey, ".k");
+            NestedParam pVal = makeParams(p, ruleV, nameVal, nameVal, ".v");
             String body = empty;
             body += makeUnitGeneric(TypeID.MAP, ruleK, pKey);
             body += makeUnitGeneric(TypeID.MAP, ruleV, pVal);
@@ -1183,7 +1183,7 @@ public final class InvarWriteCode extends InvarWrite
         {
             String head = makeUnitIterHead(p);
             String s = head + snippetGet(prefix + typeName + ".for");
-            String iName = upperHeadChar(p.name);
+            String iName = upperHeadChar(p.nameReal);
             String sizeType = getContext().findBuildInType(this.sizeType).getRedirect().getName();
             s = replace(s, Token.Body, body);
             s = replace(s, Token.SizeType, sizeType);
@@ -1192,6 +1192,7 @@ public final class InvarWriteCode extends InvarWrite
             s = replace(s, Token.Type, p.rule);
             s = replace(s, Token.RuleRight, ruleRight(p.rule));
             s = replace(s, Token.Name, p.name);
+            s = replace(s, Token.NameReal, p.nameReal);
             s = replace(s, Token.Value, pv.name);
             if (pk != null)
             {
@@ -1224,11 +1225,12 @@ public final class InvarWriteCode extends InvarWrite
             return s;
         }
 
-        private NestedParam makeParams (NestedParam parent, String rule, String name, String tag)
+        private NestedParam makeParams (NestedParam parent, String rule, String name, String nameReal, String tag)
         {
             String split = snippetGet(Key.IMPORT_SPLIT);
             NestedParam p = new NestedParam();
             p.name = name;
+            p.nameReal = nameReal;
             p.tag = tag;
             p.parent = parent;
             p.depth = (parent != null ? parent.depth : 0) + 1;
@@ -1243,13 +1245,14 @@ public final class InvarWriteCode extends InvarWrite
 
     private final class NestedParam
     {
-        private NestedParam parent = null;
-        private Integer     depth  = 0;
-        private InvarField  field  = null;
-        private TypeID      type   = TypeID.VOID;
-        private String      rule   = empty;
-        private String      name   = empty;
-        private String      tag    = empty;
+        private NestedParam parent   = null;
+        private Integer     depth    = 0;
+        private InvarField  field    = null;
+        private TypeID      type     = TypeID.VOID;
+        private String      rule     = empty;
+        private String      name     = empty;
+        private String      nameReal = empty;
+        private String      tag      = empty;
 
         public boolean isRoot ()
         {
