@@ -69,8 +69,6 @@ public class InvarType
     private String             generic;
     private Boolean            isConflict;
     private String             initValue;
-    private String             initSuffix;
-    private String             initPrefix;
     private String             codePath;
     private String             codeName;
 
@@ -81,8 +79,6 @@ public class InvarType
         this.comment = comment;
         this.pack = pack;
         this.generic = "";
-        this.initPrefix = "";
-        this.initSuffix = "";
         this.initValue = "";
         this.codePath = "";
         this.codeName = name;
@@ -154,26 +150,6 @@ public class InvarType
     public void setRealId (TypeID realId)
     {
         this.realId = realId;
-    }
-
-    public String getInitSuffix ()
-    {
-        return initSuffix;
-    }
-
-    public void setInitSuffix (String initSuffix)
-    {
-        this.initSuffix = initSuffix;
-    }
-
-    public String getInitPrefix ()
-    {
-        return initPrefix;
-    }
-
-    public void setInitPrefix (String initPrefix)
-    {
-        this.initPrefix = initPrefix;
     }
 
     public Boolean getIsConflict ()

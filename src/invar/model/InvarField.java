@@ -134,6 +134,8 @@ public class InvarField
 
     public String getDefault ()
     {
+        if (defaultVal == null || defaultVal.equals(""))
+            this.defaultVal = getType().getInitValue();
         return defaultVal;
     }
 

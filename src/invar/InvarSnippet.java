@@ -133,19 +133,17 @@ final public class InvarSnippet
             String pack = getAttrOptional(n, "pack");
             String generic = getAttrOptional(n, "generic");
             String initValue = getAttrOptional(n, "initValue");
-            String initSuffix = getAttrOptional(n, "initSuffix");
-            String initPrefix = getAttrOptional(n, "initPrefix");
             String include = getAttrOptional(n, "include");
             type = type.trim();
             pack = pack.trim();
             InvarType buildInT = c.findBuildInType(typeName);
             if (buildInT == null)
             {
-                context.addDialectType(pack, type, generic, TypeID.DIALECT, false, include);
+                context.addDialectType(pack, type, generic, TypeID.DIALECT, false, initValue, include);
                 continue;
             }
             TypeID id = buildInT.getId();
-            c.typeRedefine(id, pack, type, generic, initValue, initPrefix, initSuffix, include);
+            c.typeRedefine(id, pack, type, generic, initValue, include);
         }
     }
 

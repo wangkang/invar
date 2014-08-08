@@ -43,6 +43,7 @@ xmlns:tns="invar.rule">
     <field name="boolValue" type="Bool" doc="布尔值"/>
     <field name="stringValue" type="String" value="hello" doc="字符串"/>
     <field name="enumValue" type="Gender" doc="枚举值"/>
+    <field name="enumDeft" type="Gender" doc="枚举值制定默认值" value="Gender.MALE"/>
   </struct>
   
   <protoc name="TestProtoc" doc="">

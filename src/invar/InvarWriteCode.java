@@ -417,7 +417,7 @@ public final class InvarWriteCode extends InvarWrite
             s = replace(s, Token.Name, key);
             s = replace(s, Token.Type, type.getName());
             s = replace(s, Token.Value, fixedLenBackward(whiteSpace, lenVal, type.getValue(key).toString()));
-            s = replace(s, Token.Doc, makeDoc(type.getComment(key)));
+            s = replace(s, Token.Doc, makeDocLine(type.getComment(key)));
             code.append(s);
         }
         return code.toString();
@@ -533,7 +533,7 @@ public final class InvarWriteCode extends InvarWrite
         s = replace(s, Token.Type, f.getTypeFormatted());
         s = replace(s, Token.Specifier, makeStructFieldSpec(f, empty));
         s = replace(s, Token.Name, f.getKey());
-        s = replace(s, Token.NameUpper, f.getKey());
+        s = replace(s, Token.NameReal, f.getRealKey());
         s = replace(s, Token.Index, f.getIndex().toString());
         s = replace(s, Token.Const, (f.getUseReference() || f.getUsePointer()) ? sConst : empty);
         code.append(s);
@@ -551,6 +551,7 @@ public final class InvarWriteCode extends InvarWrite
         s = replace(s, Token.Type, f.getTypeFormatted());
         s = replace(s, Token.Specifier, makeStructFieldSpec(f, whiteSpace + whiteSpace));
         s = replace(s, Token.Name, f.getKey());
+        s = replace(s, Token.NameReal, f.getRealKey());
         s = replace(s, Token.Index, f.getIndex().toString());
         s = replace(s, Token.Const, bConst ? sConst : empty);
         s = replace(s, Token.ConstBlock, bConstBlock ? whiteSpace + snippetTryGet("refer.const") : empty);
@@ -570,38 +571,48 @@ public final class InvarWriteCode extends InvarWrite
 
     protected String makeStructFieldInit (InvarField f, Boolean ignorePointer)
     {
-        //TODO make inits from templates
-        String deft = f.getDefault();
-        InvarType type = f.getType();
-        if (deft != null && !deft.equals(empty))
-        {
-            return type.getInitPrefix() + deft + type.getInitSuffix();
-        }
         if (f.getUsePointer() && !ignorePointer)
         {
             String s = snippetGet(Key.POINTER_NULL);
             return s;
         }
-        String s = null;
-        switch (type.getRealId()) {
+        InvarType type = f.getType();
+        String s = snippet.tryGet("init." + type.getRealId().getName(), null);
+        if (s == null)
+        {
+            s = snippetGet("init.any");
+        }
+        String deft = f.getDefault();
+        switch (f.getType().getRealId()) {
         case STRUCT:
         case VEC:
         case MAP:
-            String t = f.getTypeFormatted();
-            s = snippetGet(Key.INIT_STRUCT);
-            s = replace(s, Token.Type, t);
-            return s;
+            s = replace(s, Token.Type, f.getTypeFormatted());
+            break;
         case ENUM:
-            TypeEnum tEnum = (TypeEnum)type;
-            s = snippetGet(Key.INIT_ENUM);
-            s = replace(s, Token.Type, tEnum.getName());
-            s = replace(s, Token.Name, tEnum.firstOptionKey());
-            return s;
-        case STRING:
-            return type.getInitValue();
+            String name = empty;
+            String option = empty;
+            if (!deft.equals(empty))
+            {
+                String[] texts = deft.split(dotToken);
+                name = texts[0];
+                if (texts.length > 1)
+                    option = texts[1];
+            }
+            else
+            {
+                TypeEnum tEnum = (TypeEnum)type;
+                name = tEnum.getName();
+                option = tEnum.firstOptionKey();
+            }
+            s = replace(s, Token.Type, name);
+            s = replace(s, Token.Name, option);
+            break;
         default:
-            return type.getInitPrefix() + type.getInitValue() + type.getInitSuffix();
+            break;
         }
+        s = replace(s, Token.Default, deft);
+        return s;
     }
 
     private String makeRuntimeBlock (TreeSet<String> imps)

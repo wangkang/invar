@@ -430,6 +430,7 @@ abstract public class InvarWrite
                         nameR = (namePack + ruleTypeSplit) + nameR;
                     s.append(fixedLen(32, nameR));
                     s.append(fixedLen(32, type.getCodePath()));
+                    s.append(whiteSpace + type.getInitValue());
                 }
                 s.append("\n");
             }

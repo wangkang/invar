@@ -9,17 +9,17 @@
     <int8 pack="System" type="SByte" initValue="-1" />
     <int16 pack="System" type="Int16" initValue="-1" />
     <int32 pack="System" type="Int32" initValue="-1" />
-    <int64 pack="System" type="Int64" initValue="-1" initSuffix="L" />
+    <int64 pack="System" type="Int64" initValue="-1" />
     <uint8 pack="System" type="Byte" initValue="0" />
     <uint16 pack="System" type="UInt16" initValue="0" />
     <uint32 pack="System" type="UInt32" initValue="0" />
-    <uint64 pack="System" type="UInt64" initValue="0" initSuffix="L" />
-    <float pack="System" type="Single" initValue="0.0" initSuffix="F" />
+    <uint64 pack="System" type="UInt64" initValue="0" />
+    <float pack="System" type="Single" initValue="0.0" />
     <double pack="System" type="Double" initValue="0.00" />
-    <string pack="System" type="String" initValue="String.Empty" initPrefix="&quot;" initSuffix="&quot;" />
+    <string pack="System" type="String" initValue="" />
     <bool pack="System" type="Boolean" initValue="false" />
-    <vec pack="System.Collections.Generic" type="List" generic="&lt;?&gt;" initValue="" />
-    <map pack="System.Collections.Generic" type="Dictionary" generic="&lt;?,?&gt;" initValue="" />
+    <vec pack="System.Collections.Generic" type="List" generic="&lt;?&gt;" />
+    <map pack="System.Collections.Generic" type="Dictionary" generic="&lt;?,?&gt;" />
     <dialect pack="System.IO" type="BinaryReader" />
     <dialect pack="System.IO" type="BinaryWriter" />
     <dialect pack="System.Text" type="StringBuilder" />
@@ -44,6 +44,16 @@
   <template key="pointer.copy">  <![CDATA[(#name) = (#arg);]]></template>
   <template key="byte.yes">      <![CDATA[(sbyte)0x01]]></template>
   <template key="byte.non">      <![CDATA[(sbyte)0x00]]></template>
+
+  <template key="init.any">    <![CDATA[ (#deft)        ]]></template>
+  <template key="init.int64">  <![CDATA[ (#deft)L       ]]></template>
+  <template key="init.uint64"> <![CDATA[ (#deft)L       ]]></template>
+  <template key="init.float">  <![CDATA[ (#deft)F       ]]></template>
+  <template key="init.string"> <![CDATA[ "(#deft)"      ]]></template>
+  <template key="init.enum">   <![CDATA[ (#type).(#name)]]></template>
+  <template key="init.struct"> <![CDATA[ new (#type)()  ]]></template>
+  <template key="init.vec">    <![CDATA[ new (#type)()  ]]></template>
+  <template key="init.map">    <![CDATA[ new (#type)()  ]]></template>
 
   <template key="file"><![CDATA[
     //===-----------------------------*  C#  *---------------------------------===//

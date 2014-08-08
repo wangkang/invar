@@ -1,30 +1,30 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <tns:root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="invar.template ../snippet.xsd"
   xmlns:tns="invar.template" language="java">
-  <export resPath="/res/java/InvarReadData.txt" destDir="invar" destName="InvarReadData.java"/>
-  <export resPath="/res/java/InvarRule.txt" destDir="invar" destName="InvarRule.java"/>
-  
-  <!-- Redefine 14 Invar buildin types to adapt Java language  -->
+  <export resPath="/res/java/InvarReadData.txt" destDir="invar" destName="InvarReadData.java" />
+  <export resPath="/res/java/InvarRule.txt" destDir="invar" destName="InvarRule.java" />
+
+  <!-- Redefine 14 Invar buildin types to adapt Java language -->
   <!-- & &amp; < &lt; > &gt; " &quot; ' &apos; -->
   <redefine>
-    <int8 pack="java.lang" type="Byte" initValue="-1"/>
-    <int16 pack="java.lang" type="Short" initValue="-1"/>
-    <int32 pack="java.lang" type="Integer" initValue="-1"/>
-    <int64 pack="java.lang" type="Long" initValue="-1" initSuffix="L"/>
-    <uint8 pack="java.lang" type="Integer" initValue="0"/>
-    <uint16 pack="java.lang" type="Integer" initValue="0"/>
-    <uint32 pack="java.lang" type="Long" initValue="0" initSuffix="L"/>
-    <uint64 pack="java.lang" type="Long" initValue="0" initSuffix="L"/>
-    <float pack="java.lang" type="Float" initValue="0.0" initSuffix="F"/>
-    <double pack="java.lang" type="Double" initValue="0.00"/>
-    <string pack="java.lang" type="String" initValue="&quot;&quot;" initPrefix="&quot;" initSuffix="&quot;"/>
-    <bool pack="java.lang" type="Boolean" initValue="false"/>
-    <vec pack="java.util" type="LinkedList" generic="&lt;?&gt;" initValue=""/>
-    <map pack="java.util" type="LinkedHashMap" generic="&lt;?,?&gt;" initValue=""/>
-    <dialect pack="java.util" type="Map"/>
-    <dialect pack="java.io" type="DataOutput"/>
-    <dialect pack="java.io" type="DataInput"/>
-    <dialect pack="java.io" type="IOException"/>
+    <int8 pack="java.lang" type="Byte" initValue="-1" />
+    <int16 pack="java.lang" type="Short" initValue="-1" />
+    <int32 pack="java.lang" type="Integer" initValue="-1" />
+    <int64 pack="java.lang" type="Long" initValue="-1" />
+    <uint8 pack="java.lang" type="Integer" initValue="0" />
+    <uint16 pack="java.lang" type="Integer" initValue="0" />
+    <uint32 pack="java.lang" type="Long" initValue="0" />
+    <uint64 pack="java.lang" type="Long" initValue="0" />
+    <float pack="java.lang" type="Float" initValue="0.0" />
+    <double pack="java.lang" type="Double" initValue="0.00" />
+    <string pack="java.lang" type="String" initValue="" />
+    <bool pack="java.lang" type="Boolean" initValue="false" />
+    <vec pack="java.util" type="LinkedList" generic="&lt;?&gt;" />
+    <map pack="java.util" type="LinkedHashMap" generic="&lt;?,?&gt;" />
+    <dialect pack="java.util" type="Map" />
+    <dialect pack="java.io" type="DataOutput" />
+    <dialect pack="java.io" type="DataInput" />
+    <dialect pack="java.io" type="IOException" />
   </redefine>
   <template key="include.self">        <![CDATA[false]]></template>
   <template key="pack.name.nested">    <![CDATA[false]]></template>
@@ -44,6 +44,18 @@
   <template key="pointer.copy">  <![CDATA[(#name) = (#arg);]]></template>
   <template key="byte.yes">      <![CDATA[(byte)0x01]]></template>
   <template key="byte.non">      <![CDATA[(byte)0x00]]></template>
+
+  <template key="init.any">    <![CDATA[ (#deft)        ]]></template>
+  <template key="init.int64">  <![CDATA[ (#deft)L       ]]></template>
+  <template key="init.uint32"> <![CDATA[ (#deft)L       ]]></template>
+  <template key="init.uint64"> <![CDATA[ (#deft)L       ]]></template>
+  <template key="init.float">  <![CDATA[ (#deft)F       ]]></template>
+  <template key="init.string"> <![CDATA[ "(#deft)"      ]]></template>
+  <template key="init.enum">   <![CDATA[ (#type).(#name)]]></template>
+  <template key="init.struct"> <![CDATA[ new (#type)()  ]]></template>
+  <template key="init.vec">    <![CDATA[ new (#type)()  ]]></template>
+  <template key="init.map">    <![CDATA[ new (#type)()  ]]></template>
+
   <template key="file"><![CDATA[
 	//===----------------------------*  Java  *---------------------------------===//
     //
@@ -140,7 +152,7 @@
     (#tab)[#codeMetaData(fields; (#index))]
     (#tab)public (#type) get[#upperHeadChar( (#name) )]() {return (#name);}
   ]]></template>
-  
+
   <!-- Method Reuse -->
   <template key="reuse.method.arg"><![CDATA[]]></template>
   <template key="reuse.method"><![CDATA[ (#tab)public (#type) reuse()
@@ -159,7 +171,7 @@
     if ((#name) != (#null)) {
     (#tab)(#body);
     }]]></template>
-  
+
   <!-- CopyFrom Method -->
   <template key="copy.method.arg"><![CDATA[from]]></template>
   <template key="copy.method"><![CDATA[ (#tab)public (#type) copy ((#type) from)
@@ -191,7 +203,7 @@
     (#tab)(#name) = (#null);
     }
   ]]></template>
-  
+
   <!-- Read bytes from a Stream -->
   <template key="read.import"><![CDATA[java.io::DataInput,java.io::IOException]]></template>
   <template key="read.method.arg"><![CDATA[from]]></template>
@@ -250,8 +262,8 @@
     if ((#arg).readByte() == (#byteyes)) {(#bodyindent)
     }
   ]]></template>
-  
-  
+
+
   <!-- Write bytes to a Stream -->
   <template key="write.import"><![CDATA[]]></template>
   <template key="write.method.arg"><![CDATA[dest]]></template>
@@ -302,8 +314,8 @@
     (#tab)(#arg).writeByte((#bytenon));
     }
   ]]></template>
-  
-  
+
+
   <!-- To XML String -->
   <template key="toxml.import"><![CDATA[]]></template>
   <template key="toxml.method.arg"><![CDATA[name]]></template>
@@ -372,8 +384,8 @@
   <template key="toxml.ptr.vec | toxml.ptr.map"><![CDATA[
     (#concat)if ((#name) != (#null) && (#name).size() > 0) {(#bodyindent)
     }]]></template>
-    
-    
+
+
   <!-- To String -->
   <template key="tostr.import"><![CDATA[]]></template>
   <template key="tostr.method.arg"><![CDATA[]]></template>
@@ -398,7 +410,7 @@
     } else {
       (#tab)result.append("null");
     } ]]></template>
-    
+
   <!-- InvarRuntime Class -->
   <template key="runtime.pack"><![CDATA[invar]]></template>
   <template key="runtime.name"><![CDATA[InvarRuntime]]></template>

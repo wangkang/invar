@@ -1,8 +1,8 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <tns:root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="invar.template ../snippet.xsd"
   xmlns:tns="invar.template" language="cpp">
-  <export resPath="/res/cpp/invar.codec.cpp" destDir="" destName="invar.codec.cpp"/>
-  <redefine genericOverride="true"/>
+  <export resPath="/res/cpp/invar.codec.cpp" destDir="" destName="invar.codec.cpp" />
+  <redefine genericOverride="true" />
   <template key="include.self">        <![CDATA[true]]></template>
   <template key="pack.name.nested">    <![CDATA[true]]></template>
   <template key="file.name.lowercase"> <![CDATA[true]]></template>
@@ -21,6 +21,12 @@
   <template key="pointer.copy">  <![CDATA[CheckSet< (#type) > ((#name), (#arg));]]></template>
   <template key="byte.yes">    <![CDATA[static_cast<int8_t>(0x01)]]></template>
   <template key="byte.non">    <![CDATA[static_cast<int8_t>(0x00)]]></template>
+
+  <template key="init.any">    <![CDATA[ (#deft)   ]]></template>
+  <template key="init.float">  <![CDATA[ (#deft)F  ]]></template>
+  <template key="init.string"> <![CDATA[ "(#deft)" ]]></template>
+  <template key="init.enum">   <![CDATA[ (#name)   ]]></template>
+
   <template key="file"><![CDATA[
 	(#blank)
 	//===----------------------------*  CPP  *---------------------------------===//
@@ -51,8 +57,6 @@
   <template key="import">      <![CDATA[using namespace (#body);(#brk)]]></template>
   <template key="import.body"> <![CDATA[(#pack)]]></template>
   <template key="import.split"><![CDATA[::]]></template>
-  <template key="init.struct"> <![CDATA[]]></template>
-  <template key="init.enum">   <![CDATA[(#name)]]></template>
   <template key="code.invoker"><![CDATA[.]]></template>
   <template key="code.assignment"><![CDATA[(#type)(#name) = (#value);(#brk)]]></template>
   <template key="code.definition"><![CDATA[(#type)(#name);(#brk)]]></template>
@@ -217,7 +221,7 @@
     (#tab)const (#type) &(#arg)_(#name) = *(#arg).(#name);(#bodyindent)
     }
   ]]></template>
-  
+
   <!-- Read bytes from a Stream -->
   <template key="read.import"><![CDATA[invar::BinaryReader]]></template>
   <template key="read.method.arg"><![CDATA[from]]></template>

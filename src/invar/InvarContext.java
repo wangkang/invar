@@ -56,8 +56,6 @@ final public class InvarContext
                                       String nameType,
                                       String generic,
                                       String initValue,
-                                      String initPrefix,
-                                      String initSuffix,
                                       String codePath)
     {
         if (TypeID.ENUM == id || TypeID.STRUCT == id || TypeID.PROTOCOL == id)
@@ -65,22 +63,22 @@ final public class InvarContext
             return this;
         }
         InvarType type = packBuildIn.getType(id);
-        InvarType typeGhost = addDialectType(namePack, nameType, generic, id, false, codePath);
+        InvarType typeGhost = addDialectType(namePack, nameType, generic, id, false, initValue, codePath);
+
         type.setRedirect(typeGhost);
         type.setInitValue(initValue);
-        type.setInitSuffix(initSuffix);
-        type.setInitPrefix(initPrefix);
         type.setCodePath(codePath);
         typeWithAlias.put(type.getName(), typeGhost);
         return this;
     }
 
     public InvarType addDialectType (String namePack,
-                               String nameType,
-                               String generic,
-                               TypeID realId,
-                               Boolean isBuildin,
-                               String codePath)
+                                     String nameType,
+                                     String generic,
+                                     TypeID realId,
+                                     Boolean isBuildin,
+                                     String initValue,
+                                     String codePath)
     {
         InvarPackage pack = packAll.get(namePack);
         if (pack == null)
@@ -91,6 +89,7 @@ final public class InvarContext
         InvarType t = new InvarType(TypeID.DIALECT, nameType, pack, "", isBuildin);
         t.setGeneric(generic);
         t.setRealId(realId);
+        t.setInitValue(initValue);
         t.setCodePath(codePath);
         pack.put(t);
         return t;

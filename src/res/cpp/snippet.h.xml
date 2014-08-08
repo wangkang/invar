@@ -1,26 +1,25 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <tns:root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="invar.template ../snippet.xsd"
   xmlns:tns="invar.template" language="cpp">
-  <export resPath="/res/cpp/invar.codec.h" destDir="" destName="invar.codec.h"/>
+  <export resPath="/res/cpp/invar.codec.h" destDir="" destName="invar.codec.h" />
   <redefine>
-    <int8 pack="std" type="int8_t" include="&lt;cstdint&gt;" initValue="-1"/>
-    <int16 pack="std" type="int16_t" include="&lt;cstdint&gt;" initValue="-1"/>
-    <int32 pack="std" type="int32_t" include="&lt;cstdint&gt;" initValue="-1"/>
-    <int64 pack="std" type="int64_t" include="&lt;cstdint&gt;" initValue="-1"/>
-    <uint8 pack="std" type="uint8_t" include="&lt;cstdint&gt;" initValue="0"/>
-    <uint16 pack="std" type="uint16_t" include="&lt;cstdint&gt;" initValue="0"/>
-    <uint32 pack="std" type="uint32_t" include="&lt;cstdint&gt;" initValue="0"/>
-    <uint64 pack="std" type="uint64_t" include="&lt;cstdint&gt;" initValue="0"/>
-    <string pack="std" type="string" include="&lt;string&gt;" initValue="&quot;&quot;" initPrefix="&quot;"
-      initSuffix="&quot;"/>
-    <float pack="" type="float" initValue="0.0" initSuffix="F"/>
-    <double pack="" type="double" initValue="0.00"/>
-    <bool pack="" type="bool" initValue="false"/>
-    <vec pack="std" type="vector" generic="&lt; ? &gt;" include="&lt;vector&gt;"/>
-    <map pack="std" type="map" generic="&lt; ?, ? &gt;" include="&lt;map&gt;"/>
-    <dialect pack="std" type="size_t" include="&lt;cstddef&gt;"/>
-    <dialect pack="invar" type="BinaryWriter" include="&quot;invar.codec.h&quot;"/>
-    <dialect pack="invar" type="BinaryReader" include="&quot;invar.codec.h&quot;"/>
+    <int8 pack="std" type="int8_t" include="&lt;cstdint&gt;" initValue="-1" />
+    <int16 pack="std" type="int16_t" include="&lt;cstdint&gt;" initValue="-1" />
+    <int32 pack="std" type="int32_t" include="&lt;cstdint&gt;" initValue="-1" />
+    <int64 pack="std" type="int64_t" include="&lt;cstdint&gt;" initValue="-1" />
+    <uint8 pack="std" type="uint8_t" include="&lt;cstdint&gt;" initValue="0" />
+    <uint16 pack="std" type="uint16_t" include="&lt;cstdint&gt;" initValue="0" />
+    <uint32 pack="std" type="uint32_t" include="&lt;cstdint&gt;" initValue="0" />
+    <uint64 pack="std" type="uint64_t" include="&lt;cstdint&gt;" initValue="0" />
+    <string pack="std" type="string" include="&lt;string&gt;" initValue="" />
+    <float pack="" type="float" initValue="0.0" />
+    <double pack="" type="double" initValue="0.00" />
+    <bool pack="" type="bool" initValue="false" />
+    <vec pack="std" type="vector" generic="&lt; ? &gt;" include="&lt;vector&gt;" />
+    <map pack="std" type="map" generic="&lt; ?, ? &gt;" include="&lt;map&gt;" />
+    <dialect pack="std" type="size_t" include="&lt;cstddef&gt;" />
+    <dialect pack="invar" type="BinaryWriter" include="&quot;invar.codec.h&quot;" />
+    <dialect pack="invar" type="BinaryReader" include="&quot;invar.codec.h&quot;" />
   </redefine>
   <template key="trace.all.types">     <![CDATA[false]]></template>
   <template key="include.self">        <![CDATA[false]]></template>
@@ -32,6 +31,9 @@
   <template key="one.pack.one.file">   <![CDATA[false]]></template>
   <template key="code.dir.flatten">    <![CDATA[true]]></template>
   <template key="code.dir.prefix">     <![CDATA[include/]]></template>
+
+  <template key="init.any"><![CDATA[(#deft)]]></template>
+
   <template key="file"><![CDATA[
 	//===----------------------------*  C++  *---------------------------------===//
 	//
@@ -107,15 +109,13 @@
     (#concat) Get[#clampLen(lenFieldName; 16; [#upperHeadChar( (#name) )] )]
     (#concat) (void)(#constblock);[#codeLineDoc(fields; (#index))]
   ]]></template>
-  
+
   <!-- Common snippet -->
   <template key="doc">           <![CDATA[/* (#doc) */]]></template>
   <template key="doc.line">      <![CDATA[(#space)//(#doc)]]></template>
   <template key="import">        <![CDATA[using namespace (#body);(#brk)]]></template>
   <template key="import.body">   <![CDATA[(#pack)]]></template>
   <template key="import.split">  <![CDATA[::]]></template>
-  <template key="init.struct">   <![CDATA[]]></template>
-  <template key="init.enum">     <![CDATA[(#name)]]></template>
   <template key="refer.spec">    <![CDATA[&]]>    </template>
   <template key="refer.invoke">  <![CDATA[.]]>    </template>
   <template key="refer.const">   <![CDATA[const]]></template>
