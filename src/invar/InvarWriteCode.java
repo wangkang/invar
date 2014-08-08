@@ -569,7 +569,7 @@ public final class InvarWriteCode extends InvarWrite
             return deft;
     }
 
-    protected String makeStructFieldInit (InvarField f, Boolean ignorePointer)
+    private String makeStructFieldInit (InvarField f, Boolean ignorePointer)
     {
         if (f.getUsePointer() && !ignorePointer)
         {
@@ -583,6 +583,10 @@ public final class InvarWriteCode extends InvarWrite
             s = snippetGet("init.any");
         }
         String deft = f.getDefault();
+        if (deft == null || deft.equals(empty))
+        {
+            deft = f.getType().getInitValue();
+        }
         switch (f.getType().getRealId()) {
         case STRUCT:
         case VEC:

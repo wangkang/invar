@@ -420,6 +420,7 @@ abstract public class InvarWrite
                 InvarType type = pack.getType(typeName);
                 s.append(TypeID.DIALECT == type.getId() ? "  # " : "    ");//4
                 s.append(fixedLen(32, pack.getName() + ruleTypeSplit + typeName));//32
+
                 if (type.getRedirect() != null)
                 {
                     InvarType typeR = type.getRedirect();
@@ -429,8 +430,9 @@ abstract public class InvarWrite
                     if (!namePack.equals(""))
                         nameR = (namePack + ruleTypeSplit) + nameR;
                     s.append(fixedLen(32, nameR));
-                    s.append(fixedLen(32, type.getCodePath()));
-                    s.append(whiteSpace + type.getInitValue());
+                    s.append(fixedLen(32, typeR.getCodePath()));
+                    s.append(whiteSpace + typeR.getInitValue());
+                    //s.append(whiteSpace + type.getInitValue());
                 }
                 s.append("\n");
             }

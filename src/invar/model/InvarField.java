@@ -134,8 +134,6 @@ public class InvarField
 
     public String getDefault ()
     {
-        if (defaultVal == null || defaultVal.equals(""))
-            this.defaultVal = getType().getInitValue();
         return defaultVal;
     }
 
@@ -182,7 +180,6 @@ public class InvarField
     public void setShortName (String shortName)
     {
         this.shortName = shortName;
-
     }
 
     public void setDeftFormatted (String deftFormatted)

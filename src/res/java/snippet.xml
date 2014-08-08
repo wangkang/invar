@@ -1,31 +1,32 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <tns:root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="invar.template ../snippet.xsd"
   xmlns:tns="invar.template" language="java">
-  <export resPath="/res/java/InvarReadData.txt" destDir="invar" destName="InvarReadData.java" />
-  <export resPath="/res/java/InvarRule.txt" destDir="invar" destName="InvarRule.java" />
+  <export resPath="/res/java/InvarReadData.txt" destDir="invar" destName="InvarReadData.java"/>
+  <export resPath="/res/java/InvarRule.txt" destDir="invar" destName="InvarRule.java"/>
 
   <!-- Redefine 14 Invar buildin types to adapt Java language -->
   <!-- & &amp; < &lt; > &gt; " &quot; ' &apos; -->
   <redefine>
-    <int8 pack="java.lang" type="Byte" initValue="-1" />
-    <int16 pack="java.lang" type="Short" initValue="-1" />
-    <int32 pack="java.lang" type="Integer" initValue="-1" />
-    <int64 pack="java.lang" type="Long" initValue="-1" />
-    <uint8 pack="java.lang" type="Integer" initValue="0" />
-    <uint16 pack="java.lang" type="Integer" initValue="0" />
-    <uint32 pack="java.lang" type="Long" initValue="0" />
-    <uint64 pack="java.lang" type="Long" initValue="0" />
-    <float pack="java.lang" type="Float" initValue="0.0" />
-    <double pack="java.lang" type="Double" initValue="0.00" />
-    <string pack="java.lang" type="String" initValue="" />
-    <bool pack="java.lang" type="Boolean" initValue="false" />
-    <vec pack="java.util" type="LinkedList" generic="&lt;?&gt;" />
-    <map pack="java.util" type="LinkedHashMap" generic="&lt;?,?&gt;" />
-    <dialect pack="java.util" type="Map" />
-    <dialect pack="java.io" type="DataOutput" />
-    <dialect pack="java.io" type="DataInput" />
-    <dialect pack="java.io" type="IOException" />
+    <int8 pack="   java.lang" type="Byte   " initValue="-1"/>
+    <int16 pack="  java.lang" type="Short  " initValue="-1"/>
+    <int32 pack="  java.lang" type="Integer" initValue="-1"/>
+    <int64 pack="  java.lang" type="Long   " initValue="-1"/>
+    <uint8 pack="  java.lang" type="Integer" initValue="0"/>
+    <uint16 pack=" java.lang" type="Integer" initValue="0"/>
+    <uint32 pack=" java.lang" type="Long   " initValue="0"/>
+    <uint64 pack=" java.lang" type="Long   " initValue="0"/>
+    <float pack="  java.lang" type="Float  " initValue="0.0"/>
+    <double pack=" java.lang" type="Double " initValue="0.00"/>
+    <string pack=" java.lang" type="String " initValue=""/>
+    <bool pack="   java.lang" type="Boolean" initValue="false"/>
+    <vec pack="    java.util" type="LinkedList   " generic="&lt;?&gt;"/>
+    <map pack="    java.util" type="LinkedHashMap" generic="&lt;?,?&gt;"/>
+    <dialect pack="java.util" type="Map"/>
+    <dialect pack="java.io" type="DataOutput"/>
+    <dialect pack="java.io" type="DataInput"/>
+    <dialect pack="java.io" type="IOException"/>
   </redefine>
+  <template key="trace.all.types">     <![CDATA[false]]></template>
   <template key="include.self">        <![CDATA[false]]></template>
   <template key="pack.name.nested">    <![CDATA[false]]></template>
   <template key="file.name.lowercase"> <![CDATA[false]]></template>
@@ -44,7 +45,6 @@
   <template key="pointer.copy">  <![CDATA[(#name) = (#arg);]]></template>
   <template key="byte.yes">      <![CDATA[(byte)0x01]]></template>
   <template key="byte.non">      <![CDATA[(byte)0x00]]></template>
-
   <template key="init.any">    <![CDATA[ (#deft)        ]]></template>
   <template key="init.int64">  <![CDATA[ (#deft)L       ]]></template>
   <template key="init.uint32"> <![CDATA[ (#deft)L       ]]></template>
@@ -55,7 +55,6 @@
   <template key="init.struct"> <![CDATA[ new (#type)()  ]]></template>
   <template key="init.vec">    <![CDATA[ new (#type)()  ]]></template>
   <template key="init.map">    <![CDATA[ new (#type)()  ]]></template>
-
   <template key="file"><![CDATA[
 	//===----------------------------*  Java  *---------------------------------===//
     //
@@ -81,11 +80,6 @@
   <template key="import.exclude.packs"><![CDATA[java.lang]]></template>
   <template key="doc"><![CDATA[/** (#doc) */]]></template>
   <template key="doc.line"><![CDATA[ //(#doc)]]></template>
-  <template key="init.struct"><![CDATA[new (#type)()]]></template>
-  <template key="init.enum"><![CDATA[(#type).(#name)]]></template>
-  <template key="code.assignment"><![CDATA[(#type)(#name) = (#value);(#brk)]]></template>
-  <template key="code.definition"><![CDATA[(#type) (#name);(#brk)]]></template>
-  <template key="code.indexer"><![CDATA[ //XXX ?(#name).get((#index)) ]]></template>
   <template key="enum.field"><![CDATA[
     (#brk)(#tab)(#doc)
     (#tab)(#name) ((#value), "(#name)"),]]></template>

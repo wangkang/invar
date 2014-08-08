@@ -91,7 +91,9 @@ final public class InvarSnippet
         Node n = node.getAttributes().getNamedItem(name);
         String v = empty;
         if (n != null)
+        {
             v = n.getNodeValue();
+        }
         return v;
     }
 
@@ -136,6 +138,7 @@ final public class InvarSnippet
             String include = getAttrOptional(n, "include");
             type = type.trim();
             pack = pack.trim();
+            initValue = initValue.trim();
             InvarType buildInT = c.findBuildInType(typeName);
             if (buildInT == null)
             {

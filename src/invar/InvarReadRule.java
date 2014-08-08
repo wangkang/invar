@@ -436,8 +436,7 @@ final public class InvarReadRule
     {
         String str = "";
         str = getAttrOptional(node, ATTR_FIELD_DEFT);
-        if (str != null && !str.equals(""))
-            field.setDefault(str);
+        field.setDefault(str != null ? str : "");
     }
 
     private String getAttrOptional (Node node, String name)
