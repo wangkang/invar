@@ -7,9 +7,10 @@ import invar.model.TypeEnum;
 import invar.model.TypeProtocol;
 import invar.model.TypeStruct;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -22,15 +23,13 @@ import java.util.List;
 
 abstract public class InvarWrite
 {
+    abstract void resetCodePathes (Boolean merge, String suffix);
 
-    abstract protected Boolean beforeWrite (InvarContext ctx);
+    abstract void codeRuntime (String suffix);
 
-    abstract protected String codeOneFile (String packName,
-                                           String filePath,
-                                           List<TypeEnum> enums,
-                                           List<TypeStruct> structs);
+    abstract Boolean beforeWrite (InvarContext ctx);
 
-    abstract protected void codeRuntime (String suffix);
+    abstract String codeOneFile (String packName, String filePath, List<TypeEnum> enums, List<TypeStruct> structs);
 
     final static String                     empty              = "";
     final static String                     whiteSpace         = " ";
@@ -42,13 +41,12 @@ abstract public class InvarWrite
     final static private String             GENERIC_LEFT       = "<";
     final static private String             GENERIC_RIGHT      = ">";
 
-    final private InvarContext              context;
+    final InvarContext                      context;
     final private HashMap<String,String>    exports;
     final private HashMap<String,InvarType> typeForShort;
     final private String                    dirRootPath;
 
     private File                            dirRoot;
-    private String                          suffix;
 
     String                                  dirPrefix          = empty;
     Boolean                                 traceAllTypes      = false;
@@ -65,7 +63,6 @@ abstract public class InvarWrite
 
     public InvarWrite(InvarContext context, String dirRootPath)
     {
-        this.suffix = ".x";
         this.dirRootPath = dirRootPath;
         this.context = context;
         this.exports = new HashMap<String,String>();
@@ -79,7 +76,6 @@ abstract public class InvarWrite
 
     final public void write (String suffix, Boolean merge) throws Throwable
     {
-        this.suffix = suffix;
         if (getContext() == null)
             return;
         if (!merge)
@@ -108,66 +104,9 @@ abstract public class InvarWrite
             else
                 makePackageDirs();
 
-            resetCodePathes(merge);
+            resetCodePathes(merge, suffix);
             startWritting(suffix);
         }
-    }
-
-    private void resetCodePathes (Boolean merge)
-    {
-        Iterator<String> iPack = context.getPackNames();
-        while (iPack.hasNext())
-        {
-            InvarPackage pack = context.getPack(iPack.next());
-            if (context.isBuildInPack(pack))
-                continue;
-
-            String name = pack.getName();
-            Iterator<String> iType = pack.getTypeNames();
-            while (iType.hasNext())
-            {
-                String typeName = iType.next();
-                InvarType type = pack.getType(typeName);
-                if (onePackOneFile == false)
-                {
-                    name = typeName;
-                    if (flattenCodeDir)
-                    {
-                        name = type.fullName("_");
-                    }
-                }
-                String path = flattenCodeDir ? name : type.fullName("/");
-                //path = dirPrefix + path;
-                path = wrapCodePath(path);
-                switch (type.getId()) {
-                case ENUM:
-                case STRUCT:
-                    resetCodePath(type, path, name, merge);
-                    break;
-                case PROTOCOL:
-                    resetCodePath(type, path, name, merge);
-                    TypeProtocol t = (TypeProtocol)type;
-                    if (t.hasClient())
-                    {
-                        resetCodePath(t.getClient(), path, name, merge);
-                    }
-                    if (t.hasServer())
-                    {
-                        resetCodePath(t.getServer(), path, name, merge);
-                    }
-                    break;
-                default:
-                    break;
-                }
-            }
-        }
-    }
-
-    private void resetCodePath (InvarType type, String path, String name, Boolean merge)
-    {
-        type.setCodeName(name);
-        if (!merge)
-            type.setCodePath(path);
     }
 
     private void startWritting (String suffix) throws Exception
@@ -244,7 +183,7 @@ abstract public class InvarWrite
             if (onePackOneFile == true)
             {
                 String fileName = pack.getName() + suffix;
-                String filePath = wrapCodePath(dirPrefix + fileName);
+                String filePath = dirPrefix + fileName + suffix;
                 if (lowerFileName)
                 {
                     fileName = fileName.toLowerCase();
@@ -258,11 +197,6 @@ abstract public class InvarWrite
         } // while (i.hasNext())
         codeRuntime(suffix);
         writeFiles(files);
-    }
-
-    private String wrapCodePath (String path)
-    {
-        return "\"" + path + suffix + "\"";
     }
 
     final protected InvarContext getContext ()
@@ -388,7 +322,7 @@ abstract public class InvarWrite
         {
             File file = i.next();
             String content = files.get(file);
-            FileWriter writer = new FileWriter(file, false);
+            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
             writer.write(content == null ? "" : content);
             writer.close();
             log("write -> " + file.getAbsolutePath());

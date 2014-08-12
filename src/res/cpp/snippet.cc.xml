@@ -42,7 +42,7 @@
 	(#pack)
 	(#blank)
 	#endif //IMPL_(#define)_]]></template>
-  <template key="file.include"><![CDATA[#include (#name)(#brk)]]></template>
+  <template key="file.include"><![CDATA[#include "(#name)"(#brk)]]></template>
   <template key="file.pack"><![CDATA[
 	namespace (#name) { (#body)
 	} //namespace: (#name)]]></template>

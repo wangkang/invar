@@ -18,8 +18,8 @@
     <vec pack="std" type="vector" generic="&lt; ? &gt;" include="&lt;vector&gt;" />
     <map pack="std" type="map" generic="&lt; ?, ? &gt;" include="&lt;map&gt;" />
     <dialect pack="std" type="size_t" include="&lt;cstddef&gt;" />
-    <dialect pack="invar" type="BinaryWriter" include="&quot;invar.codec.h&quot;" />
-    <dialect pack="invar" type="BinaryReader" include="&quot;invar.codec.h&quot;" />
+    <dialect pack="invar" type="BinaryWriter" include="invar.codec.h" />
+    <dialect pack="invar" type="BinaryReader" include="invar.codec.h" />
   </redefine>
   <template key="trace.all.types">     <![CDATA[false]]></template>
   <template key="include.self">        <![CDATA[false]]></template>
@@ -49,7 +49,8 @@
 	(#blank)
 	#endif //(#define)_
   ]]></template>
-  <template key="file.include"><![CDATA[#include (#name)(#brk)]]></template>
+  <template key="file.include">     <![CDATA[ #include (#name)(#brk) ]]></template>
+  <template key="file.include.wrap"><![CDATA[ "(#value)" ]]></template>
   <template key="file.pack"><![CDATA[
 	namespace (#name) {
 	(#body)

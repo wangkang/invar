@@ -3,7 +3,9 @@ package invar;
 import invar.InvarSnippet.Key;
 import invar.InvarSnippet.Token;
 import invar.model.InvarField;
+import invar.model.InvarPackage;
 import invar.model.InvarType;
+import invar.model.TypeProtocol;
 import invar.model.InvarType.TypeID;
 import invar.model.TypeEnum;
 import invar.model.TypeStruct;
@@ -239,7 +241,7 @@ public final class InvarWriteCode extends InvarWrite
     }
 
     @Override
-    protected String codeOneFile (String packName, String filePath, List<TypeEnum> enums, List<TypeStruct> structs)
+    String codeOneFile (String packName, String filePath, List<TypeEnum> enums, List<TypeStruct> structs)
     {
         fileIncludes.clear();
         TreeSet<String> imps = new TreeSet<String>();
@@ -253,7 +255,13 @@ public final class InvarWriteCode extends InvarWrite
             String codePath = getContext().findBuildInType(TypeID.INT32).getRedirect().getCodePath();
             fileIncludes.add(codePath);
         }
-
+        String[] names;
+        names = packName.split(dotToken);
+        String relatives = empty;
+        for (int i = 0; i < names.length; i++)
+        {
+            relatives += "../";
+        }
         StringBuilder includes = new StringBuilder();
         Iterator<String> iter = fileIncludes.descendingIterator();
         while (iter.hasNext())
@@ -265,14 +273,14 @@ public final class InvarWriteCode extends InvarWrite
             if (inc.equals(empty))
                 continue;
             s = replace(s, Token.Name, inc);
+            s = replace(s, Token.NameUpper, relatives);
             includes.append(s);
         }
 
         List<String> packNames = new LinkedList<String>();
         if (packNameNested)
         {
-            String[] names;
-            names = packName.split(dotToken);
+
             for (String n : names)
                 packNames.add(n);
         }
@@ -293,6 +301,65 @@ public final class InvarWriteCode extends InvarWrite
         s = replace(s, Token.Pack, codeOneFilePack(packNames, body));
         s = replace(s, Token.Includes, includes.toString());
         return s;
+    }
+
+    @Override
+    void resetCodePathes (Boolean merge, String suffix)
+    {
+        Iterator<String> iPack = context.getPackNames();
+        while (iPack.hasNext())
+        {
+            InvarPackage pack = context.getPack(iPack.next());
+            if (context.isBuildInPack(pack))
+                continue;
+
+            String name = pack.getName();
+            Iterator<String> iType = pack.getTypeNames();
+            while (iType.hasNext())
+            {
+                String typeName = iType.next();
+                InvarType type = pack.getType(typeName);
+                if (onePackOneFile == false)
+                {
+                    name = typeName;
+                    if (flattenCodeDir)
+                    {
+                        name = type.fullName("_");
+                    }
+                }
+                String split = snippetTryGet(Key.FILE_INCLUDE + ".split", "/");
+                String path = flattenCodeDir ? name : type.fullName(split);
+                //path = dirPrefix + path;
+                path = (path + suffix);
+                switch (type.getId()) {
+                case ENUM:
+                case STRUCT:
+                    resetCodePath(type, path, name, merge);
+                    break;
+                case PROTOCOL:
+                    resetCodePath(type, path, name, merge);
+                    TypeProtocol t = (TypeProtocol)type;
+                    if (t.hasClient())
+                    {
+                        resetCodePath(t.getClient(), path, name, merge);
+                    }
+                    if (t.hasServer())
+                    {
+                        resetCodePath(t.getServer(), path, name, merge);
+                    }
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+    }
+
+    private void resetCodePath (InvarType type, String path, String name, Boolean merge)
+    {
+        type.setCodeName(name);
+        if (!merge)
+            type.setCodePath(path);
     }
 
     String codeOneFileBody (List<TypeEnum> enums, List<TypeStruct> structs, TreeSet<String> imps)
@@ -732,15 +799,22 @@ public final class InvarWriteCode extends InvarWrite
             if (lowerFileName)
                 include = include.toLowerCase();
 
+            String s = include;
+            if (t.getRealId() == TypeID.STRUCT || t.getRealId() == TypeID.DIALECT || t.getRealId() == TypeID.ENUM)
+            {
+                s = snippetTryGet(Key.FILE_INCLUDE + ".wrap", include);
+                s = replace(s, Token.Value, include);
+            }
+
             if (includeSelf)
             {
                 if (t == struct)
-                    fileIncludes.add(include);
+                    fileIncludes.add(s);
             }
             else
             {
                 if (t != struct)
-                    fileIncludes.add(include);
+                    fileIncludes.add(s);
             }
         }
         //TODO if (impExcludeConflict && t.getIsConflict())

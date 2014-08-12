@@ -105,7 +105,7 @@
     [#addImport(struct; imports; System.IO::BinaryWriter)]
     [#addImport(struct; imports; System.Text::StringBuilder)]
     (#concat)
-    public sealed class (#name)
+    public sealed class (#name) : RushPacket
     {
     [#codeFields (struct; fields)]
     [#codeGetters(struct; fields)]
@@ -192,7 +192,7 @@
   <template key="read.import"><![CDATA[System.IO::BinaryReader]]></template>
   <template key="read.method.arg"><![CDATA[from_]]></template>
   <template key="read.method"><![CDATA[
-    (#tab)public (#type) Read(BinaryReader from_)
+    (#tab)public override RushPacket Read(BinaryReader from_)
     (#tab){(#body)
     (#tab)(#tab)return this;
     (#tab)} ]]></template>
@@ -258,7 +258,7 @@
   <template key="write.import"><![CDATA[System.IO::BinaryWriter]]></template>
   <template key="write.method.arg"><![CDATA[dest]]></template>
   <template key="write.method"><![CDATA[
-    (#tab)public (#type) Write(BinaryWriter dest)
+    (#tab)public override RushPacket Write(BinaryWriter dest)
     (#tab){(#body)
     (#tab)(#tab)return this;
     (#tab)} ]]></template>
