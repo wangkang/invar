@@ -68,8 +68,8 @@
     //===----------------------------------------------------------------------===//
     (#blank)
     (#pack) ]]></template>
-  <template key="file.include">      <![CDATA[ require_once (#name);(#brk) ]]></template>
-  <template key="file.include.wrap"> <![CDATA[ '(#nameupper)(#value)' ]]></template>
+  <template key="file.include">      <![CDATA[ require_once dirname(__FILE__) . (#name);(#brk) ]]></template>
+  <template key="file.include.wrap"> <![CDATA[ '/(#nameupper)(#value)' ]]></template>
   <template key="file.include.split"><![CDATA[/]]></template>
   <template key="file.pack.split"><![CDATA[\]]></template>
   <template key="file.pack"><![CDATA[
@@ -172,9 +172,8 @@
   <!-- Read bytes from a Stream -->
   <template key="read.method.arg"><![CDATA[\$bytes_]]></template>
   <template key="read.method"><![CDATA[
-    (#tab)public function read (&\$from_)
-    (#tab){
-    (#tab)(#tab)\$bytes_ = new BinaryReader(\$from_);(#body)
+    (#tab)public function read (&\$bytes_)
+    (#tab){(#body)
     (#tab)}]]></template>
   <template key="read.int8">  <![CDATA[ (#arg)->readInt08()  ]]></template>
   <template key="read.int16"> <![CDATA[ (#arg)->readInt16()  ]]></template>
@@ -189,7 +188,7 @@
   <template key="read.string"><![CDATA[ (#arg)->readUTF()    ]]></template>
   <template key="read.bool">  <![CDATA[ (#arg)->readBoolean()]]></template>
   <template key="read.enum">  <![CDATA[ (#arg)->readInt32()  ]]></template>
-  <template key="read.struct"><![CDATA[ \$(#name)->read(\$from_) ]]></template>
+  <template key="read.struct"><![CDATA[ \$(#name)->read(\$bytes_) ]]></template>
   <template key="read.nest.n|read.nest.k|read.nest.v"><![CDATA[ \$(#name) = (#body); ]]></template>
   <template key="read.nest.n.struct|read.nest.k.struct|read.nest.v.struct"><![CDATA[
     \$(#name) = new (#type)();(#brk)(#body); ]]></template>
@@ -253,12 +252,12 @@
   <template key="write.nest.k"><![CDATA[ (#body); ]]></template>
   <template key="write.nest.v"><![CDATA[ (#body); ]]></template>
   <template key="write.vec.head"><![CDATA[]]></template>
-  <template key="write.vec.for"><![CDATA[ BinaryWriter::writeInt32(\$(#name), (#arg));
+  <template key="write.vec.for"><![CDATA[ BinaryWriter::writeInt32(count(\$(#name)), (#arg));
     foreach (\$(#name) as &\$(#value)) {(#body)
     } ]]></template>
   <template key="write.map.head.k"><![CDATA[]]></template>
   <template key="write.map.head.v"><![CDATA[]]></template>
-  <template key="write.map.for"><![CDATA[ BinaryWriter::writeInt32(\$(#name), (#arg));
+  <template key="write.map.for"><![CDATA[ BinaryWriter::writeInt32(count(\$(#name)), (#arg));
     foreach (\$(#name) as \$(#key) => &\$(#value)) {(#body)
     } ]]></template>
   <template key="write.ref.any"><![CDATA[(#body);]]></template>

@@ -23,6 +23,7 @@
     <dialect pack="System.IO" type="BinaryReader" />
     <dialect pack="System.IO" type="BinaryWriter" />
     <dialect pack="System.Text" type="StringBuilder" />
+    <dialect pack="System.Text" type="Encoding" />
   </redefine>
 
   <!-- Common snippet -->
@@ -206,7 +207,7 @@
   <template key="read.uint64"><![CDATA[ (#arg).ReadUInt64() ]]></template>
   <template key="read.float"> <![CDATA[ (#arg).ReadSingle() ]]></template>
   <template key="read.double"><![CDATA[ (#arg).ReadDouble() ]]></template>
-  <template key="read.string"><![CDATA[ (#arg).ReadString() ]]></template>
+  <template key="read.string"><![CDATA[ Encoding.UTF8.GetString((#arg).ReadBytes((#arg).ReadInt32())) ]]></template>
   <template key="read.bool">  <![CDATA[ (#arg).ReadBoolean()]]></template>
   <template key="read.enum">  <![CDATA[ ((#type))Enum.ToObject(typeof((#type)), (#arg).ReadInt32()) ]]></template>
   <template key="read.struct"><![CDATA[ (#name).Read((#arg)) ]]></template>
@@ -226,7 +227,7 @@
     (#sizetype) (#len) = (#arg).ReadUInt32();
     for ((#sizetype) (#index) = 0; (#index) < (#len); (#index)++)
     {(#body)
-    (#tab)if ((#name).ContainsKey((#key))) {
+    (#tab)if (!(#name).ContainsKey((#key))) {
     (#tab)(#tab)(#name).Add((#key), (#value));
     (#tab)} else {
     (#tab)(#tab)(#name)[(#key)] = (#value);
@@ -263,6 +264,10 @@
     (#tab)(#tab)return this;
     (#tab)} ]]></template>
   <template key="write.any">   <![CDATA[ (#arg).Write((#name)) ]]></template>
+  <template key="write.string">   <![CDATA[ 
+  byte[] (#name)Bytes = Encoding.UTF8.GetBytes((#name));
+  (#arg).Write((#name)Bytes.Length);
+  (#arg).Write((#name)Bytes)[#addImport(struct; imports; System.Text::Encoding)] ]]></template>
   <template key="write.enum">  <![CDATA[ (#arg).Write((Int32)(#name)) ]]></template>
   <template key="write.struct"><![CDATA[ (#name).Write((#arg)) ]]></template>
   <template key="write.vec.for"><![CDATA[
