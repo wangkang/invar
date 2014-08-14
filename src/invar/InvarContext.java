@@ -222,4 +222,18 @@ final public class InvarContext
         return ruleDir;
     }
 
+    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
+
+    public static char[] bytesToHex (byte[] bytes)
+    {
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++)
+        {
+            int i = j * 2;
+            int v = bytes[j] & 0xFF;
+            hexChars[i] = hexArray[v >>> 4];
+            hexChars[i + 1] = hexArray[v & 0x0F];
+        }
+        return hexChars;
+    }
 }

@@ -2,18 +2,26 @@ package invar.lang;
 
 import java.util.ArrayList;
 
-public class CodeFile
+final class CodeFile
 {
-    private final String   code;
     private final CodeLine lines[];
 
     public CodeFile()
     {
-        this.code = "";
         this.lines = new CodeLine[0];
     }
 
-    public CodeFile(String code)
+    public int numLines ()
+    {
+        return lines.length;
+    }
+
+    public CodeLine getLine (int i)
+    {
+        return lines[i];
+    }
+
+    public CodeFile(final String code)
     {
         ArrayList<CodeLine> list = new ArrayList<CodeLine>();
         int from = 0;
@@ -31,10 +39,7 @@ public class CodeFile
             else if ('\n' == c)
             {
                 --delta;
-                if (from < dest + delta)
-                {
-                    list.add(new CodeLine(from, dest + delta, code, list.size()));
-                }
+                list.add(new CodeLine(from, dest + delta, code, list.size()));
                 from = dest;
             }
             else
@@ -46,7 +51,6 @@ public class CodeFile
         {
             list.add(new CodeLine(from, dest, code, list.size()));
         }
-        this.code = code;
         this.lines = list.toArray(new CodeLine[list.size()]);
     }
 

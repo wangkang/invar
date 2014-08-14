@@ -50,6 +50,9 @@ final class BinaryReader {
 	private $bytesPos = 1;
 	private $bytesLen = 0;
 	function __construct(&$data) {
+		if (is_null ( $data )) {
+			throw new \Exception ( '$data is null' );
+		}
 		// $data The packed data.
 		$this->data = $data;
 		$this->bytes = unpack ( "C*", $data ); // index begin from 1.
@@ -71,7 +74,7 @@ final class BinaryReader {
 		$bits = $this->bytes [$this->bytesPos];
 		$sign = ($bits >> 7) == 0 ? 1 : - 1;
 		$this->bytesPos ++;
-		return (~ ($bits - 1)) * $sign;
+		return $sign < 0 ? ((~ ($bits - 1)) & 0xFF) * $sign : $bits;
 	}
 	public function readInt16() {
 		$this->checkAvailable ( 2 );
@@ -81,7 +84,7 @@ final class BinaryReader {
 		$this->bytesPos ++;
 		$sign = ($b2 >> 7) == 0 ? 1 : - 1;
 		$bits = ($b2 << 8) | $b1;
-		return (~ ($bits - 1)) * $sign;
+		return $sign < 0 ? ((~ ($bits - 1)) & 0xFFFF) * $sign : $bits;
 	}
 	public function readInt32() {
 		$this->checkAvailable ( 4 );
@@ -95,7 +98,7 @@ final class BinaryReader {
 		$this->bytesPos ++;
 		$sign = ($b4 >> 7) == 0 ? 1 : - 1;
 		$bits = ($b4 << 24) | ($b3 << 16) | ($b2 << 8) | $b1;
-		return (~ ($bits - 1)) * $sign;
+		return $sign < 0 ? (~ ($bits - 1)) * $sign : $bits;
 	}
 	public function readInt64() {
 		$this->checkAvailable ( 8 );
@@ -155,7 +158,7 @@ final class BinaryReader {
 	}
 	public function readFloat32() {
 		/* s（sign）；e（exponent）；m （mantissa） */
-		$bits = $this->readInt32 ();
+		$bits = $this->readUInt32 ();
 		$s = ($bits >> 31) == 0 ? 1 : - 1;
 		$e = ($bits >> 23) & 0xff;
 		$m = ($e == 0) ? ($bits & 0x007fffff) << 1 : ($bits & 0x007fffff) | 0x800000;

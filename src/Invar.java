@@ -3,6 +3,7 @@ import invar.InvarMainArgs;
 import invar.InvarReadRule;
 import invar.InvarWriteCode;
 import invar.InvarWriteXSD;
+import invar.lang.CodeParser;
 import invar.model.InvarType.TypeID;
 import java.util.Date;
 import java.util.TreeMap;
@@ -85,6 +86,7 @@ final public class Invar
         {
             e.printStackTrace();
         }
+        new CodeParser().parse("\n\npackage abc\n{ \n\n}\n\r\n", "abc.invar");
     }
 
     static void showHelp ()
