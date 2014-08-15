@@ -39,7 +39,7 @@ final class CodeFile
             else if ('\n' == c)
             {
                 --delta;
-                list.add(new CodeLine(from, dest + delta, code, list.size()));
+                list.add(new CodeLine(list.size(), from, dest + delta, code));
                 from = dest;
             }
             else
@@ -49,7 +49,7 @@ final class CodeFile
         }
         if (from < dest)
         {
-            list.add(new CodeLine(from, dest, code, list.size()));
+            list.add(new CodeLine(list.size(), from, dest, code));
         }
         this.lines = list.toArray(new CodeLine[list.size()]);
     }
