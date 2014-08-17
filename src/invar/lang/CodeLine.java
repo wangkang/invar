@@ -1,25 +1,24 @@
 package invar.lang;
 
-class CodeLine
+final class CodeLine
 {
-    static public int    maxLines;
+    static public int          maxLines;
 
-    private final String code;    // source code file text content
-    private final int    index;   // line number
-    private final int    realFrom; // begin index of this line
-    private final int    realDest; // end index of this line
-    private final int    from;    // begin index,  white spcace at beginning excluded
-    private final int    dest;    // end index, white spcace at ending excluded
+    private final CharSequence code;    // source code file text content
+    private final int          index;   // line number
+    private final int          from;    // begin index of this line
+    private final int          dest;    // end index of this line
 
-    public CodeLine(int index, int iFrom, int iDest, final String code)
+    public CodeLine(int index, int iFrom, int iDest, final CodeFile file)
     {
-        this.code = code;
         this.index = index;
+        this.code = file.getCode();
         // [from, dest)
-        this.realFrom = iFrom < 0 ? 0 : iFrom;
-        this.realDest = iDest < iFrom ? iFrom : iDest;
-        int fromValid = this.realFrom;
-        int destValid = this.realDest;
+        this.from = iFrom < 0 ? 0 : iFrom;
+        this.dest = iDest < iFrom ? iFrom : iDest;
+
+        int fromValid = this.from;
+        int destValid = this.dest;
         for (int i = fromValid; i < iDest; ++i)
         {
             char c = code.charAt(i);
@@ -36,8 +35,6 @@ class CodeLine
             else
                 break;
         }
-        this.from = fromValid;
-        this.dest = destValid;
     }
 
     public int numChars ()
@@ -73,7 +70,7 @@ class CodeLine
         s.append(" | ");
         if (numChars() > 0)
         {
-            s.append(code.substring(from, dest));
+            s.append(code.subSequence(from, dest));
         }
         return s.toString();
     }

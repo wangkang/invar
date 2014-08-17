@@ -1,14 +1,29 @@
 package invar.lang;
 
+import invar.lang.lex.InvarLexer;
+import invar.lang.lex.LexPattern;
+import invar.lang.lex.LexToken;
 import java.util.ArrayList;
+import java.util.List;
 
 final class CodeFile
 {
-    private final CodeLine lines[];
+    private final String       path;
+    private final CharSequence code;
+    private final CodeLine[]   lines;
+    private final InvarLexer   lexer;
 
-    public CodeFile()
+    public CodeFile(final CharSequence code, final String path)
     {
-        this.lines = new CodeLine[0];
+        this.code = code;
+        this.path = path;
+        this.lines = initCodeLines(code, this);
+        this.lexer = new InvarLexer(code, LexPattern.FILE);
+    }
+
+    public List<LexToken> scan ()
+    {
+        return lexer.scan();
     }
 
     public int numLines ()
@@ -21,7 +36,27 @@ final class CodeFile
         return lines[i];
     }
 
-    public CodeFile(final String code)
+    public String getPath ()
+    {
+        return path;
+    }
+
+    public CharSequence getCode ()
+    {
+        return code;
+    }
+
+    public String toString ()
+    {
+        StringBuilder s = new StringBuilder();
+        for (CodeLine line : lines)
+        {
+            s.append(line.toString());
+        }
+        return s.toString();
+    }
+
+    static private CodeLine[] initCodeLines (final CharSequence code, final CodeFile file)
     {
         ArrayList<CodeLine> list = new ArrayList<CodeLine>();
         int from = 0;
@@ -39,7 +74,7 @@ final class CodeFile
             else if ('\n' == c)
             {
                 --delta;
-                list.add(new CodeLine(list.size(), from, dest + delta, code));
+                list.add(new CodeLine(list.size(), from, dest + delta, file));
                 from = dest;
             }
             else
@@ -49,18 +84,9 @@ final class CodeFile
         }
         if (from < dest)
         {
-            list.add(new CodeLine(list.size(), from, dest, code));
+            list.add(new CodeLine(list.size(), from, dest, file));
         }
-        this.lines = list.toArray(new CodeLine[list.size()]);
+        return list.toArray(new CodeLine[list.size()]);
     }
 
-    public String toString ()
-    {
-        StringBuilder s = new StringBuilder();
-        for (CodeLine line : lines)
-        {
-            s.append(line.toString());
-        }
-        return s.toString();
-    }
 }

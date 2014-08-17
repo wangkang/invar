@@ -1,40 +1,42 @@
 package invar.lang;
 
+import invar.lang.lex.LexToken;
 import java.util.HashMap;
+import java.util.List;
 
 public final class CodeParser
 {
-    final SyntaxNode               syntax;
+
     final HashMap<String,CodeFile> files;
 
     public CodeParser()
     {
-        syntax = SyntaxNode.build();
+
         files = new HashMap<String,CodeFile>(64);
     }
 
-    public void parse (String fileText, String path)
+    public void parse (String fileText, String path) throws Exception
     {
         if (path == null)
         {
-            throw new ArithmeticException("Argument 'path' is null");
+            throw new Exception("Argument 'path' is null");
         }
         if (fileText == null)
         {
-            throw new ArithmeticException("Argument 'fileText' is null");
+            throw new Exception("Argument 'fileText' is null");
         }
-        CodeFile file = new CodeFile(fileText);
-        files.put(path, file);
+        CodeFile file = new CodeFile(fileText, path);
 
-        syntax.reset();
-        int len = file.numLines();
-        SyntaxNode node = syntax;
-        for (int i = 0; i < len; i++)
+        List<LexToken> tokens = file.scan();
+
+        for (LexToken token : tokens)
         {
-            CodeLine line = file.getLine(i);
-            node = node.parse(line, 0);
+            System.out.println("CodeParser.parse() token: ");
+            System.out.println(token.toString());
         }
-        
+
+        files.put(path, file);
         System.out.println("\nCodeParser.parse()\n" + file.toString());
+
     }
 }
