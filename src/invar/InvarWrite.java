@@ -228,10 +228,19 @@ abstract public class InvarWrite
             byte[] bs;
             try
             {
-                bs = new byte[res.available()];
+                int len = res.available();
+                bs = new byte[len];
                 res.read(bs);
                 char[] chars = getChars(bs);
-                addExportFile(fileDir, fileName, String.copyValueOf(chars));
+                StringBuilder s = new StringBuilder(len);
+                for (int i = 0; i < chars.length; i++)
+                {
+                    char c = chars[i];
+                    if (c == '\0')
+                        break;
+                    s.append(c);
+                }
+                addExportFile(fileDir, fileName, s.toString());
             }
             catch (IOException e)
             {
