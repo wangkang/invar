@@ -245,12 +245,19 @@
   ]]></template>
   <template key="read.ptr.struct"><![CDATA[
     if ((#arg).ReadSByte() == (#byteyes)) {
+    (#tab)if ((#name) == (#null)) {
+    (#tab)(#tab)(#name) = new (#type)();
+    (#tab)}
     (#tab)(#body);
     }
   ]]></template>
   <template key="read.ptr.vec|read.ptr.map"><![CDATA[
-    (#name).Clear();
-    if ((#arg).ReadSByte() == (#byteyes)) {(#bodyindent)
+    if ((#arg).ReadSByte() == (#byteyes)) {
+    (#tab)if ((#name) == (#null)) {
+    (#tab)(#tab)(#name) = new (#type)();
+    (#tab)} else {
+    (#tab)(#tab)(#name).Clear();
+    (#tab)}(#bodyindent)
     }
   ]]></template>
 

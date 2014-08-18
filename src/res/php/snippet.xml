@@ -40,8 +40,8 @@
   <template key="pointer.invoke"><![CDATA[->]]></template>
   <template key="pointer.null">  <![CDATA[NULL]]></template>
   <template key="pointer.copy">  <![CDATA[(#name) = (#arg);]]></template>
-  <template key="byte.yes">      <![CDATA['\\x01']]></template>
-  <template key="byte.non">      <![CDATA['\\x00']]></template>
+  <template key="byte.yes">      <![CDATA[0x01]]></template>
+  <template key="byte.non">      <![CDATA[0x00]]></template>
 
   <template key="init.any">    <![CDATA[ (#deft)    ]]></template>
   <template key="init.string"> <![CDATA[ '(#deft)'  ]]></template>
@@ -217,6 +217,9 @@
   ]]></template>
   <template key="read.ptr.struct"><![CDATA[
     if ((#arg)->readInt08() == (#byteyes)) {
+    (#tab)if (\$(#name) == (#null)) {
+    (#tab)(#tab)\$(#name) = new (#type)();
+    (#tab)}
     (#tab)(#body);
     }
   ]]></template>
@@ -264,17 +267,17 @@
   <template key="write.ref.vec | write.ref.map"><![CDATA[ (#body) ]]></template>
   <template key="write.ptr.string | write.ptr.struct"><![CDATA[
     if (\$(#name) != (#null)) {
-    (#tab)(#arg) .= (#byteyes);
+    (#tab)BinaryWriter::writeInt08((#byteyes), (#arg));
     (#tab)(#body);
     } else {
-    (#tab)(#arg) .= (#bytenon);
+    (#tab)BinaryWriter::writeInt08((#bytenon), (#arg));
     }
   ]]></template>
   <template key="write.ptr.vec | write.ptr.map"><![CDATA[
     if (\$(#name) != (#null)) {
-    (#tab)(#arg) .= (#byteyes);(#bodyindent)
+    (#tab)BinaryWriter::writeInt08((#byteyes), (#arg));(#bodyindent)
     } else {
-    (#tab)(#arg) .= (#bytenon);
+    (#tab)BinaryWriter::writeInt08((#bytenon), (#arg));
     }
   ]]></template>
 
