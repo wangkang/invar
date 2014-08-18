@@ -86,7 +86,6 @@ final public class Invar
         {
             e.printStackTrace();
         }
-        new CodeParser().parse("\n\npackage abc\n{ \n\n}\n\r\n", "abc.invar");
     }
 
     static void showHelp ()
