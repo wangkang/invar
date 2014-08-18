@@ -3,7 +3,6 @@ import invar.InvarMainArgs;
 import invar.InvarReadRule;
 import invar.InvarWriteCode;
 import invar.InvarWriteXSD;
-import invar.lang.CodeParser;
 import invar.model.InvarType.TypeID;
 import java.util.Date;
 import java.util.TreeMap;
@@ -54,11 +53,6 @@ final public class Invar
                 log("");
                 new InvarWriteXSD().write(ctx, basics, a.get(ARG_XSD_PATH));
             }
-            if (a.has(ARG_FLASH_PATH))
-            {
-                log("");
-                new InvarWriteCode(ctx, a.get(ARG_FLASH_PATH), "flash/snippet.xml").write(".as");
-            }
             if (a.has(ARG_CSHARP_PATH))
             {
                 log("");
@@ -74,6 +68,11 @@ final public class Invar
                 log("");
                 new InvarWriteCode(ctx, a.get(ARG_CPP_PATH), "cpp/snippet.h.xml").write(".h");
                 new InvarWriteCode(ctx, a.get(ARG_CPP_PATH), "cpp/snippet.cc.xml").write(".cpp", true);
+            }
+            if (a.has(ARG_FLASH_PATH))
+            {
+                log("");
+                new InvarWriteCode(ctx, a.get(ARG_FLASH_PATH), "flash/snippet.xml").write(".as");
             }
             if (a.has(ARG_PHP_PATH))
             {

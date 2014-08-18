@@ -216,8 +216,7 @@ abstract public class InvarWrite
 
     final protected void addExportFile (String packName, String fileName, String content)
     {
-        String path = makeDirs(packName);
-        exports.put(path + "/" + fileName, content);
+        exports.put(packName + ruleTypeSplit + fileName, content);
     }
 
     final public void exportFile (String resPath, String fileDir, String fileName)
@@ -343,7 +342,15 @@ abstract public class InvarWrite
         Iterator<String> i = exports.keySet().iterator();
         while (i.hasNext())
         {
-            String path = i.next();
+            String key = i.next();
+            String[] rule = key.split(ruleTypeSplit);
+            if (rule.length != 2)
+            {
+                throw new IOException("Export file failed: " + key);
+            }
+            String packName = rule[0];
+            String fileName = rule[1];
+            String path = makeDirs(packName) + "/" + fileName;
             File file = new File(dirRoot, path);
             files.put(file, exports.get(path));
         }
