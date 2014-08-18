@@ -3,7 +3,6 @@ import invar.InvarMainArgs;
 import invar.InvarReadRule;
 import invar.InvarWriteCode;
 import invar.InvarWriteXSD;
-import invar.lang.lex.LexPattern;
 import invar.model.InvarType.TypeID;
 import java.util.Date;
 import java.util.TreeMap;
@@ -81,14 +80,6 @@ final public class Invar
                 new InvarWriteCode(ctx, a.get(ARG_PHP_PATH), "php/snippet.xml").write(".php");
             }
             log("\nInvar end: " + (System.currentTimeMillis() - startMS) + "ms");
-
-            String src = "/*false//aa\n \r \r\n\t package //abc \n {\n\n //package\t}  \n\r\n*/aa*/";
-            int len = src.length();
-            log(LexPattern.DOC.match(src, 0, len) + " / " + len);
-            log(LexPattern.DOC_LINE.match(src, 7, len) + " / " + len);
-            log(LexPattern.LITERAL_BOOL.match(src, 2, 8) + " / " + len);
-            //new CodeParser().parse(src, "abc.invar");
-
         }
         catch (Throwable e)
         {
