@@ -28,9 +28,9 @@ public final class LexPattern
 
     static
     {
-        HIDDEN_0_N = new LexPattern(LexType.HIDDEN_CHARS, "[\t \r\n]+", 0).setOptional(true);
-        HIDDEN_1_N = new LexPattern(LexType.HIDDEN_CHARS, "[\t \r\n]+", 0);
 
+        HIDDEN_1_N = new LexPattern(LexType.HIDDEN_CHARS, "[\t \r\n]+", 0);
+        HIDDEN_0_N = new LexPattern(LexType.HIDDEN_CHARS, "[\t \r\n]+", 0).setOptional(true);
         DOC = new LexPattern(LexType.DOC, "/\\*.*?\\*/", Pattern.DOTALL).setOptional(true);
         DOC_LINE = new LexPattern(LexType.DOC_LINE, "//.*", 0).setOptional(true);
 
@@ -83,12 +83,16 @@ public final class LexPattern
         FILE = Collections.unmodifiableList(list);
     }
 
-    private final Pattern                pattern;
-    private final String                 staticText;
     private final LexType                tokenType;
+    private final String                 staticText;
+    private final int                    sliceDelta = -1;
 
-    private List<LexPattern>             children;
+    private final Pattern                pattern;
+    private List<LexPattern>             children;     // if err, stop scanning
+    private List<LexPattern>             branches;     // if err, try another branch
+
     private boolean                      optional;
+    private boolean                      sliceHere;
 
     public LexPattern(LexType type, String regex)
     {
@@ -144,6 +148,11 @@ public final class LexPattern
     public LexType getTokenType ()
     {
         return tokenType;
+    }
+
+    public int getSliceDelta ()
+    {
+        return sliceDelta;
     }
 
 }
