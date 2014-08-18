@@ -90,60 +90,48 @@ final public class InvarReadRule
         System.out.println(txt);
     }
 
-    static private final String SPLIT_PACK_TYPE     = "::";
-    static private final String SPLIT_GNERICS       = "-";
-    static private final String ATTR_COMMENT        = "doc";
-    static private final String ATTR_PACK_NAME      = "name";
-    static private final String ATTR_STRUCT_NAME    = "name";
-    static private final String ATTR_STRUCT_CHARSET = "charset";
-    static private final String ATTR_STRUCT_ALIAS   = "alias";
-    static private final String ATTR_STRUCT_SUPER   = "super";
-    static private final String ATTR_STRUCT_SHORT   = "short";
-    static private final String ATTR_FIELD_NAME     = "name";
-    static private final String ATTR_FIELD_TYPE     = "type";
-    static private final String ATTR_FIELD_DEFT     = "value";
-    static private final String ATTR_FIELD_ENC      = "encode";
-    static private final String ATTR_FIELD_DEC      = "decode";
-    static private final String ATTR_ENUM_VAL       = "value";
-    static private final String XML_NODE_CLIENT     = "client";
-    static private final String XML_NODE_SERVER     = "server";
-    //Build in types
-    static private final String BI_INT8             = "int8";
-    static private final String BI_INT16            = "int16";
-    static private final String BI_INT32            = "int32";
-    static private final String BI_INT64            = "int64";
-    static private final String BI_UINT8            = "uint8";
-    static private final String BI_UINT16           = "uint16";
-    static private final String BI_UINT32           = "uint32";
-    static private final String BI_UINT64           = "uint64";
-    static private final String BI_FLOAT            = "float";
-    static private final String BI_DOUBLE           = "double";
-    static private final String BI_BOOL             = "bool";
-    static private final String BI_STRING           = "string";
-    static private final String BI_MAP              = "map";
-    static private final String BI_VECTOR           = "vec";
+    static private final String SPLIT_PACK_TYPE      = "::";
+    static private final String SPLIT_GNERICS        = "-";
+    static private final String ATTR_COMMENT         = "doc";
+    static private final String ATTR_PACK_NAME       = "name";
+    static private final String ATTR_STRUCT_NAME     = "name";
+    static private final String ATTR_STRUCT_CHARSET  = "charset";
+    static private final String ATTR_STRUCT_ALIAS    = "alias";
+    static private final String ATTR_STRUCT_SUPER    = "super";
+    static private final String ATTR_STRUCT_SHORT    = "short";
+
+    static private final String ATTR_FIELD_NAME      = "name";
+    static private final String ATTR_FIELD_TYPE      = "type";
+    static private final String ATTR_FIELD_DEFT      = "value";
+    static private final String ATTR_FIELD_NO_SETTER = "nosetter";
+    static private final String ATTR_FIELD_USE_REF   = "useref";
+    static private final String ATTR_FIELD_USE_PTR   = "useptr";
+
+    static private final String ATTR_ENUM_VAL        = "value";
+    static private final String XML_NODE_CLIENT      = "client";
+    static private final String XML_NODE_SERVER      = "server";
     //User custom types, will be write to code file.
-    static private final String EXT_ENUM            = "Enum";
-    static private final String EXT_STRUCT          = "Struct";
-    static private final String EXT_PROTOCOL        = "Protoc";
+    static private final String EXT_ENUM             = "Enum";
+    static private final String EXT_STRUCT           = "Struct";
+    static private final String EXT_PROTOCOL         = "Protoc";
 
     static public TreeMap<TypeID,String> makeTypeIdMap ()
     {
         TreeMap<TypeID,String> map = new TreeMap<TypeID,String>();
-        map.put(TypeID.INT8, BI_INT8);
-        map.put(TypeID.INT16, BI_INT16);
-        map.put(TypeID.INT32, BI_INT32);
-        map.put(TypeID.INT64, BI_INT64);
-        map.put(TypeID.UINT8, BI_UINT8);
-        map.put(TypeID.UINT16, BI_UINT16);
-        map.put(TypeID.UINT32, BI_UINT32);
-        map.put(TypeID.UINT64, BI_UINT64);
-        map.put(TypeID.FLOAT, BI_FLOAT);
-        map.put(TypeID.DOUBLE, BI_DOUBLE);
-        map.put(TypeID.BOOL, BI_BOOL);
-        map.put(TypeID.STRING, BI_STRING);
-        map.put(TypeID.MAP, BI_MAP);
-        map.put(TypeID.LIST, BI_VECTOR);
+        map.put(TypeID.INT08, TypeID.INT08.getName());
+        map.put(TypeID.INT16, TypeID.INT16.getName());
+        map.put(TypeID.INT32, TypeID.INT32.getName());
+        map.put(TypeID.INT64, TypeID.INT64.getName());
+        map.put(TypeID.UINT08, TypeID.UINT08.getName());
+        map.put(TypeID.UINT16, TypeID.UINT16.getName());
+        map.put(TypeID.UINT32, TypeID.UINT32.getName());
+        map.put(TypeID.UINT64, TypeID.UINT64.getName());
+        map.put(TypeID.FLOAT, TypeID.FLOAT.getName());
+        map.put(TypeID.DOUBLE, TypeID.DOUBLE.getName());
+        map.put(TypeID.BOOL, TypeID.BOOL.getName());
+        map.put(TypeID.STRING, TypeID.STRING.getName());
+        map.put(TypeID.MAP, TypeID.MAP.getName());
+        map.put(TypeID.VEC, TypeID.VEC.getName());
         return map;
     }
 
@@ -156,7 +144,7 @@ final public class InvarReadRule
         while (i.hasNext())
         {
             TypeID key = i.next();
-            if (TypeID.LIST == key)
+            if (TypeID.VEC == key)
                 continue;
             if (TypeID.MAP == key)
                 continue;
@@ -314,12 +302,13 @@ final public class InvarReadRule
     private void decStruct (Node node, TypeStruct type) throws Exception
     {
         NodeList nodes = node.getChildNodes();
+        int index = 0;
         for (int i = 0; i < nodes.getLength(); i++)
         {
             Node n = nodes.item(i);
             if (Node.ELEMENT_NODE != n.getNodeType())
                 continue;
-            decStructField(n, type);
+            decStructField(n, type, index++);
         }
     }
 
@@ -365,7 +354,7 @@ final public class InvarReadRule
         }
     }
 
-    private void decStructField (Node n, TypeStruct type) throws Exception
+    private void decStructField (Node n, TypeStruct type, int i) throws Exception
     {
         String nodeName = getAttr(n, ATTR_FIELD_TYPE);
         String[] nameTypes = nodeName.split(SPLIT_GNERICS);
@@ -381,24 +370,58 @@ final public class InvarReadRule
         }
         String key = getAttr(n, ATTR_FIELD_NAME);
         String comment = getAttrOptional(n, ATTR_COMMENT);
-        InvarField field = null;
+
+        boolean isStructSelf = (typeBasic == type);
+        boolean useRef = typeBasic.getId().getUseRefer();
+        boolean usePtr = false;
+        boolean disableSetter = false;
         switch (typeBasic.getId()) {
-        case ENUM:
-            field = new InvarField(typeBasic, key, comment);
-            break;
-        case STRUCT:
-            field = new InvarField(typeBasic, key, comment);
+        case VEC:
+        case MAP:
+            disableSetter = true;
             break;
         default:
-            field = new InvarField(typeBasic, key, comment);
+            break;
         }
+        Node attr = n.getAttributes().getNamedItem(ATTR_FIELD_NO_SETTER);
+        if (attr != null)
+        {
+            disableSetter = Boolean.parseBoolean(attr.getNodeValue());
+        }
+        attr = n.getAttributes().getNamedItem(ATTR_FIELD_USE_PTR);
+        if (attr != null)
+        {
+            usePtr = Boolean.parseBoolean(attr.getNodeValue());
+        }
+        attr = n.getAttributes().getNamedItem(ATTR_FIELD_USE_REF);
+        if (attr != null)
+        {
+            useRef = Boolean.parseBoolean(attr.getNodeValue());
+        }
+
+        InvarField field = null;
+
+        switch (typeBasic.getId()) {
+        case ENUM:
+            field = new InvarField(i, typeBasic, key, comment, false);
+            break;
+        case STRUCT:
+            field = new InvarField(i, typeBasic, key, comment, disableSetter);
+            break;
+        default:
+            field = new InvarField(i, typeBasic, key, comment, disableSetter);
+        }
+
+        field.setUseReference(useRef);
+        field.setUsePointer(isStructSelf || typeBasic.getId().getNullable() && usePtr);
+
         List<String> names = fixNameTypes(nameTypes, n);
         parseGenerics(field.getGenerics(), names, 1, n);
         setFieldCommonAttrs(n, field);
         type.addField(field);
     }
 
-    private void parseGenerics (LinkedList<InvarType> generics, List<String> nameTypes, int i, Node n) throws Exception
+    private void parseGenerics (List<InvarType> generics, List<String> nameTypes, int i, Node n) throws Exception
     {
         int len = nameTypes.size();
         if (i >= len)
@@ -413,14 +436,7 @@ final public class InvarReadRule
     {
         String str = "";
         str = getAttrOptional(node, ATTR_FIELD_DEFT);
-        if (!str.equals(""))
-            field.setDefault(str);
-        str = getAttrOptional(node, ATTR_FIELD_ENC);
-        if (!str.equals(""))
-            field.setEncode(Boolean.parseBoolean(str));
-        str = getAttrOptional(node, ATTR_FIELD_DEC);
-        if (!str.equals(""))
-            field.setDecode(Boolean.parseBoolean(str));
+        field.setDefault(str != null ? str : "");
     }
 
     private String getAttrOptional (Node node, String name)
@@ -451,21 +467,21 @@ final public class InvarReadRule
             String name = nameTypes[i];
             names.add(name);
             InvarType type = searchType(name, n);
-            if (TypeID.LIST == type.getId())
+            if (TypeID.VEC == type.getId())
             {
                 if (i == len - 1)
-                    names.add(BI_INT32);
+                    names.add(TypeID.INT32.getName());
             }
             else if (TypeID.MAP == type.getId())
             {
                 if (i == len - 1)
                 {
-                    names.add(BI_STRING);
-                    names.add(BI_INT32);
+                    names.add(TypeID.STRING.getName());
+                    names.add(TypeID.INT32.getName());
                 }
                 else if (i == len - 2)
                 {
-                    names.add(BI_STRING);
+                    names.add(TypeID.STRING.getName());
                 }
             }
             else

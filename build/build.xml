@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <project name="build.invar.jar" default="jar">
 
-	<property name="invar.version" value="1" />
+	<property name="invar.version" value="1.0" />
 	<property name="invar.dir.class" value="${basedir}/classes" />
 	<property name="invar.dir.java" value="${basedir}/../src" />
 	<property name="invar.file.jar" value="${basedir}/invar.jar" />
@@ -9,7 +9,7 @@
 	<target name="javac">
 		<delete dir="${invar.dir.class}" />
 		<mkdir dir="${invar.dir.class}" />
-		<javac srcdir="${invar.dir.java}" destdir="${invar.dir.class}" debug="true" optimize="true" debuglevel="lines,vars,source" deprecation="true" failonerror="true" includeantruntime="on">
+		<javac srcdir="${invar.dir.java}" destdir="${invar.dir.class}" target="1.6" source="1.6" verbose="false" debug="false" optimize="true" debuglevel="lines,vars,source" deprecation="true" failonerror="true" includeantruntime="on">
 		</javac>
 	</target>
 
@@ -17,15 +17,15 @@
 		<jar jarfile="${invar.file.jar}" compress="true" basedir="${invar.dir.class}">
 			<include name="**/*.class" />
 			<manifest>
-				<attribute name="Comment" value="contains source code" />
+				<attribute name="Comment" value="Invariable data interchange format" />
 				<attribute name="Specification-Title" value="invar" />
 				<attribute name="Specification-Version" value="${invar.version}" />
 				<attribute name="Specification-Vendor" value="WangKang" />
 				<attribute name="Implementation-Title" value="invar" />
 				<attribute name="Implementation-Version" value="${invar.version}" />
 				<attribute name="Implementation-Vendor" value="WangKang" />
-				<attribute name="Implementation-URL" value="http://..." />
-				<attribute name="License" value="Undefined" />
+				<attribute name="Implementation-URL" value="https://github.com/wangkang/invar" />
+				<attribute name="License" value="Undefined ..." />
 			</manifest>
 		</jar>
 		<jar jarfile="${invar.file.jar}" compress="true" basedir="${invar.dir.java}" update="true">
@@ -35,9 +35,11 @@
 			<include name="**/*.java" />
 			<include name="**/*.as" />
 			<include name="**/*.cs" />
-			<include name="**/*.js" />
-			<include name="**/*.c" />
+			<include name="**/*.h" />
 			<include name="**/*.cpp" />
+			<include name="**/*.php" />
+			<include name="**/*.c" />
+			<include name="**/*.js" />
 		</jar>
 	</target>
 

@@ -7,9 +7,10 @@ import invar.model.TypeEnum;
 import invar.model.TypeProtocol;
 import invar.model.TypeStruct;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -17,29 +18,52 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 abstract public class InvarWrite
 {
+    abstract void resetCodePathes (Boolean merge, String suffix);
 
-    abstract protected Boolean beforeWrite (InvarContext ctx);
+    abstract void codeRuntime (String suffix);
 
-    abstract protected String codeEnum (TypeEnum type);
+    abstract Boolean beforeWrite (InvarContext ctx);
 
-    abstract protected String codeStruct (TypeStruct type);
+    abstract String codeOneFile (String packName, String filePath, List<TypeEnum> enums, List<TypeStruct> structs);
 
-    abstract protected void codeRuntime (String suffix);
+    final static String                     empty              = "";
+    final static String                     whiteSpace         = " ";
+    final static String                     br                 = "\n";
+    final static String                     indent             = whiteSpace + whiteSpace + whiteSpace + whiteSpace;
+    final static String                     dotToken           = "\\.";
+    final static String                     ruleTypeSplit      = "::";
+    final static String                     rulePackSplit      = ".";
+    final static private String             GENERIC_LEFT       = "<";
+    final static private String             GENERIC_RIGHT      = ">";
 
-    final private InvarContext              context;
-    final private File                      dirRoot;
+    final InvarContext                      context;
     final private HashMap<String,String>    exports;
     final private HashMap<String,InvarType> typeForShort;
+    final private String                    dirRootPath;
+
+    private File                            dirRoot;
+
+    String                                  dirPrefix          = empty;
+    Boolean                                 traceAllTypes      = false;
+    Boolean                                 flattenCodeDir     = false;
+    Boolean                                 onePackOneFile     = false;
+    Boolean                                 lowerFileName      = false;
+    Boolean                                 packNameNested     = false;
+    Boolean                                 useFullName        = false;
+    Boolean                                 includeSelf        = false;
+    Boolean                                 impExcludeConflict = false;
+    Boolean                                 impExcludeSamePack = false;
+    Integer                                 methodIndentNum    = 1;
+    List<String>                            impExcludePacks    = null;
 
     public InvarWrite(InvarContext context, String dirRootPath)
     {
-        File file = new File(dirRootPath);
-        if (file.exists())
-            deleteDirs(dirRootPath);
-        this.dirRoot = file;
+        this.dirRootPath = dirRootPath;
         this.context = context;
         this.exports = new HashMap<String,String>();
         this.typeForShort = new HashMap<String,InvarType>();
@@ -47,18 +71,132 @@ abstract public class InvarWrite
 
     final public void write (String suffix) throws Throwable
     {
+        write(suffix, false);
+    }
+
+    final public void write (String suffix, Boolean merge) throws Throwable
+    {
         if (getContext() == null)
             return;
-        if (dirRoot == null)
-            return;
+        if (!merge)
+            context.clearDialectTypes();
+
         Boolean bool = beforeWrite(getContext());
         typeForShortReset(context);
+
+        String dir = dirRootPath;
+        if (dirPrefix != null && !dirPrefix.equals(empty))
+        {
+            dir += dirPrefix;
+        }
+        File file = new File(dir);
+        if (file.exists())
+        {
+            deleteDirs(dir);
+        }
+        this.dirRoot = file;
         if (bool)
         {
-            makePackageDirs();
-            HashMap<File,String> files = makeFiles(suffix);
-            writeFiles(files);
+            if (onePackOneFile)
+                flattenCodeDir = true;
+            if (flattenCodeDir)
+                makeFlattenDirs();
+            else
+                makePackageDirs();
+
+            resetCodePathes(merge, suffix);
+            startWritting(suffix);
         }
+    }
+
+    private void startWritting (String suffix) throws Exception
+    {
+        if (traceAllTypes)
+            System.out.println("\n\n" + dumpTypeAll().toString());
+        HashMap<File,String> files = new LinkedHashMap<File,String>();
+        Iterator<String> i = getContext().getPackNames();
+        while (i.hasNext())
+        {
+            InvarPackage pack = getContext().getPack(i.next());
+            List<TypeEnum> enums = new LinkedList<TypeEnum>();
+            List<TypeStruct> structs = new LinkedList<TypeStruct>();
+            File codeDir = pack.getCodeDir();
+            if (codeDir == null)
+                continue;
+
+            Iterator<String> iTypeName = pack.getTypeNames();
+            while (iTypeName.hasNext())
+            {
+                String typeName = iTypeName.next();
+                InvarType type = pack.getType(typeName);
+                if (TypeID.ENUM == type.getId())
+                {
+                    TypeEnum t = (TypeEnum)type;
+                    enums.add(t);
+                }
+                else if (TypeID.STRUCT == type.getId())
+                {
+                    TypeStruct t = (TypeStruct)type;
+                    structs.add(t);
+                }
+                else if (TypeID.PROTOCOL == type.getId())
+                {
+                    TypeProtocol t = (TypeProtocol)type;
+                    if (t.hasClient())
+                    {
+                        //structs.add(t.getClient());
+                    }
+                    if (t.hasServer())
+                    {
+                        //structs.add(t.getServer());
+                    }
+                    continue;
+                }
+                else
+                {
+                    // do nothing
+                    continue;
+                }
+                if (onePackOneFile == false)
+                {
+                    String fileName = type.getCodeName() + suffix;
+                    String filePath = type.getCodePath();
+                    if (lowerFileName)
+                    {
+                        fileName = fileName.toLowerCase();
+                        filePath = filePath.toLowerCase();
+                    }
+                    if (enums.size() > 0 || structs.size() > 0)
+                    {
+                        String text = codeOneFile(pack.getName(), filePath, enums, structs);
+                        if (text.length() > 0)
+                        {
+                            File codeFile = new File(codeDir, fileName);
+                            files.put(codeFile, text);
+                        }
+                    }
+                    enums.clear();
+                    structs.clear();
+
+                }
+            } // while (iTypeName.hasNext())
+            if (onePackOneFile == true)
+            {
+                String fileName = pack.getName() + suffix;
+                String filePath = dirPrefix + fileName + suffix;
+                if (lowerFileName)
+                {
+                    fileName = fileName.toLowerCase();
+                    filePath = filePath.toLowerCase();
+                }
+                File codeFile = new File(codeDir, fileName);
+                files.put(codeFile, codeOneFile(pack.getName(), filePath, enums, structs));
+                enums.clear();
+                structs.clear();
+            }
+        } // while (i.hasNext())
+        codeRuntime(suffix);
+        writeFiles(files);
     }
 
     final protected InvarContext getContext ()
@@ -82,7 +220,7 @@ abstract public class InvarWrite
         exports.put(path + "/" + fileName, content);
     }
 
-    final protected void exportFile (String resPath, String fileDir, String fileName)
+    final public void exportFile (String resPath, String fileDir, String fileName)
     {
         InputStream res = getClass().getResourceAsStream(resPath);
         if (res != null)
@@ -90,10 +228,19 @@ abstract public class InvarWrite
             byte[] bs;
             try
             {
-                bs = new byte[res.available()];
+                int len = res.available();
+                bs = new byte[len];
                 res.read(bs);
                 char[] chars = getChars(bs);
-                addExportFile(fileDir, fileName, String.copyValueOf(chars));
+                StringBuilder s = new StringBuilder(len);
+                for (int i = 0; i < chars.length; i++)
+                {
+                    char c = chars[i];
+                    if (c == '\0')
+                        break;
+                    s.append(c);
+                }
+                addExportFile(fileDir, fileName, s.toString());
             }
             catch (IOException e)
             {
@@ -106,68 +253,28 @@ abstract public class InvarWrite
         }
     }
 
-    private HashMap<File,String> makeFiles (String suffix)
-    {
-        HashMap<File,String> files = new LinkedHashMap<File,String>();
-        Iterator<String> i = getContext().getPackNames();
-        while (i.hasNext())
-        {
-            InvarPackage pack = getContext().getPack(i.next());
-            Iterator<String> iTypeName = pack.getTypeNames();
-            while (iTypeName.hasNext())
-            {
-                String typeName = iTypeName.next();
-                makeFile(files, pack, typeName, suffix);
-            }
-        }
-        codeRuntime(suffix);
-        return files;
-    }
-
-    private void makeFile (HashMap<File,String> fs, InvarPackage pack, String tName, String suffix)
-    {
-        File codeDir = pack.getCodeDir();
-        if (codeDir == null)
-            return;
-        InvarType type = pack.getType(tName);
-        if (TypeID.ENUM == type.getId())
-        {
-            TypeEnum t = (TypeEnum)type;
-            File codeFile = new File(codeDir, t.getName() + suffix);
-            fs.put(codeFile, codeEnum(t));
-        }
-        else if (TypeID.STRUCT == type.getId())
-        {
-            TypeStruct t = (TypeStruct)type;
-            File codeFile = new File(codeDir, t.getName() + suffix);
-            fs.put(codeFile, codeStruct(t));
-        }
-        else if (TypeID.PROTOCOL == type.getId())
-        {
-            TypeProtocol t = (TypeProtocol)type;
-            File codeFile = null;
-            if (t.hasClient())
-            {
-                codeFile = new File(codeDir, t.getClient().getName() + suffix);
-                fs.put(codeFile, codeStruct(t.getClient()));
-            }
-            if (t.hasServer())
-            {
-                codeFile = new File(codeDir, t.getServer().getName() + suffix);
-                fs.put(codeFile, codeStruct(t.getServer()));
-            }
-        }
-        else
-        {
-            // do nothing
-        }
-    }
-
     protected HashMap<File,String> makeProtocFile (String string)
     {
         //TODO make a protocol interface code
         HashMap<File,String> files = new HashMap<File,String>();
         return files;
+    }
+
+    private void makeFlattenDirs () throws Exception
+    {
+        Iterator<String> i = getContext().getPackNames();
+        while (i.hasNext())
+        {
+            InvarPackage pack = getContext().getPack(i.next());
+            if (!pack.getNeedWrite())
+                continue;
+            File packDir = new File(dirRoot, makeDirs(""));
+            if (!packDir.exists())
+            {
+                throw new Exception("Dir do not exist: " + packDir.getAbsolutePath());
+            }
+            pack.setCodeDir(packDir);
+        }
     }
 
     private void makePackageDirs () throws Exception
@@ -224,7 +331,7 @@ abstract public class InvarWrite
         {
             File file = i.next();
             String content = files.get(file);
-            FileWriter writer = new FileWriter(file, false);
+            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
             writer.write(content == null ? "" : content);
             writer.close();
             log("write -> " + file.getAbsolutePath());
@@ -254,29 +361,32 @@ abstract public class InvarWrite
             {
                 String typeName = iTypeName.next();
                 InvarType type = pack.getType(typeName);
-                s.append(TypeID.GHOST == type.getId() ? " # " : "   ");
-                s.append(fixedLen(" ", 32, pack.getName() + "." + typeName));
+                s.append(TypeID.DIALECT == type.getId() ? "  # " : "    ");//4
+                s.append(fixedLen(32, pack.getName() + ruleTypeSplit + typeName));//32
+
                 if (type.getRedirect() != null)
                 {
                     InvarType typeR = type.getRedirect();
-                    s.append(" --->  ");
+                    s.append(" --->   ");//8
+                    String nameR = typeR.getName() + typeR.getGeneric();
                     String namePack = typeR.getPack().getName();
                     if (!namePack.equals(""))
-                        s.append(namePack + ".");
-                    s.append(typeR.getName());
-                    s.append(typeR.getGeneric());
+                        nameR = (namePack + ruleTypeSplit) + nameR;
+                    s.append(fixedLen(32, nameR));
+                    s.append(fixedLen(32, typeR.getCodePath()));
+                    s.append(whiteSpace + typeR.getInitValue());
+                    //s.append(whiteSpace + type.getInitValue());
                 }
                 s.append("\n");
             }
-            s.append(fixedLen("-", 80));
+            for (int j = 0; j < 6; j++)
+            {
+                s.append(fixedLen("-", 19));
+                s.append("+");
+            }
             s.append("\n");
         }
         return s;
-    }
-
-    static protected String upperHeadChar (String s)
-    {
-        return s.substring(0, 1).toUpperCase() + s.substring(1, s.length());
     }
 
     static protected String fixedLenBackward (String blank, Integer len, String str)
@@ -335,9 +445,6 @@ abstract public class InvarWrite
         }
     }
 
-    final static private String GENERIC_LEFT  = "<";
-    final static private String GENERIC_RIGHT = ">";
-
     final protected String ruleLeft (String rule)
     {
         String name = rule;
@@ -361,11 +468,11 @@ abstract public class InvarWrite
 
     final protected InvarType findType (InvarContext ctx, String fullName)
     {
-        int iEnd = fullName.lastIndexOf(".");
+        int iEnd = fullName.lastIndexOf(ruleTypeSplit);
         if (iEnd < 0)
             return ctx.findBuildInType(fullName);
         String packName = fullName.substring(0, iEnd);
-        String typeName = fullName.substring(iEnd + 1);
+        String typeName = fullName.substring(iEnd + ruleTypeSplit.length());
         InvarPackage pack = ctx.getPack(packName);
         if (pack == null)
             return null;
@@ -398,14 +505,16 @@ abstract public class InvarWrite
             {
                 String typeName = iTypeName.next();
                 InvarType type = pack.getType(typeName);
-                typeForShort.put(type.fullName(), type);
                 typeForShort.put(type.getName(), type);
+                typeForShort.put(type.fullName(ruleTypeSplit), type);
             }
         }
     }
 
     final protected InvarType getTypeByShort (String key)
     {
+        key = key.trim();
         return typeForShort.get(key);
     }
+
 }

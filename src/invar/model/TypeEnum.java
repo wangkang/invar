@@ -12,7 +12,7 @@ public class TypeEnum extends InvarType
 
     public TypeEnum(String name, InvarPackage pack, String comment)
     {
-        super(TypeID.ENUM, name, pack, comment);
+        super(TypeID.ENUM, name, pack, comment, false);
         options = new LinkedHashMap<String,Integer>();
         optionComments = new LinkedHashMap<String,String>();
     }

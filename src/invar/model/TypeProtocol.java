@@ -9,7 +9,7 @@ public class TypeProtocol extends InvarType
 
     public TypeProtocol(String name, InvarPackage pack, String comment)
     {
-        super(TypeID.PROTOCOL, name, pack, comment);
+        super(TypeID.PROTOCOL, name, pack, comment, false);
         client = new TypeStruct(name + "2S", pack, comment);
         server = new TypeStruct(name + "2C", pack, comment);
         noClient = true;

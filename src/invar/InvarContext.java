@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.TreeMap;
 
 final public class InvarContext
@@ -25,7 +24,7 @@ final public class InvarContext
     public InvarContext() throws Exception
     {
         typeWithAlias = new LinkedHashMap<String,InvarType>();
-        packBuildIn = new InvarPackage("", false);
+        packBuildIn = new InvarPackage("___", false);
         packAll = new HashMap<String,InvarPackage>();
         packAll.put(packBuildIn.getName(), packBuildIn);
     }
@@ -33,26 +32,23 @@ final public class InvarContext
     public InvarPackage addBuildInTypes (TreeMap<TypeID,String> map)
     {
         InvarPackage pack = packBuildIn;
-        Set<TypeID> keys = map.keySet();
-        Iterator<TypeID> i = keys.iterator();
+        Iterator<TypeID> i = map.keySet().iterator();
         while (i.hasNext())
         {
             TypeID id = i.next();
             String name = map.get(id);
-            InvarType type = new InvarType(id, name, pack, name + "[buildin]");
-            packBuildIn.put(type);
-            if (TypeID.LIST == id)
+            InvarType type = new InvarType(id, name, pack, name + "[buildin]", true);
+            pack.put(type);
+            if (TypeID.VEC == id)
                 type.setGeneric("<?>");
             else if (TypeID.MAP == id)
                 type.setGeneric("<?,?>");
+            else
+            {
+            }
         }
         packAll.put(pack.getName(), pack);
         return pack;
-    }
-
-    public InvarContext typeRedefine (TypeID id, String namePack, String nameType, String generic)
-    {
-        return typeRedefine(id, namePack, nameType, generic, "", "", "");
     }
 
     public InvarContext typeRedefine (TypeID id,
@@ -60,29 +56,29 @@ final public class InvarContext
                                       String nameType,
                                       String generic,
                                       String initValue,
-                                      String initPrefix,
-                                      String initSuffix)
+                                      String codePath)
     {
         if (TypeID.ENUM == id || TypeID.STRUCT == id || TypeID.PROTOCOL == id)
         {
             return this;
         }
         InvarType type = packBuildIn.getType(id);
-        InvarType typeGhost = ghostAdd(namePack, nameType, generic, id);
+        InvarType typeGhost = addDialectType(namePack, nameType, generic, id, false, initValue, codePath);
+
         type.setRedirect(typeGhost);
         type.setInitValue(initValue);
-        type.setInitSuffix(initSuffix);
-        type.setInitPrefix(initPrefix);
+        type.setCodePath(codePath);
         typeWithAlias.put(type.getName(), typeGhost);
         return this;
     }
 
-    public InvarType ghostAdd (String namePack, String nameType, String generic)
-    {
-        return ghostAdd(namePack, nameType, generic, TypeID.STRUCT);
-    }
-
-    public InvarType ghostAdd (String namePack, String nameType, String generic, TypeID realId)
+    public InvarType addDialectType (String namePack,
+                                     String nameType,
+                                     String generic,
+                                     TypeID realId,
+                                     Boolean isBuildin,
+                                     String initValue,
+                                     String codePath)
     {
         InvarPackage pack = packAll.get(namePack);
         if (pack == null)
@@ -90,14 +86,16 @@ final public class InvarContext
             pack = new InvarPackage(namePack, false);
             packAll.put(namePack, pack);
         }
-        InvarType t = new InvarType(TypeID.GHOST, nameType, pack, "");
+        InvarType t = new InvarType(TypeID.DIALECT, nameType, pack, "", isBuildin);
         t.setGeneric(generic);
         t.setRealId(realId);
+        t.setInitValue(initValue);
+        t.setCodePath(codePath);
         pack.put(t);
         return t;
     }
 
-    public void ghostClear ()
+    public void clearDialectTypes ()
     {
         Iterator<String> i = packAll.keySet().iterator();
         while (i.hasNext())
@@ -132,12 +130,19 @@ final public class InvarContext
 
     public List<InvarType> findTypes (String typeName)
     {
+        return findTypes(typeName, false);
+    }
+
+    public List<InvarType> findTypes (String typeName, boolean ignoreBuildin)
+    {
         Iterator<String> i = packAll.keySet().iterator();
         InvarType type = null;
         List<InvarType> types = new ArrayList<InvarType>();
         while (i.hasNext())
         {
             InvarPackage pack = packAll.get(i.next());
+            if (ignoreBuildin && pack == packBuildIn)
+                continue;
             type = pack.getType(typeName);
             if (type != null)
                 types.add(type);
@@ -217,4 +222,18 @@ final public class InvarContext
         return ruleDir;
     }
 
+    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
+
+    public static char[] bytesToHex (byte[] bytes)
+    {
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++)
+        {
+            int i = j * 2;
+            int v = bytes[j] & 0xFF;
+            hexChars[i] = hexArray[v >>> 4];
+            hexChars[i + 1] = hexArray[v & 0x0F];
+        }
+        return hexChars;
+    }
 }

@@ -3,6 +3,7 @@ import invar.InvarMainArgs;
 import invar.InvarReadRule;
 import invar.InvarWriteCode;
 import invar.InvarWriteXSD;
+import invar.lang.CodeParser;
 import invar.model.InvarType.TypeID;
 import java.util.Date;
 import java.util.TreeMap;
@@ -15,6 +16,8 @@ final public class Invar
     static final String ARG_JAVA_PATH   = "java";
     static final String ARG_FLASH_PATH  = "flash";
     static final String ARG_CSHARP_PATH = "csharp";
+    static final String ARG_CPP_PATH    = "cpp";
+    static final String ARG_PHP_PATH    = "php";
 
     static public void main (String[] args)
     {
@@ -24,6 +27,8 @@ final public class Invar
         a.addDefault(ARG_JAVA_PATH, "code/java/");
         a.addDefault(ARG_FLASH_PATH, "code/flash/");
         a.addDefault(ARG_CSHARP_PATH, "code/csharp/");
+        a.addDefault(ARG_CPP_PATH, "code/cpp/");
+        a.addDefault(ARG_PHP_PATH, "code/php/");
         a.parseArguments(args);
 
         if (a.has(ARG_HELP))
@@ -52,17 +57,28 @@ final public class Invar
             if (a.has(ARG_FLASH_PATH))
             {
                 log("");
-                new InvarWriteCode(ctx, ARG_FLASH_PATH, a.get(ARG_FLASH_PATH)).write(".as");
+                new InvarWriteCode(ctx, a.get(ARG_FLASH_PATH), "flash/snippet.xml").write(".as");
             }
             if (a.has(ARG_CSHARP_PATH))
             {
                 log("");
-                new InvarWriteCode(ctx, ARG_CSHARP_PATH, a.get(ARG_CSHARP_PATH)).write(".cs");
+                new InvarWriteCode(ctx, a.get(ARG_CSHARP_PATH), "csharp/snippet.xml").write(".cs");
             }
             if (a.has(ARG_JAVA_PATH))
             {
                 log("");
-                new InvarWriteCode(ctx, ARG_JAVA_PATH, a.get(ARG_JAVA_PATH)).write(".java");
+                new InvarWriteCode(ctx, a.get(ARG_JAVA_PATH), "java/snippet.xml").write(".java");
+            }
+            if (a.has(ARG_CPP_PATH))
+            {
+                log("");
+                new InvarWriteCode(ctx, a.get(ARG_CPP_PATH), "cpp/snippet.h.xml").write(".h");
+                new InvarWriteCode(ctx, a.get(ARG_CPP_PATH), "cpp/snippet.cc.xml").write(".cpp", true);
+            }
+            if (a.has(ARG_PHP_PATH))
+            {
+                log("");
+                new InvarWriteCode(ctx, a.get(ARG_PHP_PATH), "php/snippet.xml").write(".php");
             }
             log("\nInvar end: " + (System.currentTimeMillis() - startMS) + "ms");
         }

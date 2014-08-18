@@ -22,30 +22,31 @@
 	</xs:complexType>
 
 	<xs:complexType name="redefine">
-		<xs:sequence>
-			<xs:element name="int8" type="tns:redefine.item"/>
-			<xs:element name="int16" type="tns:redefine.item"/>
-			<xs:element name="int32" type="tns:redefine.item"/>
-			<xs:element name="int64" type="tns:redefine.item"/>
-			<xs:element name="uint8" type="tns:redefine.item"/>
-			<xs:element name="uint16" type="tns:redefine.item"/>
-			<xs:element name="uint32" type="tns:redefine.item"/>
-			<xs:element name="uint64" type="tns:redefine.item"/>
-			<xs:element name="float" type="tns:redefine.item"/>
-			<xs:element name="double" type="tns:redefine.item"/>
-			<xs:element name="string" type="tns:redefine.item"/>
-			<xs:element name="bool" type="tns:redefine.item"/>
-			<xs:element name="vec" type="tns:redefine.item"/>
-			<xs:element name="map" type="tns:redefine.item"/>
+		<xs:sequence minOccurs="0" maxOccurs="unbounded">
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="int8" type="tns:redefine.item"/>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="int16" type="tns:redefine.item"/>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="int32" type="tns:redefine.item"/>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="int64" type="tns:redefine.item"/>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="uint8" type="tns:redefine.item"/>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="uint16" type="tns:redefine.item"/>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="uint32" type="tns:redefine.item"/>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="uint64" type="tns:redefine.item"/>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="float" type="tns:redefine.item"/>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="double" type="tns:redefine.item"/>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="string" type="tns:redefine.item"/>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="bool" type="tns:redefine.item"/>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="vec" type="tns:redefine.item"/>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="map" type="tns:redefine.item"/>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="dialect" type="tns:redefine.item"/>
 		</xs:sequence>
+		<xs:attribute name="genericOverride" type="xs:boolean" default="false" use="optional"/>
 	</xs:complexType>
 	<xs:complexType name="redefine.item">
 		<xs:attribute name="pack" type="xs:string" use="required"/>
 		<xs:attribute name="type" type="xs:string" use="required"/>
-		<xs:attribute name="initValue" type="xs:string" use="required"/>
-		<xs:attribute name="initSuffix" type="xs:string" use="optional"/>
-		<xs:attribute name="initPrefix" type="xs:string" use="optional"/>
+		<xs:attribute name="initValue" type="xs:string" use="optional"/>
 		<xs:attribute name="generic" type="xs:string" use="optional"/>
+		<xs:attribute name="include" type="xs:string" use="optional"/>
 	</xs:complexType>
 
 	<xs:complexType name="export">

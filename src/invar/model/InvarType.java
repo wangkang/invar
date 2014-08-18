@@ -1,25 +1,36 @@
 package invar.model;
 
+import java.util.regex.Matcher;
+
 public class InvarType
 {
     static public enum TypeID
     {
-        STRUCT("struct"), ENUM("enum"), PROTOCOL("protoc"), //
-        INT8("int8"), INT16("int16"), INT32("int32"), INT64("int64"), //
-        UINT8("uint8"), UINT16("uint16"), UINT32("uint32"), UINT64("uint64"), //
-        FLOAT("float"), DOUBLE("double"), BOOL("bool"), //
-        STRING("string"), LIST("vec", "<?>"), MAP("map", "<?,?>"), GHOST("*");//
+        INT08("int8"), INT16("int16"), INT32("int32"), INT64("int64"), //
+        UINT08("uint8"), UINT16("uint16"), UINT32("uint32"), UINT64("uint64"), //
+        FLOAT("float"), DOUBLE("double"), BOOL("bool"), ENUM("enum"), //
+        STRING("string", "", true, true), //
+        VEC("vec", "<?>", true, true), //
+        MAP("map", "<?,?>", true, true), //
+        STRUCT("struct", "", true, true), //
+        FUNC("func", "<?...>", true, false), //
+        DIALECT("~~~", "", true, false), //
+        PROTOCOL("protoc"), VOID("---");
 
         private TypeID(String name)
         {
             this.name = name;
             this.generic = "";
+            this.useRefer = false;
+            this.nullable = false;
         }
 
-        private TypeID(String name, String generic)
+        private TypeID(String name, String generic, Boolean refer, Boolean nullable)
         {
             this.name = name;
             this.generic = generic;
+            this.useRefer = refer;
+            this.nullable = nullable;
         }
 
         public String getName ()
@@ -32,43 +43,53 @@ public class InvarType
             return generic;
         }
 
-        final private String name;
-        final private String generic;
+        public Boolean getUseRefer ()
+        {
+            return useRefer;
+        }
+
+        public Boolean getNullable ()
+        {
+            return nullable;
+        }
+
+        final private String  name;
+        final private String  generic;
+        final private Boolean useRefer;
+        final private Boolean nullable;
     };
 
     private final TypeID       id;
     private final InvarPackage pack;
     private final String       name;
     private final String       comment;
-    private Boolean            isConflict;
+    private final Boolean      isBuildin;
     private TypeID             realId;
     private InvarType          redirect;
     private String             generic;
+    private Boolean            isConflict;
     private String             initValue;
-    private String             initSuffix;
-    private String             initPrefix;
+    private String             codePath;
+    private String             codeName;
 
-    public InvarType(TypeID id, String name, InvarPackage pack, String comment)
+    public InvarType(TypeID id, String name, InvarPackage pack, String comment, Boolean isBuildin)
     {
         this.id = id;
         this.name = name;
         this.comment = comment;
         this.pack = pack;
         this.generic = "";
-        this.initPrefix = "";
-        this.initSuffix = "";
         this.initValue = "";
+        this.codePath = "";
+        this.codeName = name;
+        this.isBuildin = isBuildin;
         this.isConflict = false;
-    }
-
-    final public String fullName ()
-    {
-        return (pack.getName() != "") ? pack.getName() + "." + name : name;
     }
 
     final public String fullName (String splitter)
     {
-        return (pack.getName() != "") ? pack.getName() + splitter + name : name;
+        String packName = pack.getName().replaceAll("\\.", Matcher.quoteReplacement(splitter));
+        return !isBuildin() && !packName.equals("") ? packName + splitter + name : name;
     }
 
     final public TypeID getId ()
@@ -96,9 +117,14 @@ public class InvarType
         return generic;
     }
 
-    public InvarType getRedirect ()
+    final public InvarType getRedirect ()
     {
         return redirect == null ? this : redirect;
+    }
+
+    final public String getInitValue ()
+    {
+        return initValue;
     }
 
     final public void setGeneric (String template)
@@ -109,11 +135,6 @@ public class InvarType
     public void setRedirect (InvarType redirect)
     {
         this.redirect = redirect;
-    }
-
-    public String getInitValue ()
-    {
-        return initValue;
     }
 
     public void setInitValue (String construct)
@@ -131,26 +152,6 @@ public class InvarType
         this.realId = realId;
     }
 
-    public String getInitSuffix ()
-    {
-        return initSuffix;
-    }
-
-    public void setInitSuffix (String initSuffix)
-    {
-        this.initSuffix = initSuffix;
-    }
-
-    public String getInitPrefix ()
-    {
-        return initPrefix;
-    }
-
-    public void setInitPrefix (String initPrefix)
-    {
-        this.initPrefix = initPrefix;
-    }
-
     public Boolean getIsConflict ()
     {
         return isConflict;
@@ -160,4 +161,30 @@ public class InvarType
     {
         this.isConflict = isConflict;
     }
+
+    public String getCodePath ()
+    {
+        return codePath;
+    }
+
+    public void setCodePath (String codePath)
+    {
+        this.codePath = codePath;
+    }
+
+    public String getCodeName ()
+    {
+        return codeName;
+    }
+
+    public void setCodeName (String codeName)
+    {
+        this.codeName = codeName;
+    }
+
+    public Boolean isBuildin ()
+    {
+        return isBuildin;
+    }
+
 }
