@@ -352,7 +352,7 @@ abstract public class InvarWrite
             String fileName = rule[1];
             String path = makeDirs(packName) + "/" + fileName;
             File file = new File(dirRoot, path);
-            files.put(file, exports.get(path));
+            files.put(file, exports.get(key));
         }
     }
 
