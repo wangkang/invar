@@ -170,11 +170,18 @@ BinaryReader {
 		$e = ($bits >> 23) & 0xff;
 		$m23 = ($bits & 0x0007ffff);
 		if ($m23 == 0) {
-			if ($e == 0)
-				return 0 * $s; // +0, -0
-			else if ($e == 0x7f)
-				return 1 * $s; // +1, -1
+			if ($e == 0) { // +0, -0
+				return 0;
+			} else if ($e == 0x7f) { // +1, -1
+				return 1 * $s;
+			} else if ($e == 0xff) { // +∞, -∞
+				return INF * $s;
+			} else {
+			}
 		} else {
+			if ($e == 0xff) { // NaN
+				return NAN;
+			}
 			if ($e == 0) { // Denormalized
 				$e = $e + 1;
 			} else { // Normalized

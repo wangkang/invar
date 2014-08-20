@@ -105,6 +105,7 @@
 	[#addImport(struct; imports; System.IO::BinaryReader)]
     [#addImport(struct; imports; System.IO::BinaryWriter)]
     [#addImport(struct; imports; System.Text::StringBuilder)]
+    [#addImport(struct; imports; System::String)]
     (#concat)
     public sealed class (#name) : RushPacket
     {
