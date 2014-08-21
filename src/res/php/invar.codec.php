@@ -40,14 +40,14 @@ final class BinaryWriter {
 		$bytes .= pack ( 'VA*', strlen ( $v ), $v );
 	}
 	static public function writeInt64($v, &$bytes) {
-		$hi = ($v & 0xffffffff00000000) >> 32;
-		$lo = ($v & 0x00000000ffffffff);
-		$packed = pack ( 'VV', $lo, $hi );
+		$hi = $v >> 32;
+		$lo = $v & 0x00000000ffffffff;
+		$bytes .= pack ( 'VV', $lo, $hi );
 	}
 	static public function writeUInt64($v, &$bytes) {
-		$hi = ($v & 0xffffffff00000000) >> 32;
-		$lo = ($v & 0x00000000ffffffff);
-		$packed = pack ( 'VV', $lo, $hi );
+		$hi = $v >> 32;
+		$lo = $v & 0x00000000ffffffff;
+		$bytes .= pack ( 'VV', $lo, $hi );
 	}
 }
 final class 
