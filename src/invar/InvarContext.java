@@ -14,6 +14,8 @@ import java.util.TreeMap;
 
 final public class InvarContext
 {
+    public static final String                 encoding        = "UTF-8";
+
     private final InvarPackage                 packBuildIn;
     private final HashMap<String,InvarPackage> packAll;
     private final HashMap<String,InvarType>    typeWithAlias;

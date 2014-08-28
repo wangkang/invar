@@ -14,7 +14,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.TreeMap;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -85,11 +84,6 @@ final public class InvarReadRule
         }
     }
 
-    static private void log (Object txt)
-    {
-        System.out.println(txt);
-    }
-
     static private final String SPLIT_PACK_TYPE      = "::";
     static private final String SPLIT_GNERICS        = "-";
     static private final String ATTR_COMMENT         = "doc";
@@ -110,59 +104,15 @@ final public class InvarReadRule
     static private final String ATTR_ENUM_VAL        = "value";
     static private final String XML_NODE_CLIENT      = "client";
     static private final String XML_NODE_SERVER      = "server";
+
     //User custom types, will be write to code file.
     static private final String EXT_ENUM             = "Enum";
     static private final String EXT_STRUCT           = "Struct";
     static private final String EXT_PROTOCOL         = "Protoc";
 
-    static public TreeMap<TypeID,String> makeTypeIdMap ()
+    static private void log (Object txt)
     {
-        TreeMap<TypeID,String> map = new TreeMap<TypeID,String>();
-        map.put(TypeID.INT08, TypeID.INT08.getName());
-        map.put(TypeID.INT16, TypeID.INT16.getName());
-        map.put(TypeID.INT32, TypeID.INT32.getName());
-        map.put(TypeID.INT64, TypeID.INT64.getName());
-        map.put(TypeID.UINT08, TypeID.UINT08.getName());
-        map.put(TypeID.UINT16, TypeID.UINT16.getName());
-        map.put(TypeID.UINT32, TypeID.UINT32.getName());
-        map.put(TypeID.UINT64, TypeID.UINT64.getName());
-        map.put(TypeID.FLOAT, TypeID.FLOAT.getName());
-        map.put(TypeID.DOUBLE, TypeID.DOUBLE.getName());
-        map.put(TypeID.BOOL, TypeID.BOOL.getName());
-        map.put(TypeID.STRING, TypeID.STRING.getName());
-        map.put(TypeID.MAP, TypeID.MAP.getName());
-        map.put(TypeID.VEC, TypeID.VEC.getName());
-        return map;
-    }
-
-    static public String makeTestXmlString (String prefix)
-    {
-        StringBuilder code = new StringBuilder();
-        TreeMap<TypeID,String> map = makeTypeIdMap();
-        Iterator<TypeID> i;
-        i = map.keySet().iterator();
-        while (i.hasNext())
-        {
-            TypeID key = i.next();
-            if (TypeID.VEC == key)
-                continue;
-            if (TypeID.MAP == key)
-                continue;
-            String name = map.get(key);
-            String nkey = "test" + prefix + name;
-            if (prefix != "")
-                name = prefix + "-" + name;
-            code.append("<" + name + " ");
-            code.append(ATTR_FIELD_NAME);
-            code.append("=\"" + nkey + "\" ");
-            code.append(ATTR_FIELD_DEFT);
-            code.append("=\"" + "" + "\" ");
-            code.append(ATTR_COMMENT);
-            code.append("=\"" + "" + "\" ");
-            code.append("/>");
-            code.append("\n");
-        }
-        return code.toString();
+        System.out.println(txt);
     }
 
     private final InvarContext                     context;

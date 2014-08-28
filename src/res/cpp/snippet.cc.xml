@@ -109,9 +109,9 @@
     (#tab)(#tab)(#name) = (#null);
     (#tab)}]]></template>
   <template key="struct.setter"><![CDATA[
-	(#typeupper)& (#typeupper)::Set[#upperHeadChar( (#name) )] ((#const)(#type) (#spec)value)
+	(#typeupper)& (#typeupper)::Set[#upperHeadChar( (#name) )] ((#const)(#type) (#spec)value_)
 	{
-	(#tab)[#codeSetterBody(fields; (#index); value)]
+	(#tab)[#codeSetterBody(fields; (#index); value_)]
 	(#tab)return *this;
 	}
   ]]></template>

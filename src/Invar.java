@@ -1,8 +1,8 @@
 import invar.InvarContext;
 import invar.InvarMainArgs;
-import invar.InvarReadRule;
 import invar.InvarWriteCode;
 import invar.InvarWriteXSD;
+import invar.lang.xml.TokensFromXml;
 import invar.model.InvarType.TypeID;
 import java.util.Date;
 import java.util.TreeMap;
@@ -20,6 +20,9 @@ final public class Invar
 
     static public void main (String[] args)
     {
+        long startMS = System.currentTimeMillis();
+        log("Invar start: " + new Date().toString() + " " + (Runtime.getRuntime().freeMemory() >> 20) + "MB");
+
         InvarMainArgs a = new InvarMainArgs();
         a.addDefault(ARG_RULE_PATH, "rule/");
         a.addDefault(ARG_XSD_PATH, "code/xsd/");
@@ -36,18 +39,15 @@ final public class Invar
             return;
         }
 
-        TreeMap<TypeID,String> basics = InvarReadRule.makeTypeIdMap();
+        TreeMap<TypeID,String> basics = makeTypeIdMap();
         try
         {
-            long startMS = System.currentTimeMillis();
-            log("Invar start: " + new Date().toString());
             InvarContext ctx = new InvarContext();
             ctx.addBuildInTypes(basics);
             ctx.setRuleDir(a.get(ARG_RULE_PATH));
-
             log("");
-            InvarReadRule.start(ctx, ".xml");
-
+            //InvarReadRule.start(ctx, ".xml");
+            TokensFromXml.start(ctx);
             if (a.has(ARG_XSD_PATH))
             {
                 log("");
@@ -79,12 +79,34 @@ final public class Invar
                 log("");
                 new InvarWriteCode(ctx, a.get(ARG_PHP_PATH), "php/snippet.xml").write(".php");
             }
-            log("\nInvar end: " + (System.currentTimeMillis() - startMS) + "ms");
+            long total = Runtime.getRuntime().totalMemory();
+            long free = Runtime.getRuntime().freeMemory();
+            log("\nInvar end: " + (System.currentTimeMillis() - startMS) + "ms, " + ((total - free) >> 20) + "MB");
         }
         catch (Throwable e)
         {
             e.printStackTrace();
         }
+    }
+
+    static public TreeMap<TypeID,String> makeTypeIdMap ()
+    {
+        TreeMap<TypeID,String> map = new TreeMap<TypeID,String>();
+        map.put(TypeID.INT08, TypeID.INT08.getName());
+        map.put(TypeID.INT16, TypeID.INT16.getName());
+        map.put(TypeID.INT32, TypeID.INT32.getName());
+        map.put(TypeID.INT64, TypeID.INT64.getName());
+        map.put(TypeID.UINT08, TypeID.UINT08.getName());
+        map.put(TypeID.UINT16, TypeID.UINT16.getName());
+        map.put(TypeID.UINT32, TypeID.UINT32.getName());
+        map.put(TypeID.UINT64, TypeID.UINT64.getName());
+        map.put(TypeID.FLOAT, TypeID.FLOAT.getName());
+        map.put(TypeID.DOUBLE, TypeID.DOUBLE.getName());
+        map.put(TypeID.BOOL, TypeID.BOOL.getName());
+        map.put(TypeID.STRING, TypeID.STRING.getName());
+        map.put(TypeID.MAP, TypeID.MAP.getName());
+        map.put(TypeID.VEC, TypeID.VEC.getName());
+        return map;
     }
 
     static void showHelp ()
