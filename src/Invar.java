@@ -89,7 +89,7 @@ final public class Invar
             }
             long total = Runtime.getRuntime().totalMemory();
             long free = Runtime.getRuntime().freeMemory();
-            log("\nInvar end: " + (System.currentTimeMillis() - startMS) + "ms, " + ((total - free) >> 20) + "MB");
+            log("\nInvar end: " + (System.currentTimeMillis() - startMS) + "ms, " + ((total - free) >> 20) + "/" + (total >> 20) + "MB");
         }
         catch (Throwable e)
         {
